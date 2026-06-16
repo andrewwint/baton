@@ -2,13 +2,13 @@
 
 This document records the published evidence that informs baton's design and maps each design decision to its source.
 
-## Honest framing (read this first)
+## How to read this
 
 The supporting studies below are about **LLM code translation**, not general software orchestration. They support our choices **by analogy**, not as direct proof: a translate → validate → repair loop is structurally the same shape as our **implement → verify → recover** loop, and the agent/lane patterns transfer. Where a number comes from a translation benchmark, treat it as *directional support for a design instinct*, not as a measured property of baton. Nothing here claims the papers prove a baton works; they show that the same instincts paid off in an adjacent, well-studied domain.
 
 baton's own behavior should be validated by its evals (`.claude/skills/baton/evals/`) and live runs — that is the primary evidence; this doc is the prior.
 
-This is an **applied-science record, not a credibility claim** — and a humble one. The honest core is "[Where we drifted](#where-we-drifted--and-whats-still-open)" below: the places we bent a finding to fit real dev work, where we're least sure, and what we'd still like to learn. Read the citations as motivation, not proof; we expect to revise this as we go.
+This is an **applied-science record, not a credibility claim**. The core is "[Where we drifted](#where-we-drifted--and-whats-still-open)" below: the places we bent a finding to fit real dev work, where we're least sure, and what we'd still like to learn. Read the citations as motivation, not proof; we expect to revise this as we go.
 
 ## Sources
 
@@ -37,8 +37,8 @@ Self-repair plateaus after the second round in two independent studies: CodeTran
 ### D4. Scope the recovery handoff to the failing surface
 TRANSAGENT localizes the erroneous block (via execution alignment between source and target) to narrow the fixing space, improving both accuracy and speed (arXiv:2409.19894). Supports handing the recovery lane the failing diff + test output, not a whole-task redo.
 
-### D5. Cheap model by default, escalate only when needed
-TRANSAGENT achieves its results with small (<10B-parameter) backbone models inside a structured loop (arXiv:2409.19894); Lost in Translation's iterative prompt-crafting lifted success by **+5.5%** on average (**+12%** for GPT-4) without a bigger model (arXiv:2308.03109). Supports the runtime cost levers (cheaper default manager model + effort, escalate for the hardest work).
+### D5. Low-cost model by default, escalate only when needed
+TRANSAGENT achieves its results with small (<10B-parameter) backbone models inside a structured loop (arXiv:2409.19894); Lost in Translation's iterative prompt-crafting lifted success by **+5.5%** on average (**+12%** for GPT-4) without a bigger model (arXiv:2308.03109). Supports the runtime cost levers (lower-cost default manager model + effort, escalate for the hardest work).
 
 ### D6. Coordinator / feedback-loop framing
 The agentic-reasoning survey (arXiv:2601.12538) organizes the field as planning + tool-use + feedback (self-evolving) + multi-agent collaboration — the vocabulary we use for the coordinator/hub-and-spoke manager and its verify→recover feedback loop. Framing only; no quantitative claim drawn from it.
@@ -51,10 +51,10 @@ The citations aren't the interesting part; the **drifts** are — the places we 
 
 2. **The ~2-attempt recovery bound is borrowed, not measured here.** Plateau-at-2 is a *translation* self-repair result; we adopted it as a default cap (plus the `BATON_MAX_TURNS` backstop) because we needed a stopping rule, not because we measured it on dev tasks. It may well differ by failure class — a flaky test, a type error, and a logic bug could each plateau at a different round. We'd like to know; we don't yet.
 
-3. **We're betting on a mechanism the paper didn't isolate.** TRANSAGENT's +13.7% came from execution-alignment **localization** plus role specialization. We bet the lift comes from bounded **disjoint write scopes** plus role lanes — a lever we can actually control in a repo, but not the one that was measured. How much of the gain is localization vs. disjointness vs. specialization, and when the manager's integration overhead cancels the parallelism, we honestly don't know.
+3. **We're betting on a mechanism the paper didn't isolate.** TRANSAGENT's +13.7% came from execution-alignment **localization** plus role specialization. We bet the lift comes from bounded **disjoint write scopes** plus role lanes — a lever we can actually control in a repo, but not the one that was measured. How much of the gain is localization vs. disjointness vs. specialization, and when the manager's integration overhead cancels the parallelism, we don't know.
 
-4. **Cheap-model-default points at the hardest role.** Small models sufficed for *translation* (a narrow task). We default the **manager** — which plans, routes, and integrates — to a mid model with cheaper lanes, mostly to keep cost sane. Whether routing quality quietly degrades with a cheaper manager is untested; the right model for the *coordination* role is an open question, not a settled one.
+4. **Low-cost-model default points at the hardest role.** Small models sufficed for *translation* (a narrow task). We default the **manager** — which plans, routes, and integrates — to a mid model with lower-cost lanes, mostly to keep cost sane. Whether routing quality quietly degrades with a lower-cost manager is untested; the right model for the *coordination* role is an open question, not a settled one.
 
 5. **Some choices have no research behind them, and we won't pretend otherwise.** Hub-and-spoke / coordinator-only, the `references/` org-extension, and the lean-vs-enterprise scoping are pragmatic current best guesses — not research-derived, and likely to change as we learn.
 
-**The honest gap: not yet self-validated.** None of this is confirmed on Baton itself. The first live-eval attempt was confounded (abstract prompts on empty workspaces → 1/12, not a clean signal), so these stay research-*informed guesses*, not measured properties. Structural evals pass; the behavioral ones need fixtures. Treat this whole document as a **prior we expect to revise** — we're still learning, and we'd rather be corrected than confidently wrong.
+**The gap that matters most: not yet self-validated.** None of this is confirmed on Baton itself. The first live-eval attempt was confounded (abstract prompts on empty workspaces → 1/12, not a clean signal), so these stay research-*informed guesses*, not measured properties. Structural evals pass; the behavioral ones need fixtures. Treat this whole document as a **prior we expect to revise** — we're still learning, and we'd rather be corrected than confidently wrong.

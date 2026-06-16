@@ -2,7 +2,7 @@
 
 Baton is a lean, manager-led orchestration skill for **Claude Code**, with an optional TypeScript runtime on the [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview). Like a relay team, it routes substantial development work through bounded, parallel subagent lanes — triage · discovery · planning · implementation · verification · recovery — handing off cleanly between them while a single coordinator owns integration, approval gates, and an auditable run trail. **Lean by default** for individual/small-team work; **enterprise-ready by extension** via `references/`.
 
-**On the research, honestly:** Baton's loop borrows from published code-translation research — but it's a *borrow*, and we're upfront about where we stretched it past what those studies actually cover (the ~2-round repair bound, cheap-model-by-default, the multi-agent bet) and what we still don't know. None of it is yet validated on Baton itself, and we expect to revise as we learn. The full accounting — what we took, where we drifted, and what's still open — is in [`docs/research-basis.md`](docs/research-basis.md).
+**On the research:** Baton's loop borrows from published code-translation research — but it's a *borrow*, and we're upfront about where we stretched it past what those studies actually cover (the ~2-round repair bound, low-cost-model-default, the multi-agent bet) and what we still don't know. None of it is yet validated on Baton itself, and we expect to revise as we learn. The full accounting — what we took, where we drifted, and what's still open — is in [`docs/research-basis.md`](docs/research-basis.md).
 
 ## Executive summary (plain English)
 
@@ -143,7 +143,7 @@ npm run orchestrate -- "plan and implement X" --cwd /path/to/target/repo
 npm run orchestrate -- "discovery pass" --cwd /path/to/target/repo --offline
 ```
 
-**Cost** (LLM-backed): the coordinator loop dominates, so it defaults to **Sonnet at medium effort** with a 40-turn cap. Tune via env (`.env.example`): `BATON_MODEL=haiku BATON_EFFORT=low` for cheap runs, `BATON_MODEL=opus BATON_EFFORT=xhigh` for the hardest work. Lanes keep their own models (triage→haiku, reviewer/researcher→sonnet, implementer→inherits the coordinator). Adding *more tools* does **not** lower cost — model tier, effort, and bounded turns do.
+**Cost** (LLM-backed): the coordinator loop dominates, so it defaults to **Sonnet at medium effort** with a 40-turn cap. Tune via env (`.env.example`): `BATON_MODEL=haiku BATON_EFFORT=low` for low-cost runs, `BATON_MODEL=opus BATON_EFFORT=xhigh` for the hardest work. Lanes keep their own models (triage→haiku, reviewer/researcher→sonnet, implementer→inherits the coordinator). Adding *more tools* does **not** lower cost — model tier, effort, and bounded turns do.
 
 **Run trail:** each run writes a ledger (`run.json` + `summary.md`, with `total_cost_usd`) under `~/.baton/runs/` by default — override with `BATON_LEDGER_DIR`.
 
@@ -177,7 +177,7 @@ Baton stays loosely coupled — it *uses* better tools when they're in reach but
 
 ## Why it's built this way
 
-Key design choices (manager-led lanes, behavioral verification, the ~2-attempt recovery bound, cheap-model-default) are informed by published code-translation research, mapped decision-by-decision in [`docs/research-basis.md`](docs/research-basis.md). The framing there is honest: those results support the design **by analogy**, not as proof — Baton's own evals and live runs are the primary evidence.
+Key design choices (manager-led lanes, behavioral verification, the ~2-attempt recovery bound, low-cost-model default) are informed by published code-translation research, mapped decision-by-decision in [`docs/research-basis.md`](docs/research-basis.md). Those results support the design **by analogy**, not as proof — Baton's own evals and live runs are the primary evidence.
 
 See [SKILL.md](.claude/skills/baton/SKILL.md) for the full loop, delegation policy, and lane map.
 
