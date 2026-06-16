@@ -31,8 +31,8 @@ Treat the orchestrator loop as the core feature. **Two paths:** a trivial task r
 2. **triage** — classify size and risk; decide direct vs. delegated; pick lanes
 3. **plan** — establish architecture shape, module boundaries, and a sliced work plan
 4. **implement** — make the changes (directly or via implementation lanes)
-5. **verify** — run build/test/lint for the touched surface; review the diff
-6. **recover** — on failure, backtrack on the failing surface (the diff + failing test/build output), bounded to ~2 focused attempts, then escalate to the developer with the evidence rather than looping; roll back destructive steps only with approval
+5. **verify** — run build/test/lint for the change — the full suite, not just the test nearest your edit, when shared code is touched (a change can break a sibling elsewhere); review the diff
+6. **recover** — on failure, backtrack on the failing surface (the diff + failing test/build output), tracing to the root cause rather than patching the symptom (a failing test or error can point at the wrong file); bounded to ~2 focused attempts, then escalate to the developer with the evidence rather than looping; roll back destructive steps only with approval
 7. **approve** — gate anything outward-facing on explicit user approval
 8. **close out** — summarize outcome with acceptance evidence
 9. **preserve artifacts** — keep a concise run trail (see Run Artifacts)
@@ -140,7 +140,7 @@ Navigation is lexical by default (Grep/Glob/Read). The runtime can optionally pa
 
 ## Org extension via `references/`
 
-If the skill's `references/*.md` exist, consult the one matching the topic in play (ticketing/PR, platform/deploy, acceptance, security) and follow the org's process; otherwise behave generically — no change for a single developer. References customize *how* work is done and never relax the safety gates — outward-facing actions stay approval-gated and the developer stays the credited author — unless a reference explicitly defines its own approval authority. See [`references/README.md`](references/README.md) for the convention, suggested taxonomy, and where references live.
+If the skill's `references/*.md` exist, consult the one matching the topic in play (ticketing/PR, platform/deploy, acceptance, security) and follow the org's process; otherwise behave generically — no change for a single developer. References customize *how* work is done and never relax the safety gates — outward-facing actions stay approval-gated and the developer stays the credited author — unless a reference explicitly defines its own approval authority. Consult the matching reference at the relevant loop step — `Workflow` before opening a PR or naming a branch, `Platform` before a deploy or touching CI/secrets, `Acceptance` at close-out, `Security` before any security-sensitive action. See [`references/README.md`](references/README.md) for the convention, suggested taxonomy, and where references live.
 
 ## Approvals & Governance
 

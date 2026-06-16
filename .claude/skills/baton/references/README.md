@@ -19,6 +19,21 @@ Your `references/*.md` are **org-private**: they live in your copy of the skill,
 
 Keep each file **focused and short** — they're loaded on demand, so smaller files mean less context per task. One topic per file beats one monolith.
 
+## Example: a starter `Workflow.md`
+
+A good one is short and specific — concrete, checkable rules, not prose. Start from something like this and edit to your team's truth:
+
+```markdown
+# Workflow
+
+- **Tickets:** every change links a Jira key (`PROJ-123`); put it in the branch and the PR title.
+- **Branches:** `feature/PROJ-123-short-desc` or `bugfix/PROJ-123-short-desc`, off `develop`.
+- **PRs:** target `develop`; require 2 approvals and green CI; squash-merge.
+- **Never:** push straight to `main`; force-push a shared branch.
+```
+
+`Platform`, `Acceptance`, and `Security` follow the same shape — a few concrete rules the coordinator can actually check against.
+
 ## Precedence
 
 References customize **how** work is done. They do **not** silently relax the skill's core safety posture: outward-facing actions stay approval-gated and the developer stays the credited author — unless a reference *explicitly* defines its own approval authority.
