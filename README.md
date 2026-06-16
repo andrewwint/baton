@@ -194,6 +194,10 @@ Key design choices (manager-led lanes, behavioral verification, the ~2-round rec
 
 See [SKILL.md](.claude/skills/baton/SKILL.md) for the full loop, delegation policy, and lane map.
 
+## Status
+
+Early project (v0.1.0). Roadmap in [docs/ROADMAP.md](docs/ROADMAP.md); contributing and ideas in [CONTRIBUTING.md](CONTRIBUTING.md). Real-world usage reports are especially welcome.
+
 ---
 
 Powered by Claude.
