@@ -22,8 +22,25 @@ OpenSpec change under `openspec/changes/<id>/` (a `proposal.md`, a spec delta un
 `tasks.md`), validated with `openspec validate <id> --strict`, then built through Baton's own loop
 and archived. If you are proposing a feature, an OpenSpec proposal is the clearest way to do it.
 
-For the optional runtime, checks live under `.claude/skills/baton/runtime/`; run the runtime tests
-and `npm run validate-evals` (no API key needed) before opening a PR.
+## Before you open a PR
+
+Keep PRs small and scoped; for anything substantial, open an OpenSpec proposal first (above). Match
+the repo's style: lean, plain prose, no em dashes.
+
+Docs and skill-markdown changes (`SKILL.md`, `agents/`, `references/`) need no build.
+
+For runtime changes (`.claude/skills/baton/runtime/`), run the no-key checks first:
+
+```bash
+cd .claude/skills/baton/runtime
+npm install
+npm run build            # typecheck and compile
+npm run smoke            # offline harness: smoke + MCP + conformance, no API key
+npm run validate-evals   # structural eval check, no API key
+```
+
+The model-backed checks (`npm run evals`, `npm run bench`) need an `ANTHROPIC_API_KEY` and are
+optional.
 
 ## Tone
 
