@@ -105,6 +105,8 @@ The skill is **self-contained**. Everything lives in one folder:
     └── scripts/             # install.sh + eval runner (run-evals.mjs, validate-evals.mjs)
 ```
 
+Baton needs no server, no database, no control plane, and no new runtime to learn. It is a markdown skill (plus an optional Node runtime), copied into a repo. That is the whole footprint.
+
 ## Install
 
 **Per project.** Copy the folder into the repo you're working in:
