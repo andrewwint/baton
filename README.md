@@ -28,9 +28,19 @@ It adapts a manager-led orchestration pattern to Claude Code's native subagent s
 
 ## When to use it
 
-Baton is built for **large, complex, multi-step work** — changes that span several files, need discovery before touching code, benefit from a separate review pass and bounded recovery, or compose other skills. That's where a coordinated loop with verification, approval gates, and a run trail earns its keep.
+Baton is built for **consequential, verification-heavy work** — changes where being wrong is expensive: security-sensitive edits, dependency and version bumps, migrations, changes to shared code, and anything headed for production. Work like this usually spans several files, needs discovery before touching code, and benefits from a separate review pass and bounded recovery — but it's the **stakes**, not the step-count, that make a coordinated loop with verification, approval gates, and a run trail earn its keep.
 
-For **trivial, one-off changes** (a typo, a one-line fix), you don't need Baton — a direct prompt is faster and cheaper, and our [measured honest standing](#why-its-built-this-way) says so plainly: on small tasks a capable model matches Baton at lower cost. Baton's own triage recognizes this and runs such work **direct** — no lanes, no ceremony — rather than over-engineering it. **Aim Baton at complexity, not simplicity.**
+For **trivial or low-stakes changes** (a typo, a one-line fix, a throwaway refactor), you don't need Baton — a direct prompt is faster and cheaper, and our [measured honest standing](#why-its-built-this-way) says so plainly: when getting it wrong costs little, a capable model matches Baton at lower cost. Baton's own triage recognizes this and runs such work **direct** — no lanes, no ceremony — rather than over-engineering it. **Aim Baton at consequence, not mere complexity.**
+
+## Shift-left by design
+
+![Shift-left vs. traditional quality model: attention to quality concentrated early — at Plan & Design and Develop & Build — instead of late, at Test and Deploy.](docs/image.png)
+
+Baton's loop is shaped like the shift-left curve: it concentrates attention on quality **early** — discovery before touching code, a planning pass, reading the surrounding code to match its conventions, and verification before work is called done. The economics are the classic ones: a defect caught at *Plan* or *Develop* is far cheaper than the same defect caught at *Test*, *Deploy*, or in production.
+
+That early investment is a **cost**, and it pays back only when there's an expensive "late" to prevent — which is why it earns its keep on consequential work and why triage skips it on low-stakes changes. The point isn't *more turns up front*; it's **earlier attention, in proportion to risk** — exactly what `triage` decides. The edge over a bare model isn't that Baton can plan ahead (any capable model can); it's that Baton shifts left **reliably, on every routed run**, instead of only when the task and model happen to prompt it.
+
+Scope note: Baton is shift-**left**. It owns **Plan → Develop → Test**, *gates* (but does not run) **Deploy & Release**, and does not cover **Monitor & Analyze** — that right-hand "shift-right" half of the lifecycle is out of scope.
 
 ## How the loop works
 
@@ -185,7 +195,7 @@ Baton stays loosely coupled — it depends on no other skill, and composition is
 
 Key design choices (manager-led lanes, behavioral verification, the ~2-attempt recovery bound, low-cost-model default) are informed by published code-translation research, mapped decision-by-decision in [`docs/research-basis.md`](docs/research-basis.md). Those results support the design **by analogy**, not as proof — Baton's own evals and live runs are the primary evidence.
 
-**Honest standing (measured).** A Baton-vs-baseline bench (`testing/fixtures/`, skill-on vs. `--no-skill`) ran four times across model tiers and difficulty, and **every run washed** — structured and unstructured produced equal end-state outcomes, at higher cost for Baton. The honest read: Baton does **not** beat a capable model on small-task correctness. Its value is **reliably vs. probabilistically** — it *always* verifies, gates outward-facing actions, splits review into its own lane, and keeps a run trail, where a bare model does these only when the task and model happen to favour it — plus scale, skill-composition, and accessibility, none of which a single-model toy bench can measure. Full reasoning in [`docs/research-basis.md`](docs/research-basis.md#where-we-drifted--and-whats-still-open).
+**Honest standing (measured).** A Baton-vs-baseline bench (`testing/fixtures/`, skill-on vs. `--no-skill`) ran four times across model tiers and difficulty, and **every run washed** — structured and unstructured produced equal end-state outcomes, at higher cost for Baton. The honest read: Baton does **not** beat a capable model on small, low-stakes correctness. Its value is **reliably vs. probabilistically** — it *always* verifies, gates outward-facing actions, splits review into its own lane, and keeps a run trail, where a bare model does these only when the task and model happen to favour it — plus scale, skill-composition, and accessibility, none of which a single-model toy bench can measure. Full reasoning in [`docs/research-basis.md`](docs/research-basis.md#where-we-drifted--and-whats-still-open).
 
 See [SKILL.md](.claude/skills/baton/SKILL.md) for the full loop, delegation policy, and lane map.
 
