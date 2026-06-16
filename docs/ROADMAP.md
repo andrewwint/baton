@@ -11,12 +11,15 @@ OpenSpec change under `openspec/changes/` and is built through Baton's own loop.
 These are the things the evidence so far does not settle. Answering any of them would teach us
 more than another feature would.
 
-- **Does it help against real infrastructure?** The cloud-adapter work is tested with moto (an
-  in-process AWS mock). The genuinely hard part, distributed-systems correctness under real
-  Kinesis/DynamoDB concurrency and eventual consistency, has not been tested.
-- **Does it help when there is no reference design?** Baton has so far compressed
-  implement-and-test on work where the design already existed. There is no evidence yet that it
-  helps with discovery and design, where you do not already know the answer.
+- **Does it help against real infrastructure?** Initial evidence: yes for a live cloud deploy. A
+  separate greenfield run went research to a working deploy on real AWS that ran end to end, and
+  running it for real caught two bugs the tests could not (see [field notes](field-notes.md)). The
+  harder part, distributed-systems correctness under real concurrency and eventual consistency, is
+  still untested.
+- **Does it help when there is no reference design?** Initial evidence: yes for the discovery half.
+  A greenfield run with no reference design went from research to a live deploy; discovery filled a
+  real knowledge gap and verify-don't-invent held ([field notes](field-notes.md)). Still N=1, and
+  design quality under ambiguity is not yet stress-tested.
 - **Is the cost worth it?** A routed change runs several lanes and spends more model tokens than a
   one-shot prompt. We have not measured Baton against a careful engineer plus one sharp
   adversarial review on the same task, which is the comparison that would settle it.
@@ -27,7 +30,8 @@ more than another feature would.
   alongside pass/fail (descoped from `add-process-conformance-evals`; the analyzer already runs
   standalone).
 - More held-out behavioral fixtures, especially ones that resist a faithful-but-buggy port.
-- A no-reference greenfield trial, to start probing the second open question above.
+- A deeper no-reference trial that stress-tests discovery and design under ambiguity (the first
+  greenfield trial reached a live deploy; see [field notes](field-notes.md)).
 - Better guidance on what to encode in `references/` and lane prompts, especially adversarial
   review and acceptance directives. The dogfood showed the review brief is the highest-leverage
   input and it is currently under-documented.

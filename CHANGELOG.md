@@ -3,6 +3,32 @@
 Notable changes to Baton. Baton is early: versions before 1.0 may change shape as the design is
 tested against real work.
 
+## 0.1.1 - docs + first field evidence
+
+No functional change to the skill: the verification and triage improvements shipped in 0.1.0. This
+release records the first real-world evidence and refines the docs.
+
+### Added
+
+- `docs/field-notes.md`: an honest, anonymized record of two real runs (a multi-step CQRS rebuild,
+  and a greenfield agent taken to a live cloud deploy on tooling new to the model) and what they
+  showed. The headline: running it for real, on real infrastructure, caught defects a green test
+  suite could not.
+- The roadmap's open questions now cite that initial evidence. Real infrastructure and no-reference
+  design each have a first positive data point; both stay open at N=1.
+
+### Changed
+
+- Docs polish: leaner value prose, a plain footprint statement, an honest "a run is only as good as
+  what you feed it" note, and a recommended-workflow section (plan the feature and its
+  implementation together, then an independent focused review).
+
+### Unchanged (honest standing)
+
+- The behavioral benches still wash; Baton does not beat a capable model on small, low-stakes
+  correctness. The value is consistency, discipline, and coordination on consequential work, traded
+  for higher model cost, and it amplifies the judgment you feed it rather than generating it.
+
 ## 0.1.0 - first public snapshot
 
 First tagged version, cut after Baton was used to drive a real, multi-step rebuild end to end.
