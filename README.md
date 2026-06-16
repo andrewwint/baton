@@ -11,7 +11,7 @@ Think of a relay race. The work is the baton, passed cleanly from one runner to 
 - one **looks around the code** to learn how it works
 - one **makes a plan**
 - one **writes the code**
-- one **checks the work** and runs the tests
+- one **checks the work** and looks for mistakes the tests miss
 - one **looks things up** when the team gets stuck
 
 A **coordinator** hands the baton to each runner, keeps them out of each other's way, and brings the work back together. It asks you first before anything big or hard to undo, like sharing code or deleting files. You stay in charge, and it keeps short notes on what it did.
