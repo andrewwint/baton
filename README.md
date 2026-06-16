@@ -2,6 +2,8 @@
 
 Baton is a lean, manager-led orchestration skill for **Claude Code**, with an optional TypeScript runtime on the [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview). Like a relay team, it routes substantial development work through bounded, parallel subagent lanes — triage · discovery · planning · implementation · verification · recovery — handing off cleanly between them while a single coordinator owns integration, approval gates, and an auditable run trail. **Lean by default** for individual/small-team work; **enterprise-ready by extension** via `references/`.
 
+**Honestly research-informed:** the core choices — manager-led lanes, behavioral verification (run the tests, don't trust the surface), a ~2-attempt recovery bound, cheap-model-by-default — draw on published code-translation research, applied *by analogy, not as proof*. The decision-by-decision mapping — and what it does **not** establish — is in [`docs/research-basis.md`](docs/research-basis.md).
+
 ## Executive summary (plain English)
 
 **Baton** is a helper for Claude Code (an AI that writes code).

@@ -1,21 +1,28 @@
 # Project Context
 
 ## Purpose
-`baton` is a portable, development-focused orchestration capability for Claude Code.
+Baton is a portable, development-focused orchestration skill for Claude Code.
 
 It centers on:
-- a manager-led `baton` skill that routes substantial software work through bounded subagent lanes (discovery, planning, implementation, verification, recovery)
+- the manager-led Baton skill that routes substantial software work through bounded subagent lanes (discovery, planning, implementation, verification, recovery)
 - purpose-built lane agents (`triage`, `implementer`, `code-reviewer`, `researcher`) bundled in the skill at `agents/*.md` and registered programmatically by the runtime
 - a programmatic runtime built on the Claude Agent SDK so the same lanes run headlessly, outside an interactive Claude Code session
 
 It adapts a manager-led orchestration pattern to Claude Code primitives and the [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview).
 
 ## Positioning
-`baton` is a lean, manager-led orchestration skill for Claude Code, inspired by Augment Code's guide [*Claude Agent SDK: Agent Loops, Tool Calls, and Multi-Step Workflows*](https://www.augmentcode.com/guides/claude-agent-sdk-agent-loops-tool-calls). That guide names the gaps the bare Agent SDK leaves — no built-in retry, durable execution, centralized observability, or multi-agent coordination — and notes that scaling past single-developer work usually means heavy external infrastructure. `baton` fills those gaps the *lean* way: the manager-led loop (intake → triage → plan → implement → verify → recover), bounded disjoint lanes, approval gates, an auditable run trail, and research-backed discipline (e.g. the ~2-attempt recovery bound) — without building the team-scale scaffolding.
+Baton is a lean, manager-led orchestration skill for Claude Code. Like a relay team, it hands work cleanly between bounded lane-runners while a single coordinator owns integration, approval gates, and the run trail. It is inspired by Augment Code's guide [*Claude Agent SDK: Agent Loops, Tool Calls, and Multi-Step Workflows*](https://www.augmentcode.com/guides/claude-agent-sdk-agent-loops-tool-calls). That guide names the gaps the bare Agent SDK leaves — no built-in retry, durable execution, centralized observability, or multi-agent coordination — and notes that scaling past single-developer work usually means heavy external infrastructure. Baton fills those gaps the *lean* way: the manager-led loop (intake → triage → plan → implement → verify → recover), bounded disjoint lanes, approval gates, an auditable run trail, and research-informed discipline (e.g. the ~2-attempt recovery bound) — without building the team-scale scaffolding.
 
 Its scope is **individual / small-team Claude Code development**: routed multi-step work, parallel feedback, gated outward actions, a proportional trail. It deliberately does **not** target enterprise scale (durable execution, formal governance/audit, resumable background fleets) — where the guide says external infrastructure belongs, and importing it here would betray the lean goal.
 
 **Design test for any new capability:** does it earn its weight for a single developer in Claude Code, or is it enterprise scaffolding imported by reflex? Prefer the lean path; cut what does not pay for itself.
+
+## Branding
+
+- The product/brand name is **Baton** — never put "Claude" or "Claude Code" in the product name. "Powered by Claude" is an allowed tagline; "for Claude Code" is a fine descriptor.
+- The metaphor is the **relay**: clean handoffs between bounded lane-runners, with a single coordinator owning integration, approval gates, and the run trail (hub-and-spoke, not peer-to-peer).
+- Identifiers stay lowercase (`baton`, `/baton`, `BATON_*`, `~/.baton`); prose uses the proper noun **Baton**.
+- Apply the lean design test (above) to every addition.
 
 ## Tech Stack
 - Claude Code skills and subagents (`.claude/skills/`, `.claude/agents/`), markdown-first contracts

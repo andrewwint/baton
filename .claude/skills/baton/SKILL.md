@@ -7,7 +7,7 @@ description: Manager-led development orchestrator. Routes substantial software w
 
 ## Purpose
 
-Provide a single, manager-led path for substantial development work in Claude Code.
+Baton provides a single, manager-led path for substantial development work in Claude Code. Think of a relay: work passes cleanly between bounded lanes while one manager owns the handoffs, integration, and approval.
 
 The main conversation is the **manager**. It plans the work, decides what stays direct and what becomes a delegated lane, dispatches bounded subagents via the Agent tool, integrates their results, and owns approval and acceptance. Subagents are orchestrator-managed workers, not autonomous peers.
 
