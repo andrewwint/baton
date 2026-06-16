@@ -6,7 +6,7 @@ Baton is a lean, manager-led orchestration skill for **Claude Code**, with an op
 
 ## Executive summary (plain English)
 
-**Baton** is a helper for Claude Code (an AI that writes code).
+**Baton** is a skill for Claude Code (an AI that writes code), following the open [Agent Skills](https://agentskills.io/home) standard.
 
 Think of a relay race. The work is the baton, passed cleanly from one runner to the next:
 
