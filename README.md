@@ -192,6 +192,8 @@ Key design choices (manager-led lanes, behavioral verification, the ~2-round rec
 
 **What the bench shows.** A Baton-vs-baseline bench (`testing/fixtures/`, skill-on vs. `--no-skill`) ran four times across model tiers and difficulty, and **every run washed**: structured and unstructured produced equal end-state outcomes, at higher cost for Baton. Baton does **not** beat a capable model on small, low-stakes correctness. Its value is **reliably vs. probabilistically**. It *always* verifies, gates outward-facing actions, splits review into its own lane, and keeps a run trail, where a bare model does these only when the task and model happen to favour it. Add scale, skill-composition, and accessibility, none of which a single-model toy bench can measure. Full reasoning in [`docs/research-basis.md`](docs/research-basis.md#where-we-drifted--and-whats-still-open).
 
+**A run is only as good as what you feed it.** The loop runs the same way every time, but quality tracks the inputs: the acceptance criteria, the standards you encode (`references/`, lane prompts), and above all the sharpness of the review brief. A vague brief still produces a tidy, green, archived run that can ship a defect; a sharp adversarial brief is what makes the same loop catch real bugs. Baton makes discipline repeatable and auditable. It does not supply it.
+
 See [SKILL.md](.claude/skills/baton/SKILL.md) for the full loop, delegation policy, and lane map.
 
 ## Status

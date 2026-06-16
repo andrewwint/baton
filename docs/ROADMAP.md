@@ -28,6 +28,12 @@ more than another feature would.
   standalone).
 - More held-out behavioral fixtures, especially ones that resist a faithful-but-buggy port.
 - A no-reference greenfield trial, to start probing the second open question above.
+- Better guidance on what to encode in `references/` and lane prompts, especially adversarial
+  review and acceptance directives. The dogfood showed the review brief is the highest-leverage
+  input and it is currently under-documented.
+- Make the lane brief a first-class artifact: explicit guidance (and maybe a template) for the
+  discovery, implementation, and review briefs, since a run's quality tracks the brief's
+  sharpness more than the loop mechanics.
 
 ## Principles (not expected to change)
 
