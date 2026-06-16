@@ -18,11 +18,7 @@ A **coordinator** hands the baton to each runner, keeps them out of each other's
 
 You can teach Baton your own rules (your review steps, deploy checks, ticket conventions) by adding a few files, so the same process repeats on every project. Simple for one person, and it still fits a big team.
 
-**Baton is built for medium and big jobs that need to be done the same careful way every time.** These are jobs with many steps or many files, or jobs where a mistake would cost a lot. Baton does use more of the AI's effort, because it runs several helpers for each job instead of just one. In return you get a steady, checked process on every run, and you do not have to keep track of every handoff yourself.
-
-## When to use it
-
-Baton earns its keep on **consequential, verification-heavy work**: security-sensitive edits, dependency and version bumps, migrations, changes to shared code, anything headed for production. Work like this usually spans several files and benefits from discovery before touching code, a separate review pass, and bounded recovery. But it's the **stakes**, not the step-count, that justify the loop. **Aim Baton at consequence, not mere complexity.**
+Baton uses more of the AI's effort than a single prompt, because it runs several helpers per job. In return you get a steady, checked process on every run, and you do not have to keep track of every handoff yourself.
 
 ## Shift-left by design
 
