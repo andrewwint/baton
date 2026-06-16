@@ -2,8 +2,6 @@
 
 Baton is a lean, manager-led orchestration skill for **Claude Code**, with an optional TypeScript runtime on the [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview). Like a relay team, it routes substantial development work through bounded, parallel subagent lanes — triage · discovery · planning · implementation · verification · recovery — handing off cleanly between them while a single coordinator owns integration, approval gates, and an auditable run trail. **Lean by default** for solo work; **your process, made repeatable** — encode your team's review, deploy, and acceptance steps in `references/` once and Baton follows them across every project.
 
-**On the research:** Baton's loop draws on published code-translation research, adapted to real dev work rather than copied from it. We're clear about which choices the evidence directly supports and which are pragmatic calls — the ~2-round repair bound, low-cost-model-default, the multi-agent bet — kept flexible by intent and refined as we learn. The full mapping — what we took, where we adapted it, and what's open — is in [`docs/research-basis.md`](docs/research-basis.md).
-
 ## Executive summary (plain English)
 
 **Baton** is a skill for Claude Code (an AI that writes code), following the open [Agent Skills](https://agentskills.io/home) standard.
@@ -20,12 +18,6 @@ A **coordinator** hands the baton to each runner, keeps them out of each other's
 
 Small jobs skip the relay and just get done. And you can teach Baton your own rules — your review steps, deploy checks, ticket conventions — by adding a few files, so the same process repeats on every project. Simple for one person, and it still fits a big team.
 
-## What it does (in more detail)
-
-Baton routes substantial software work through a bounded subagent loop — discovery, planning, implementation, verification, recovery — while keeping a single visible owner, approval gates, and a proportional run trail.
-
-It adapts a manager-led orchestration pattern to Claude Code's native subagent system — the Agent tool with `subagent_type`, `run_in_background`, `SendMessage`, worktree isolation, plan mode, and hooks — trimmed to development concerns. An optional programmatic runtime (for headless use) targets the [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview).
-
 ## When to use it
 
 Baton is built for **consequential, verification-heavy work** — changes where being wrong is expensive: security-sensitive edits, dependency and version bumps, migrations, changes to shared code, and anything headed for production. Work like this usually spans several files, needs discovery before touching code, and benefits from a separate review pass and bounded recovery — but it's the **stakes**, not the step-count, that make a coordinated loop with verification, approval gates, and a run trail earn its keep.
@@ -38,7 +30,7 @@ For **trivial or low-stakes changes** (a typo, a one-line fix, a throwaway refac
 
 Baton's loop is shaped like the shift-left curve: it concentrates attention on quality **early** — discovery before touching code, a planning pass, reading the surrounding code to match its conventions, and verification before work is called done. The economics are the classic ones: a defect caught at *Plan* or *Develop* is far cheaper than the same defect caught at *Test*, *Deploy*, or in production.
 
-That early investment is a **cost**, and it pays back only when there's an expensive "late" to prevent — which is why it earns its keep on consequential work and why triage skips it on low-stakes changes. The point isn't *more turns up front*; it's **earlier attention, in proportion to risk** — exactly what `triage` decides. The edge over a bare model isn't that Baton can plan ahead (any capable model can); it's that Baton shifts left **reliably, on every routed run**, instead of only when the task and model happen to prompt it.
+That early investment is a **cost**, and it pays back only when there's an expensive "late" to prevent — which is why it earns its keep on consequential work. The point isn't *more turns up front*; it's **earlier attention, in proportion to risk**. The edge over a bare model isn't that Baton can plan ahead (any capable model can); it's that Baton shifts left **reliably, on every routed run**, instead of only when the task and model happen to prompt it.
 
 Scope note: out of the box Baton is shift-**left** — it owns **Plan → Develop → Test** and *gates* (rather than runs) anything outward-facing. The right side isn't a hard wall, though: encode your **Deploy & Release** process — and point-in-time **Monitor & Analyze** checks (post-deploy health, smoke tests, acceptance) — in [`references/`](.claude/skills/baton/references/), and Baton will sequence, gate, and verify those steps as part of the loop. What stays out is *execution*, not coverage — Baton still won't fire an irreversible deploy without your approval or act as a live production monitor; it drives the process you define and leaves the trigger to you or your pipeline.
 
@@ -63,6 +55,8 @@ Lanes are bounded runners with **disjoint write scopes** that report back to the
 `discovery·Explore` · `planning·Plan` · `implementation·implementer` · `review·code-reviewer` · `research·researcher`
 
 The coordinator owns integration, approval, and the run trail. The `recover` bound (~2 focused attempts, then escalate) is evidence-informed — see [Why it's built this way](#why-its-built-this-way).
+
+Under the hood this maps onto Claude Code's native subagent system — the Agent tool with `subagent_type`, `run_in_background`, `SendMessage`, worktree isolation, and plan mode — trimmed to development concerns.
 
 ## Examples (simple → complex)
 
@@ -193,7 +187,7 @@ Baton stays loosely coupled — it depends on no other skill, and composition is
 
 ## Why it's built this way
 
-Key design choices (manager-led lanes, behavioral verification, the ~2-attempt recovery bound, low-cost-model default) are informed by published code-translation research, mapped decision-by-decision in [`docs/research-basis.md`](docs/research-basis.md). Those results support the design **by analogy**, not as proof — Baton's own evals and live runs are the primary evidence.
+Key design choices — manager-led lanes, behavioral verification, the ~2-round recovery bound, the low-cost-model default, the multi-agent bet — draw on published code-translation research, adapted to real dev work rather than copied from it. We're clear about which the evidence directly supports and which are pragmatic calls, kept flexible by intent and refined as we learn. The decision-by-decision mapping — what we took, where we adapted it, and what's open — is in [`docs/research-basis.md`](docs/research-basis.md). Those results support the design **by analogy**, not as proof — Baton's own evals and live runs are the primary evidence.
 
 **Honest standing (measured).** A Baton-vs-baseline bench (`testing/fixtures/`, skill-on vs. `--no-skill`) ran four times across model tiers and difficulty, and **every run washed** — structured and unstructured produced equal end-state outcomes, at higher cost for Baton. The honest read: Baton does **not** beat a capable model on small, low-stakes correctness. Its value is **reliably vs. probabilistically** — it *always* verifies, gates outward-facing actions, splits review into its own lane, and keeps a run trail, where a bare model does these only when the task and model happen to favour it — plus scale, skill-composition, and accessibility, none of which a single-model toy bench can measure. Full reasoning in [`docs/research-basis.md`](docs/research-basis.md#where-we-drifted--and-whats-still-open).
 
