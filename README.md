@@ -1,6 +1,6 @@
 # Baton
 
-Baton is a lean, manager-led orchestration skill for **Claude Code**, with an optional TypeScript runtime on the [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview). Like a relay team, it routes substantial development work through bounded, parallel subagent lanes — triage · discovery · planning · implementation · verification · recovery — handing off cleanly between them while a single coordinator owns integration, approval gates, and an auditable run trail. **Lean by default** for individual/small-team work; **enterprise-ready by extension** via `references/`.
+Baton is a lean, manager-led orchestration skill for **Claude Code**, with an optional TypeScript runtime on the [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview). Like a relay team, it routes substantial development work through bounded, parallel subagent lanes — triage · discovery · planning · implementation · verification · recovery — handing off cleanly between them while a single coordinator owns integration, approval gates, and an auditable run trail. **Lean by default** for solo work; **your process, made repeatable** — encode your team's review, deploy, and acceptance steps in `references/` once and Baton follows them across every project.
 
 **On the research:** Baton's loop draws on published code-translation research, adapted to real dev work rather than copied from it. We're clear about which choices the evidence directly supports and which are pragmatic calls — the ~2-round repair bound, low-cost-model-default, the multi-agent bet — kept flexible by intent and refined as we learn. The full mapping — what we took, where we adapted it, and what's open — is in [`docs/research-basis.md`](docs/research-basis.md).
 
@@ -18,7 +18,7 @@ Think of a relay race. The work is the baton, passed cleanly from one runner to 
 
 A **coordinator** hands the baton to each runner, keeps them out of each other's way, and brings the work back together. It asks you first before anything big or hard to undo — like sharing code or deleting files. You stay in charge, and it keeps short notes on what it did.
 
-Small jobs skip the relay and just get done. And a company can teach Baton its own rules by adding a few files — so it stays simple for one person but still fits a big team.
+Small jobs skip the relay and just get done. And you can teach Baton your own rules — your review steps, deploy checks, ticket conventions — by adding a few files, so the same process repeats on every project. Simple for one person, and it still fits a big team.
 
 ## What it does (in more detail)
 
