@@ -37,12 +37,14 @@ interface CliArgs {
   prompt: string;
   cwd: string;
   offline: boolean;
+  noSkill: boolean;
 }
 
 function parseArgs(argv: string[]): CliArgs {
   const args = argv.slice(2);
   let cwd = process.cwd();
   let offline = false;
+  let noSkill = false;
   const rest: string[] = [];
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -50,11 +52,13 @@ function parseArgs(argv: string[]): CliArgs {
       cwd = args[++i] ?? cwd;
     } else if (arg === "--offline") {
       offline = true;
+    } else if (arg === "--no-skill") {
+      noSkill = true;
     } else {
       rest.push(arg);
     }
   }
-  return { prompt: rest.join(" ").trim(), cwd, offline };
+  return { prompt: rest.join(" ").trim(), cwd, offline, noSkill };
 }
 
 function hasCredentials(): boolean {
@@ -140,7 +144,7 @@ async function safeWriteLedger(baseDir: string, record: RunRecord): Promise<void
 }
 
 async function main(): Promise<void> {
-  const { prompt, cwd, offline: forceOffline } = parseArgs(process.argv);
+  const { prompt, cwd, offline: forceOffline, noSkill } = parseArgs(process.argv);
 
   if (!prompt) {
     console.error(
@@ -263,7 +267,7 @@ async function main(): Promise<void> {
       model,
       effort,
       maxTurns,
-      agents,
+      agents: noSkill ? {} : agents,
       allowedTools,
       permissionMode,
       ...(mcpServers ? { mcpServers } : {}),
@@ -275,10 +279,13 @@ async function main(): Promise<void> {
       // per parallel implementation lane via the Agent tool `isolation: "worktree"`
       // parameter (see SKILL.md). Configure symlink/sparse behavior in the target
       // repo's .claude/settings.json if needed.
+      // Baseline (--no-skill): plain Claude Code with only the headless
+      // operability floor — no Baton skill body, no lanes — so an eval isolates
+      // Baton's contribution rather than the headless-vs-interactive difference.
       systemPrompt: {
         type: "preset",
         preset: "claude_code",
-        append: `${skillBody}\n\n${HEADLESS_NOTE}`,
+        append: noSkill ? HEADLESS_NOTE : `${skillBody}\n\n${HEADLESS_NOTE}`,
       },
     },
   });
