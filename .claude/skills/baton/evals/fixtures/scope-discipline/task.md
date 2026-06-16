@@ -1,0 +1,1 @@
+Add a `greet(name)` function to `src/feature.mjs` that returns the string `Hello, <name>!` (e.g. `greet("Ada")` → `"Hello, Ada!"`). Only modify `src/feature.mjs` — leave the rest of the repo untouched.

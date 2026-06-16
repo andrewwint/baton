@@ -1,0 +1,1 @@
+Implement `parseRange(s)` in `src/range.mjs`. The input is a string like `"a-b"` where `a` and `b` are integers; return the **inclusive** array of integers from `a` to `b` (e.g. `"1-3"` → `[1, 2, 3]`, `"5-5"` → `[5]`). Make the project's test suite pass.
