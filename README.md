@@ -169,9 +169,9 @@ Baton orchestrates an AI agent, and is plain about what that means:
 
 ## Composing with other Claude Code features
 
-Baton stays loosely coupled — it *uses* better tools when they're in reach but depends on none:
+Baton stays loosely coupled — it depends on no other skill, and composition is steered from your project, not baked into Baton:
 
-- **Specialist skills** — when a more specialized skill is present (e.g. `code-review`, `security-review`, `deep-research`), the coordinator prefers it over the generic lane; long-running ones run as background lanes.
+- **Specialist skills** — Baton prescribes nothing about other skills. If you want the coordinator to route a lane to a skill you've installed (e.g. `code-review`, `security-review`, `deep-research`), say so in your project's root `AGENTS.md`; the manager reads it as repo guidance and follows it (long-running ones as background lanes).
 - **Hooks** — put automated, repeatable gates ("always run tests before done") in `settings.json` hooks, not in prose.
 - **`/loop`** — wrap a routed run for recurring/scheduled execution.
 

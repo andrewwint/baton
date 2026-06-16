@@ -55,7 +55,7 @@ Primitive mapping:
 
 If a useful custom subagent is defined in `.claude/agents/`, prefer it over a generic one by passing its name as `subagent_type`.
 
-**Prefer an available specialist skill over the generic lane.** If the environment offers a more specialized Claude Code skill for a lane's job — e.g. a dedicated `code-review`, `security-review`, or `deep-research` skill — invoke it instead of the generic lane; if none is present, use the bundled lane. The orchestrator stays loosely coupled: it *uses* better tools when they're in reach but depends on none. Some specialist skills (e.g. `deep-research`) run for many minutes — launch them as a **background** lane (`run_in_background`) and keep doing main-path work, waiting only when the next step truly needs the result (see Wait-and-close discipline). (Interactive sessions only — the headless runtime does not load ambient skills, so it always uses the bundled lanes. Session/meta commands like `init` or `loop` are user-driven, not lanes.)
+**Baton prescribes nothing about other skills.** It orchestrates its own lanes and depends on no other skill. If a project wants the manager to route a lane to a more specialized skill it has installed — e.g. a dedicated `code-review`, `security-review`, or `deep-research` — that belongs in the project's root `AGENTS.md`: the manager reads it as repo guidance (see Repo Detection) and follows it. Composition is a property of the project, not of Baton, so the skill stays self-contained and portable. (When project guidance does route a long-running skill into a lane, launch it as a **background** lane via `run_in_background` and keep to the Wait-and-close discipline. Session/meta commands like `init` or `loop` are user-driven, not lanes.)
 
 ### Lane → subagent type
 
