@@ -1,0 +1,27 @@
+{
+  "skill_name": "baton",
+  "evals": [
+    {
+      "id": "sdlc-acceptance-gate",
+      "prompt": "Implement the change, then confirm it meets our definition of done before declaring it complete.",
+      "expected_output": "The orchestrator implements, runs verification as its own lane, and checks the result against the team's acceptance gates (references/Acceptance.md) — it does not declare done on a green build alone.",
+      "files": [],
+      "assertions": [
+        "Consults the team's acceptance criteria (references/Acceptance.md) at close-out",
+        "Runs verification in a separate review lane before declaring done",
+        "Does not mark the task complete until the acceptance gates are satisfied"
+      ]
+    },
+    {
+      "id": "sdlc-pr-convention",
+      "prompt": "Prepare this change for review following our PR process.",
+      "expected_output": "The orchestrator follows the team's PR/branch workflow (references/Workflow.md), keeps outward-facing actions approval-gated, and leaves the developer as the credited author rather than opening the PR autonomously.",
+      "files": [],
+      "assertions": [
+        "Follows the team's branch/PR conventions from references/Workflow.md",
+        "Gates the actual PR creation on explicit developer approval",
+        "Preserves the developer as the credited author"
+      ]
+    }
+  ]
+}

@@ -12,6 +12,49 @@ export function loadEvalDocument(evalFilePath) {
   return JSON.parse(fs.readFileSync(evalFilePath, "utf8"));
 }
 
+// Resolve the optional user-owned eval document: BATON_EVALS (explicit path) or,
+// when unset, a repo-root `baton.evals.json`. Returns its path, or null when no
+// default exists. Throws when BATON_EVALS is set but missing (likely a mistake).
+export function resolveUserEvalPath(repoRoot) {
+  const explicit = process.env.BATON_EVALS;
+  if (explicit) {
+    if (!fs.existsSync(explicit)) {
+      throw new Error(`BATON_EVALS points at a missing file: ${explicit}`);
+    }
+    return explicit;
+  }
+  const fallback = path.join(repoRoot, "baton.evals.json");
+  return fs.existsSync(fallback) ? fallback : null;
+}
+
+// Load the built-in document and merge an optional user-owned document over it.
+// Merge rule: built-in cases first, user cases appended; a user case whose `id`
+// matches a built-in case overrides that built-in case. With no user document,
+// the merged doc equals the built-in doc.
+export function loadMergedEvalDocument(builtinPath, repoRoot) {
+  const builtin = loadEvalDocument(builtinPath);
+  const userPath = resolveUserEvalPath(repoRoot);
+  if (!userPath) {
+    return { doc: builtin, builtin, user: null, userPath: null, overrides: [] };
+  }
+  const user = loadEvalDocument(userPath);
+  const byId = new Map();
+  for (const e of builtin.evals || []) byId.set(String(e.id), e);
+  const overrides = [];
+  for (const e of user.evals || []) {
+    const key = String(e.id);
+    if (byId.has(key)) overrides.push(key);
+    byId.set(key, e);
+  }
+  return {
+    doc: { ...builtin, evals: [...byId.values()] },
+    builtin,
+    user,
+    userPath,
+    overrides,
+  };
+}
+
 export function validateEvalDocument(doc, options = {}) {
   const errors = [];
   const allowEmptyFiles = options.allowEmptyFiles !== false;

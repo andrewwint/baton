@@ -23,14 +23,29 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFile, execFileSync } from "node:child_process";
 import { promisify } from "node:util";
-import { loadEvalDocument, validateEvalDocument } from "./lib/skill-evals.mjs";
+import { loadMergedEvalDocument, validateEvalDocument } from "./lib/skill-evals.mjs";
 
 const execFileP = promisify(execFile);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const RUNTIME_ROOT = path.resolve(HERE, "..");
 const SKILL_ROOT = path.resolve(RUNTIME_ROOT, "..");
+const REPO_ROOT = path.resolve(SKILL_ROOT, "..", "..", "..");
 const EVALS = path.join(SKILL_ROOT, "evals", "evals.json");
 const ORCH = path.join(RUNTIME_ROOT, "dist", "orchestrator.js");
+
+// Built-in evals merged with an optional user-owned doc (BATON_EVALS or repo-root
+// baton.evals.json). Loaded once; a bad explicit path fails clearly.
+let _merged;
+function mergedDoc() {
+  if (_merged) return _merged;
+  try {
+    _merged = loadMergedEvalDocument(EVALS, REPO_ROOT);
+  } catch (err) {
+    console.error(`[evals] ${err instanceof Error ? err.message : String(err)}`);
+    process.exit(1);
+  }
+  return _merged;
+}
 
 function loadDotEnv(file) {
   if (!fs.existsSync(file)) return;
@@ -73,7 +88,7 @@ function hasClaudeCli() {
 // --- structural fallback (no key AND no claude CLI) ---------------------------
 function structuralOnly(reason) {
   console.error(`[evals] ${reason} — running the structural check only (no live run).\n`);
-  const doc = loadEvalDocument(EVALS);
+  const doc = mergedDoc().doc;
   const errors = validateEvalDocument(doc);
   if (errors.length) {
     console.error(`[evals] FAIL evals/evals.json (${errors.length})`);
@@ -167,7 +182,7 @@ if (!useApi && !claudeAvailable) {
 }
 const backend = useApi ? "api" : "local-claude";
 
-const doc = loadEvalDocument(EVALS);
+const doc = mergedDoc().doc;
 const errs = validateEvalDocument(doc);
 if (errs.length) {
   console.error("[evals] invalid eval document:\n" + errs.map((e) => `  - ${e}`).join("\n"));
