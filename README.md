@@ -122,8 +122,10 @@ cp -r .claude/skills/baton ~/.claude/skills/        # skill: available everywher
 bash ~/.claude/skills/baton/runtime/scripts/install.sh ~   # lanes → ~/.claude/agents/
 ```
 
-- **Skill** at `~/.claude/skills/` is discovered in every project (personal scope; on a name collision personal overrides a project copy).
-- **Lanes** must live in `.claude/agents/` (project) or `~/.claude/agents/` (global). Subagents do **not** resolve from inside a skill folder. The runtime path doesn't need this (it registers lanes in-process); only *interactive* use does.
+| What | Where it goes | Notes |
+| --- | --- | --- |
+| **Skill** (`/baton`) | `.claude/skills/baton/` (project) or `~/.claude/skills/` (global) | Global is found in every project; on a name clash, the personal copy wins. |
+| **Lanes** (subagents) | `.claude/agents/` (project) or `~/.claude/agents/` (global) | Needed for **interactive** use only. Subagents don't resolve from inside a skill folder; the runtime registers them in-process, so headless doesn't need this. |
 
 ## Using it
 
@@ -175,6 +177,7 @@ The live eval suite is **exploratory**: abstract prompts on empty workspaces don
 Baton orchestrates an AI agent, and is plain about what that means:
 
 - **It runs an agent with real tools.** Interactively it uses Read/Edit/Write/Bash within Claude Code's permission model; the headless runtime defaults to `acceptEdits` (edits apply without prompts) so it can work unattended. Run it on code you're willing to let an agent change.
+- **Hardening headless / CI runs.** Because the runtime defaults to `acceptEdits`, run it where unattended edits are safe: a sandboxed container or ephemeral CI job, on a fresh checkout or a git worktree it cannot escape. Give it a dedicated, least-privilege `ANTHROPIC_API_KEY` (or provider role) scoped to the pipeline, and rotate it. Even headless, outward-facing actions stay refused: the runtime does the reversible work and reports pushes, PRs, and deletions as follow-ups rather than performing them.
 - **Outward-facing actions are approval-gated.** Push, PRs, ticket changes, deletions, and destructive rollbacks wait for your explicit OK, and you stay the credited author.
 - **The optional MCP passthrough launches a local command** you configure (e.g. Serena) with your privileges, so point `BATON_MCP_CONFIG` only at servers you trust. Off by default.
 - **No telemetry.** Baton makes model calls (and any MCP server you add) and writes a local run ledger; nothing else leaves your machine.
