@@ -91,8 +91,6 @@ The skill is **self-contained** — everything lives in one folder:
     └── scripts/             # install.sh + eval runner (run-evals.mjs, validate-evals.mjs)
 ```
 
-**Lean by default, enterprise by extension:** with no `references/`, Baton behaves generically — nothing changes for a solo developer. An organization adapts it to their SDLC — ticketing/PR, platform/deploy, acceptance gates, security — by adding `references/*.md` that the coordinator consults on demand. See [`references/README.md`](.claude/skills/baton/references/README.md).
-
 ## Install
 
 **Per project** — copy the folder into the repo you're working in:
@@ -149,6 +147,24 @@ npm run orchestrate -- "discovery pass" --cwd /path/to/target/repo --offline
 
 **Optional semantic navigation:** point `BATON_MCP_CONFIG` at an MCP server (e.g. Serena — template in `runtime/mcp.example.json`) for symbol-aware code navigation. Off by default; install the server yourself only if you opt in.
 
+## Make it yours
+
+Baton is generic out of the box. Two folders are meant to be **adapted to your context**:
+
+- **`references/`** — your org's SDLC: ticketing/PR conventions, platform/deploy, acceptance gates, security posture. The coordinator consults the relevant one on demand; with none, it stays generic. See [`references/README.md`](.claude/skills/baton/references/README.md).
+- **`evals/evals.json`** — 12 capability cases that encode what good orchestration *looks like* (route vs. act direct, read-only review lanes, gated outward actions, recover-not-declare-done). Check their structure with `npm run validate-evals` (no key); run them live, LLM-judged, with `npm run evals`. **Add your own cases** so "done" means what it means for your team.
+
+The live eval suite is **exploratory** — abstract prompts on empty workspaces don't yield a clean pass/fail, so treat `validate-evals` (structural) as the CI gate and live runs as a sanity check until you add fixtures for your own cases.
+
+## Security & trust
+
+Baton orchestrates an AI agent, and is plain about what that means:
+
+- **It runs an agent with real tools.** Interactively it uses Read/Edit/Write/Bash within Claude Code's permission model; the headless runtime defaults to `acceptEdits` (edits apply without prompts) so it can work unattended. Run it on code you're willing to let an agent change.
+- **Outward-facing actions are approval-gated** — push, PRs, ticket changes, deletions, and destructive rollbacks wait for your explicit OK, and you stay the credited author.
+- **The optional MCP passthrough launches a local command** you configure (e.g. Serena) with your privileges — point `BATON_MCP_CONFIG` only at servers you trust. Off by default.
+- **No telemetry** — Baton makes model calls (and any MCP server you add) and writes a local run ledger; nothing else leaves your machine.
+
 ## Composing with other Claude Code features
 
 Baton stays loosely coupled — it *uses* better tools when they're in reach but depends on none:
@@ -161,7 +177,7 @@ Baton stays loosely coupled — it *uses* better tools when they're in reach but
 
 Key design choices (manager-led lanes, behavioral verification, the ~2-attempt recovery bound, cheap-model-default) are informed by published code-translation research, mapped decision-by-decision in [`docs/research-basis.md`](docs/research-basis.md). The framing there is honest: those results support the design **by analogy**, not as proof — Baton's own evals and live runs are the primary evidence.
 
-To use elsewhere, copy the single `.claude/skills/baton/` folder into the target repo. See [SKILL.md](.claude/skills/baton/SKILL.md) for the full loop, delegation policy, and lane map.
+See [SKILL.md](.claude/skills/baton/SKILL.md) for the full loop, delegation policy, and lane map.
 
 ---
 
