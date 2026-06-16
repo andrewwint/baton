@@ -28,8 +28,8 @@ Be direct and evidence-driven. Do not add empty validation or reassuring filler.
 Treat the orchestrator loop as the core feature. **Two paths:** a trivial task runs directly; anything substantial follows the full loop below, built from durable developer primitives:
 
 1. **intake** — capture task type, target repo/paths, acceptance criteria, and reviewer expectations
-2. **triage** — classify size and risk; decide direct vs. delegated; pick lanes
-3. **plan** — establish architecture shape, module boundaries, and a sliced work plan
+2. **triage** — classify risk and size, with risk leading: a small-looking change to shared code, a contract or seam, security, data, a migration, a dependency, or a port routes **delegated** (so discovery and review run), not direct. Decide direct vs. delegated; pick lanes
+3. **plan** — establish architecture shape, module boundaries, and a sliced work plan; for delegated work, run discovery first to surface the repo's unstated conventions and contracts (error types, naming, layering, idempotency rules) so the change matches them, since matching the surrounding code is part of done
 4. **implement** — make the changes (directly or via implementation lanes)
 5. **verify** — run build/test/lint for the change — the full suite, not just the test nearest your edit, when shared code is touched (a change can break a sibling elsewhere); review the diff. For seam- or interface-defining changes, run perspective-diverse verification: at least two independent review lenses (for example a second reviewer with a different brief), since one brief reliably misses what another catches
 6. **recover** — on failure, backtrack on the failing surface (the diff + failing test/build output), tracing to the root cause rather than patching the symptom (a failing test or error can point at the wrong file); bounded to ~2 focused attempts, then escalate to the developer with the evidence rather than looping; roll back destructive steps only with approval
