@@ -2,7 +2,6 @@
 
 ## Purpose
 The TypeScript runtime that runs the baton manager loop headlessly on the Claude Agent SDK: it registers the bundled lane agents programmatically, injects the skill as the system prompt, executes lanes under a single coordinator, captures per-lane results and run cost, and degrades to deterministic offline repo detection when no credentials are available.
-
 ## Requirements
 ### Requirement: Library-based orchestrator runtime
 The system SHALL provide a TypeScript runtime, built on the Claude Agent SDK, that runs the baton manager loop in a host process without an interactive Claude Code session.
@@ -53,7 +52,7 @@ The runtime SHALL apply per-lane tool restrictions and model/effort settings, an
 - **THEN** that lane uses the configured model without requiring a code change
 
 ### Requirement: Run results and observability
-The runtime SHALL capture each lane's final result and emit a concise run summary attributing outcomes to their lanes.
+The runtime SHALL capture each lane's final result and emit a concise run summary attributing outcomes to their lanes. The summary and cost SHALL print to stdout on every run; persisted ledger files SHALL be opt-in.
 
 #### Scenario: Per-lane attribution
 - **WHEN** a run completes
@@ -63,9 +62,15 @@ The runtime SHALL capture each lane's final result and emit a concise run summar
 - **WHEN** a lane fails or returns an error
 - **THEN** the run summary reports the failure rather than silently dropping it
 
-#### Scenario: Run ledger with cost
-- **WHEN** a run completes (live or offline)
-- **THEN** a `run.json` (and `summary.md`) is written under the ledger directory capturing task, repo, mode, status, model/effort, lanes, and cost; live runs also print `total_cost_usd`
+#### Scenario: Summary and cost to stdout
+- **WHEN** a run completes
+- **THEN** it prints the run summary, and for live runs `total_cost_usd`, to stdout — so a headless caller can capture outcomes and cost without any files
+
+#### Scenario: Opt-in run ledger
+- **WHEN** `BATON_LEDGER_DIR` is set and a run completes (live or offline)
+- **THEN** a `run.json` (and `summary.md`) is written under that directory capturing task, repo, mode, status, model/effort, lanes, and cost
+- **AND WHEN** `BATON_LEDGER_DIR` is not set
+- **THEN** no ledger files are written (stdout still carries the summary and cost)
 
 ### Requirement: Offline repo-detection mode
 The runtime SHALL support an offline mode — via `--offline` or whenever no credentials are available — that performs a deterministic repo-detection pass and prints the lane registry without making any model call.
