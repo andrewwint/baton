@@ -31,7 +31,7 @@ Treat the orchestrator loop as the core feature. **Two paths:** a trivial task r
 2. **triage** — classify size and risk; decide direct vs. delegated; pick lanes
 3. **plan** — establish architecture shape, module boundaries, and a sliced work plan
 4. **implement** — make the changes (directly or via implementation lanes)
-5. **verify** — run build/test/lint for the change — the full suite, not just the test nearest your edit, when shared code is touched (a change can break a sibling elsewhere); review the diff
+5. **verify** — run build/test/lint for the change — the full suite, not just the test nearest your edit, when shared code is touched (a change can break a sibling elsewhere); review the diff. For seam- or interface-defining changes, run perspective-diverse verification: at least two independent review lenses (for example a second reviewer with a different brief), since one brief reliably misses what another catches
 6. **recover** — on failure, backtrack on the failing surface (the diff + failing test/build output), tracing to the root cause rather than patching the symptom (a failing test or error can point at the wrong file); bounded to ~2 focused attempts, then escalate to the developer with the evidence rather than looping; roll back destructive steps only with approval
 7. **approve** — gate anything outward-facing on explicit user approval
 8. **close out** — summarize outcome with acceptance evidence
