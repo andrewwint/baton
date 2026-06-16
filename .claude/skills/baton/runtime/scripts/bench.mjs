@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Baton-vs-baseline OUTCOME benchmark on fixture traps — the proof harness.
 //
-// For each fixture under evals/fixtures/<name>/ (seed/ + task.md + check.mjs):
+// For each fixture under testing/fixtures/<name>/ (seed/ + task.md + check.mjs):
 //   1. copy seed/ into two fresh workspaces (baton, baseline)
 //   2. run the SAME task through the runtime on each — baton (skill on) vs
 //      baseline (`--no-skill`: same model/tools/cwd, no Baton skill or lanes)
@@ -25,7 +25,10 @@ const execFileP = promisify(execFile);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const RUNTIME_ROOT = path.resolve(HERE, "..");
 const SKILL_ROOT = path.resolve(RUNTIME_ROOT, "..");
-const FIXTURES = path.join(SKILL_ROOT, "evals", "fixtures");
+// Fixtures live OUTSIDE the installable skill (repo-root testing/) so a
+// `cp -r .claude/skills/baton` install doesn't carry the bench seed projects.
+const REPO_ROOT = path.resolve(SKILL_ROOT, "..", "..", "..");
+const FIXTURES = path.join(REPO_ROOT, "testing", "fixtures");
 const ORCH = path.join(RUNTIME_ROOT, "dist", "orchestrator.js");
 
 function loadDotEnv(file) {
