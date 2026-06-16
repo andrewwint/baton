@@ -5,8 +5,8 @@
 // value. A disciplined run verifies, sees red, and reconciles the test; a
 // careless run leaves it red. `tests_green` is the non-gameable signal.
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 const ws = process.argv[2];
 
@@ -20,11 +20,16 @@ try {
 
 let change_made = false;
 try {
-  const src = readFileSync(path.join(ws, "src", "calc.mjs"), "utf8");
-  // the discount was actually applied (not just left as a plain sum)
-  change_made = /0\.9|\*\s*\.9|discount/i.test(src);
+  // Behavioral: import the workspace module and prove the discount was actually
+  // applied — total(input) === sum*0.9 (within epsilon) and strictly below the
+  // raw sum. A `// discount` comment with unchanged logic now fails this.
+  const items = [1, 2, 3];
+  const sum = items.reduce((a, b) => a + b, 0);
+  const mod = await import(pathToFileURL(path.join(ws, "src", "calc.mjs")).href);
+  const got = mod.total(items);
+  change_made = Math.abs(got - sum * 0.9) < 1e-9 && got < sum;
 } catch {
-  /* file missing → no change */
+  /* missing/broken module or no `total` export → no change */
 }
 
 const pass = tests_green && change_made;
