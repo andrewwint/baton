@@ -40,7 +40,7 @@ Baton's loop is shaped like the shift-left curve: it concentrates attention on q
 
 That early investment is a **cost**, and it pays back only when there's an expensive "late" to prevent — which is why it earns its keep on consequential work and why triage skips it on low-stakes changes. The point isn't *more turns up front*; it's **earlier attention, in proportion to risk** — exactly what `triage` decides. The edge over a bare model isn't that Baton can plan ahead (any capable model can); it's that Baton shifts left **reliably, on every routed run**, instead of only when the task and model happen to prompt it.
 
-Scope note: Baton is shift-**left**. It owns **Plan → Develop → Test**, *gates* (but does not run) **Deploy & Release**, and does not cover **Monitor & Analyze** — that right-hand "shift-right" half of the lifecycle is out of scope.
+Scope note: out of the box Baton is shift-**left** — it owns **Plan → Develop → Test** and *gates* (rather than runs) anything outward-facing. The right side isn't a hard wall, though: encode your **Deploy & Release** process — and point-in-time **Monitor & Analyze** checks (post-deploy health, smoke tests, acceptance) — in [`references/`](.claude/skills/baton/references/), and Baton will sequence, gate, and verify those steps as part of the loop. What stays out is *execution*, not coverage — Baton still won't fire an irreversible deploy without your approval or act as a live production monitor; it drives the process you define and leaves the trigger to you or your pipeline.
 
 ## How the loop works
 
