@@ -16,5 +16,5 @@
 
 ## 4. Spec + close
 - [x] 4.1 `openspec validate add-complex-workflow-eval --strict` passes
-- [ ] 4.2 Commit + push the fixture and change
-- [ ] 4.3 (live, optional) bench `--only complex-workflow` at sonnet to see if Baton's loop catches the held-out convention where baseline misses it
+- [x] 4.2 Committed + pushed (593fc8b)
+- [x] 4.3 Live bench `--only complex-workflow` at sonnet/medium: **both arms PASS** (Baton 1/1, baseline 1/1, both `follows_convention:true`). The one-shot baseline read the sibling resources and matched the convention unaided — fourth wash. Finding: a capable model already does discovery/convention-matching at bench scale, so the fixture cannot separate the arms on correctness. See memory `baton-bench-and-runtime-decisions`.
