@@ -29,10 +29,13 @@ export function newRunId(now: Date): string {
   return `run-${ts}-${rand}`;
 }
 
+// Returns the directory written, or "" when no ledger dir is configured (no-op).
+// Persisting is opt-in (BATON_LEDGER_DIR); the caller gates on it too.
 export async function writeLedger(
-  baseDir: string,
+  baseDir: string | undefined,
   record: RunRecord
 ): Promise<string> {
+  if (!baseDir) return "";
   const dir = path.join(baseDir, record.runId);
   await mkdir(dir, { recursive: true });
   await writeFile(

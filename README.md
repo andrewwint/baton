@@ -87,7 +87,7 @@ The skill is **self-contained** — everything lives in one folder:
     ├── src/orchestrator.ts  # coordinator query() loop
     ├── src/lanes.ts         # loads agents/*.md as programmatic AgentDefinitions
     ├── src/offline.ts       # deterministic repo detection (no model call)
-    ├── src/ledger.ts        # per-run ledger (run.json + summary.md, with cost)
+    ├── src/ledger.ts        # opt-in run ledger (run.json + summary.md when BATON_LEDGER_DIR set)
     ├── src/mcp.ts           # optional MCP passthrough loader
     ├── mcp.example.json     # ready-to-use Serena MCP template (opt-in)
     └── scripts/             # install.sh + eval runner (run-evals.mjs, validate-evals.mjs)
@@ -145,7 +145,7 @@ npm run orchestrate -- "discovery pass" --cwd /path/to/target/repo --offline
 
 **Cost** (LLM-backed): the coordinator loop dominates, so it defaults to **Sonnet at medium effort** with a 40-turn cap. Tune via env (`.env.example`): `BATON_MODEL=haiku BATON_EFFORT=low` for low-cost runs, `BATON_MODEL=opus BATON_EFFORT=xhigh` for the hardest work. Lanes keep their own models (triage→haiku, reviewer/researcher→sonnet, implementer→inherits the coordinator). Adding *more tools* does **not** lower cost — model tier, effort, and bounded turns do.
 
-**Run trail:** each run writes a ledger (`run.json` + `summary.md`, with `total_cost_usd`) under `~/.baton/runs/` by default — override with `BATON_LEDGER_DIR`.
+**Run trail:** the run summary and cost (`total_cost_usd`) print to stdout on every run. The ledger is **opt-in** — set `BATON_LEDGER_DIR` to also persist `run.json` + `summary.md` under that directory (e.g. `~/.baton/runs` for global history, or an in-tree, gitignored path); unset, no files are written.
 
 **Optional semantic navigation:** point `BATON_MCP_CONFIG` at an MCP server (e.g. Serena — template in `runtime/mcp.example.json`) for symbol-aware code navigation. Off by default; install the server yourself only if you opt in.
 

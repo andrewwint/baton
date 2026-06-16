@@ -9,8 +9,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "orchestrate": "tsx src/orchestrator.ts",
-    "start": "node dist/orchestrator.js",
+    "orchestrate": "tsx --env-file-if-exists=.env src/orchestrator.ts",
+    "start": "node --env-file-if-exists=.env dist/orchestrator.js",
     "smoke": "npm run build && node scripts/smoke.mjs && node scripts/mcp-smoke.mjs",
     "validate-evals": "node scripts/validate-evals.mjs",
     "evals": "npm run build && node scripts/run-evals.mjs",

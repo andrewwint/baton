@@ -1,8 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { readFile } from "node:fs/promises";
-import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import os from "node:os";
 import { query, type PermissionMode } from "@anthropic-ai/claude-agent-sdk";
 import { loadLanes, parseFrontmatter } from "./lanes.js";
 import { detectRepo, type RepoProfile } from "./offline.js";
@@ -23,7 +21,6 @@ import { loadMcpConfig } from "./mcp.js";
  */
 
 const HERE = path.dirname(fileURLToPath(import.meta.url)); // runtime/src (dev) or runtime/dist (built)
-const RUNTIME_ROOT = path.resolve(HERE, "..");             // runtime/ (package.json, .env)
 const SKILL_ROOT = path.resolve(HERE, "..", "..");         // skill dir (agents/, SKILL.md)
 
 // Headless override: the injected SKILL.md describes interactive primitives
@@ -71,27 +68,6 @@ function hasCredentials(): boolean {
   );
 }
 
-// Minimal .env loader (no dependency): sets only vars not already in the env,
-// so the documented `cp .env.example .env` flow works without dotenv.
-function loadDotEnv(file: string): void {
-  if (!existsSync(file)) return;
-  for (const raw of readFileSync(file, "utf8").split("\n")) {
-    const line = raw.trim();
-    if (!line || line.startsWith("#")) continue;
-    const eq = line.indexOf("=");
-    if (eq === -1) continue;
-    const key = line.slice(0, eq).trim().replace(/^export\s+/, "");
-    let val = line.slice(eq + 1).trim();
-    if (
-      (val.startsWith('"') && val.endsWith('"')) ||
-      (val.startsWith("'") && val.endsWith("'"))
-    ) {
-      val = val.slice(1, -1);
-    }
-    if (key && !(key in process.env)) process.env[key] = val;
-  }
-}
-
 function profileLine(label: string, items: string[]): string {
   return `  ${label.padEnd(12)} ${items.length ? items.join(", ") : "—"}`;
 }
@@ -131,8 +107,13 @@ async function runOffline(
   return { report: out.join("\n"), profile };
 }
 
-// Never let a ledger write failure flip an otherwise-successful run to a failure.
-async function safeWriteLedger(baseDir: string, record: RunRecord): Promise<void> {
+// Run ledger is opt-in: the run summary and cost already print to stdout on every
+// run, so a headless caller can capture outcomes without any files. Persist
+// run.json (+ summary.md) only when BATON_LEDGER_DIR is set, and never let a
+// ledger write failure flip an otherwise-successful run to a failure.
+async function safeWriteLedger(record: RunRecord): Promise<void> {
+  const baseDir = process.env.BATON_LEDGER_DIR;
+  if (!baseDir) return;
   try {
     const dir = await writeLedger(baseDir, record);
     process.stdout.write(`ledger: ${dir}\n`);
@@ -153,17 +134,12 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  // Load a .env next to package.json (only fills vars not already set).
-  loadDotEnv(path.join(RUNTIME_ROOT, ".env"));
+  // Credentials/config come from the real environment, or from a .env loaded by
+  // the npm scripts via `node --env-file-if-exists=.env` (see package.json).
 
   const agentsDir = path.join(SKILL_ROOT, "agents");
   const startedAt = new Date();
   const runId = newRunId(startedAt);
-  // Default outside the target repo so runs don't litter the user's working tree.
-  // Override with BATON_LEDGER_DIR (e.g. point it at <repo>/.agents/runs).
-  const ledgerBase =
-    process.env.BATON_LEDGER_DIR ??
-    path.join(os.homedir(), ".baton", "runs");
 
   // Offline when asked explicitly, or when no credentials are available —
   // a deterministic repo-detection pass instead of failing the run.
@@ -175,7 +151,7 @@ async function main(): Promise<void> {
     }
     const { report, profile } = await runOffline(prompt, cwd, agentsDir);
     process.stdout.write(report + "\n\n");
-    await safeWriteLedger(ledgerBase, {
+    await safeWriteLedger({
       runId,
       taskType: prompt,
       repoPath: cwd,
@@ -342,7 +318,7 @@ async function main(): Promise<void> {
     process.stdout.write(`cost: $${costUsd.toFixed(4)}\n`);
   }
 
-  await safeWriteLedger(ledgerBase, {
+  await safeWriteLedger({
     runId,
     taskType: prompt,
     repoPath: cwd,
