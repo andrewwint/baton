@@ -1,0 +1,15 @@
+node_modules/
+dist/
+*.log
+.env
+.env.*
+!.env.example
+
+# optional install output (interactive-only lane copies); canonical lanes live in the skill
+.claude/agents/
+
+# local run ledgers (working state, not product source)
+.agents/
+
+# local review/working notes (kept on disk, not committed)
+docs/feedback.md

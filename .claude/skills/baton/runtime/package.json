@@ -1,0 +1,26 @@
+{
+  "name": "@andrewwint/baton",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Manager-led development orchestrator runtime on the Claude Agent SDK",
+  "bin": {
+    "baton": "dist/orchestrator.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "orchestrate": "tsx src/orchestrator.ts",
+    "start": "node dist/orchestrator.js",
+    "smoke": "npm run build && node scripts/smoke.mjs && node scripts/mcp-smoke.mjs",
+    "validate-evals": "node scripts/validate-evals.mjs",
+    "evals": "npm run build && node scripts/run-evals.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.3.149"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
