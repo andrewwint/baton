@@ -1,12 +1,12 @@
 # Baton
 
-A portable, development-focused **Claude Code skill** that turns the main conversation into a manager-led orchestrator.
+Baton is a lean, manager-led orchestration skill for **Claude Code**, with an optional TypeScript runtime on the [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview). Like a relay team, it routes substantial development work through bounded, parallel subagent lanes — triage · discovery · planning · implementation · verification · recovery — handing off cleanly between them while a single coordinator owns integration, approval gates, and an auditable run trail. **Lean by default** for individual/small-team work; **enterprise-ready by extension** via `references/`.
 
 ## Executive summary (plain English)
 
-`baton` is a helper for Claude Code (an AI that writes code).
+**Baton** is a helper for Claude Code (an AI that writes code).
 
-Think of it like a team lead. When you give it a big job, it doesn't try to do everything at once. It breaks the job into small parts and hands each part to a helper:
+Think of a relay race. The work is the baton, passed cleanly from one runner to the next:
 
 - one **looks around the code** to learn how it works
 - one **makes a plan**
@@ -14,15 +14,15 @@ Think of it like a team lead. When you give it a big job, it doesn't try to do e
 - one **checks the work** and runs the tests
 - one **looks things up** when the team gets stuck
 
-The team lead keeps track of the helpers, puts their work together, and makes sure it's good. It also asks you first before doing anything big or hard to undo — like sharing code or deleting files. You stay in charge, and it keeps short notes on what it did.
+A **coordinator** hands the baton to each runner, keeps them out of each other's way, and brings the work back together. It asks you first before anything big or hard to undo — like sharing code or deleting files. You stay in charge, and it keeps short notes on what it did.
 
-For small jobs, it skips all that and just does the work. And a company can teach it their own rules by adding a few files — so it stays simple for one person but can still fit a big team.
+Small jobs skip the relay and just get done. And a company can teach Baton its own rules by adding a few files — so it stays simple for one person but still fits a big team.
 
 ## What it does (in more detail)
 
-It routes substantial software work through a bounded subagent loop — discovery, planning, implementation, verification, recovery — while keeping a single visible owner, approval gates, and a proportional run trail.
+Baton routes substantial software work through a bounded subagent loop — discovery, planning, implementation, verification, recovery — while keeping a single visible owner, approval gates, and a proportional run trail.
 
-It adapts a manager-led orchestration pattern to Claude Code's native subagent system — the Agent tool with `subagent_type`, `run_in_background`, `SendMessage`, worktree isolation, plan mode, and hooks — trimmed to development concerns. The programmatic runtime targets the [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview).
+It adapts a manager-led orchestration pattern to Claude Code's native subagent system — the Agent tool with `subagent_type`, `run_in_background`, `SendMessage`, worktree isolation, plan mode, and hooks — trimmed to development concerns. An optional programmatic runtime (for headless use) targets the [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview).
 
 ## How the loop works
 
@@ -40,11 +40,32 @@ Substantial work runs the loop; trivial work skips it and runs direct.
                                                               escalate to you
 ```
 
-Lanes are bounded helpers with **disjoint write scopes** that report back to the one manager — never to each other:
+Lanes are bounded runners with **disjoint write scopes** that report back to the one coordinator — never to each other:
 
 `discovery·Explore` · `planning·Plan` · `implementation·implementer` · `review·code-reviewer` · `research·researcher`
 
-The manager owns integration, approval, and the run trail. The `recover` bound (~2 focused attempts, then escalate) is evidence-informed — see [Why it's built this way](#why-its-built-this-way).
+The coordinator owns integration, approval, and the run trail. The `recover` bound (~2 focused attempts, then escalate) is evidence-informed — see [Why it's built this way](#why-its-built-this-way).
+
+## Examples (simple → complex)
+
+Invoke it in Claude Code with `/baton <task>`:
+
+```text
+# trivial — runs direct, no lanes, no ceremony
+/baton fix the typo in the README
+
+# one delegated lane — implement, with review split out
+/baton plan and implement this feature, splitting verification into its own lane
+
+# discovery-first — reduce guessing before touching code
+/baton do a discovery pass on this repo before we touch the auth flow
+
+# read-only gate — review without letting it change code
+/baton have a reviewer check this diff and run the tests; it must not edit anything
+
+# fully routed — design, parallel implementation, review at the end
+/baton route this change: design in one lane, implementation in another, review at the end
+```
 
 ## What's in here
 
@@ -60,7 +81,7 @@ The skill is **self-contained** — everything lives in one folder:
 │   ├── implementer.md       # bounded implementation lane (disjoint write scope)
 │   ├── code-reviewer.md     # verification/review lane (read-only)
 │   └── researcher.md        # focused research / recovery investigation (read-only)
-└── runtime/                 # the programmatic execution engine
+└── runtime/                 # OPTIONAL programmatic execution engine (headless)
     ├── src/orchestrator.ts  # coordinator query() loop
     ├── src/lanes.ts         # loads agents/*.md as programmatic AgentDefinitions
     ├── src/offline.ts       # deterministic repo detection (no model call)
@@ -70,7 +91,7 @@ The skill is **self-contained** — everything lives in one folder:
     └── scripts/             # install.sh + eval runner (run-evals.mjs, validate-evals.mjs)
 ```
 
-**Lean by default, enterprise by extension:** with no `references/`, the skill behaves generically — nothing changes for a solo developer. An organization adapts it to their SDLC — ticketing/PR, platform/deploy, acceptance gates, security — by adding `references/*.md` that the manager consults on demand. See [`references/README.md`](.claude/skills/baton/references/README.md).
+**Lean by default, enterprise by extension:** with no `references/`, Baton behaves generically — nothing changes for a solo developer. An organization adapts it to their SDLC — ticketing/PR, platform/deploy, acceptance gates, security — by adding `references/*.md` that the coordinator consults on demand. See [`references/README.md`](.claude/skills/baton/references/README.md).
 
 ## Install
 
@@ -91,13 +112,20 @@ bash ~/.claude/skills/baton/runtime/scripts/install.sh ~   # lanes → ~/.claude
 
 - **Skill** at `~/.claude/skills/` is discovered in every project (personal scope; on a name collision personal overrides a project copy).
 - **Lanes** must live in `.claude/agents/` (project) or `~/.claude/agents/` (global) — subagents do **not** resolve from inside a skill folder. The runtime path doesn't need this (it registers lanes in-process); only *interactive* use does.
-- **Runtime** stays **local** to the skill's `runtime/` — run `npm install && npm run build` there, not globally.
 
-## Two ways to run it
+## Using it
 
-**1. Interactive Claude Code** — the skill is auto-discovered from `.claude/skills/`; invoke with `/baton <task>`. Lanes resolve from `.claude/agents/` (see Install); without them, lanes fall back to `general-purpose`. `Explore` and `Plan` are built-ins.
+**Interactive Claude Code — the main way.** Install the skill (above), then invoke it in any project:
 
-**2. Programmatic runtime (headless, self-contained):**
+```text
+/baton <task>
+```
+
+The main conversation becomes the coordinator and runs the loop. For most people, that's the whole product — no setup beyond the install.
+
+### Optional: headless runtime (local batch · CI/CD · cloud)
+
+The bundled TypeScript runtime runs the **same loop without an interactive session** — for scripted, CI/CD, or cloud use. You don't need it for normal interactive work.
 
 ```bash
 cd .claude/skills/baton/runtime
@@ -106,52 +134,35 @@ cp .env.example .env        # add ANTHROPIC_API_KEY (loaded automatically)
 npm run orchestrate -- "plan and implement X" --cwd /path/to/target/repo
 ```
 
-### Execution modes: LLM-backed vs deterministic offline
+**Execution modes:**
 
-The runtime runs the lanes one of two ways:
-
-- **LLM-backed (default)** — real model calls drive the manager and lanes. Needs `ANTHROPIC_API_KEY` (or a supported provider). This is the full orchestrator.
-- **Deterministic offline** (`--offline`, or automatic with no key) — a no-model pass: it reads the repo, prints the detected profile and the lane registry, and exits. Useful for a free dry run or CI smoke check.
+- **LLM-backed (default)** — real model calls drive the coordinator and lanes. Needs `ANTHROPIC_API_KEY` (or a supported provider).
+- **Deterministic offline** (`--offline`, or automatic with no key) — a no-model pass: reads the repo, prints the detected profile and lane registry, exits. A free dry run / CI smoke check.
 
 ```bash
 npm run orchestrate -- "discovery pass" --cwd /path/to/target/repo --offline
 ```
 
-**Cost** (LLM-backed): the manager loop dominates, so it defaults to **Sonnet at medium effort** with a 40-turn cap. Tune via env (`.env.example`): `BATON_MODEL=haiku BATON_EFFORT=low` for cheap runs, `BATON_MODEL=opus BATON_EFFORT=xhigh` for the hardest work. Lanes keep their own models (triage→haiku, reviewer/researcher→sonnet, implementer→inherits the manager). Adding *more tools* does **not** lower cost — model tier, effort, and bounded turns do.
+**Cost** (LLM-backed): the coordinator loop dominates, so it defaults to **Sonnet at medium effort** with a 40-turn cap. Tune via env (`.env.example`): `BATON_MODEL=haiku BATON_EFFORT=low` for cheap runs, `BATON_MODEL=opus BATON_EFFORT=xhigh` for the hardest work. Lanes keep their own models (triage→haiku, reviewer/researcher→sonnet, implementer→inherits the coordinator). Adding *more tools* does **not** lower cost — model tier, effort, and bounded turns do.
 
 **Run trail:** each run writes a ledger (`run.json` + `summary.md`, with `total_cost_usd`) under `~/.baton/runs/` by default — override with `BATON_LEDGER_DIR`.
 
 **Optional semantic navigation:** point `BATON_MCP_CONFIG` at an MCP server (e.g. Serena — template in `runtime/mcp.example.json`) for symbol-aware code navigation. Off by default; install the server yourself only if you opt in.
 
-## Examples (simple → complex)
-
-```text
-# trivial — runs direct, no lanes, no ceremony
-/baton fix the typo in the README
-
-# one delegated lane — implement, with review split out
-/baton plan and implement this feature, splitting verification into its own lane
-
-# discovery-first — reduce guessing before touching code
-/baton do a discovery pass on this repo before we touch the auth flow
-
-# read-only gate — review without letting it change code
-/baton have a reviewer check this diff and run the tests; it must not edit anything
-
-# fully routed — design, parallel implementation, review at the end
-/baton route this change: design in one lane, implementation in another, review at the end
-```
-
 ## Composing with other Claude Code features
 
-The orchestrator stays loosely coupled — it *uses* better tools when they're in reach but depends on none:
+Baton stays loosely coupled — it *uses* better tools when they're in reach but depends on none:
 
-- **Specialist skills** — when a more specialized skill is present (e.g. `code-review`, `security-review`, `deep-research`), the manager prefers it over the generic lane; long-running ones run as background lanes.
+- **Specialist skills** — when a more specialized skill is present (e.g. `code-review`, `security-review`, `deep-research`), the coordinator prefers it over the generic lane; long-running ones run as background lanes.
 - **Hooks** — put automated, repeatable gates ("always run tests before done") in `settings.json` hooks, not in prose.
 - **`/loop`** — wrap a routed run for recurring/scheduled execution.
 
 ## Why it's built this way
 
-Key design choices (manager-led lanes, behavioral verification, the ~2-attempt recovery bound, cheap-model-default) are informed by published code-translation research, mapped decision-by-decision in [`docs/research-basis.md`](docs/research-basis.md). The framing there is honest: those results support the design **by analogy**, not as proof — the skill's own evals and live runs are the primary evidence.
+Key design choices (manager-led lanes, behavioral verification, the ~2-attempt recovery bound, cheap-model-default) are informed by published code-translation research, mapped decision-by-decision in [`docs/research-basis.md`](docs/research-basis.md). The framing there is honest: those results support the design **by analogy**, not as proof — Baton's own evals and live runs are the primary evidence.
 
 To use elsewhere, copy the single `.claude/skills/baton/` folder into the target repo. See [SKILL.md](.claude/skills/baton/SKILL.md) for the full loop, delegation policy, and lane map.
+
+---
+
+Powered by Claude.
