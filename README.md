@@ -26,6 +26,12 @@ Baton routes substantial software work through a bounded subagent loop — disco
 
 It adapts a manager-led orchestration pattern to Claude Code's native subagent system — the Agent tool with `subagent_type`, `run_in_background`, `SendMessage`, worktree isolation, plan mode, and hooks — trimmed to development concerns. An optional programmatic runtime (for headless use) targets the [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview).
 
+## When to use it
+
+Baton is built for **large, complex, multi-step work** — changes that span several files, need discovery before touching code, benefit from a separate review pass and bounded recovery, or compose other skills. That's where a coordinated loop with verification, approval gates, and a run trail earns its keep.
+
+For **trivial, one-off changes** (a typo, a one-line fix), you don't need Baton — a direct prompt is faster and cheaper, and our [measured honest standing](#why-its-built-this-way) says so plainly: on small tasks a capable model matches Baton at lower cost. Baton's own triage recognizes this and runs such work **direct** — no lanes, no ceremony — rather than over-engineering it. **Aim Baton at complexity, not simplicity.**
+
 ## How the loop works
 
 Substantial work runs the loop; trivial work skips it and runs direct.

@@ -15,6 +15,8 @@ Baton is a lean, manager-led orchestration skill for Claude Code. Like a relay t
 
 Its scope is **individual / small-team Claude Code development**: routed multi-step work, parallel feedback, gated outward actions, a proportional trail. It deliberately does **not** target enterprise scale (durable execution, formal governance/audit, resumable background fleets) — where the guide says external infrastructure belongs, and importing it here would betray the lean goal.
 
+**Task scope — aim at complexity, not simplicity.** Baton is for **large, complex, multi-step work** (multi-file changes, discovery-before-edit, separate review, recovery, skill-composition). On trivial one-off tasks it adds no value — the Baton-vs-baseline bench washed four times, a capable model matching it at lower cost — so triage runs trivial work **direct** and we do not optimize for it. Its value (process guarantees *reliably vs. probabilistically*, scale, composition, accessibility) lives at complexity the toy bench can't reach; see `docs/research-basis.md`.
+
 **Design test for any new capability:** does it earn its weight for a single developer in Claude Code, or is it enterprise scaffolding imported by reflex? Prefer the lean path; cut what does not pay for itself.
 
 ## Branding
