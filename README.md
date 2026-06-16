@@ -16,15 +16,13 @@ Think of a relay race. The work is the baton, passed cleanly from one runner to 
 
 A **coordinator** hands the baton to each runner, keeps them out of each other's way, and brings the work back together. It asks you first before anything big or hard to undo, like sharing code or deleting files. You stay in charge, and it keeps short notes on what it did.
 
-Small jobs skip the relay and just get done. And you can teach Baton your own rules (your review steps, deploy checks, ticket conventions) by adding a few files, so the same process repeats on every project. Simple for one person, and it still fits a big team.
+You can teach Baton your own rules (your review steps, deploy checks, ticket conventions) by adding a few files, so the same process repeats on every project. Simple for one person, and it still fits a big team.
 
-**Baton is built for medium and big jobs that need to be done the same careful way every time.** These are jobs with many steps or many files, or jobs where a mistake would cost a lot. Baton does use more of the AI's effort, because it runs several helpers for each job instead of just one. In return you get a steady, checked process on every run, and you do not have to keep track of every handoff yourself. For small, low-risk jobs you do not need it, so Baton just does those right away.
+**Baton is built for medium and big jobs that need to be done the same careful way every time.** These are jobs with many steps or many files, or jobs where a mistake would cost a lot. Baton does use more of the AI's effort, because it runs several helpers for each job instead of just one. In return you get a steady, checked process on every run, and you do not have to keep track of every handoff yourself.
 
 ## When to use it
 
-Baton is built for **consequential, verification-heavy work**: changes where being wrong is expensive, like security-sensitive edits, dependency and version bumps, migrations, changes to shared code, and anything headed for production. Work like this usually spans several files, needs discovery before touching code, and benefits from a separate review pass and bounded recovery. But it's the **stakes**, not the step-count, that make a coordinated loop with verification, approval gates, and a run trail earn its keep.
-
-For **trivial or low-stakes changes** (a typo, a one-line fix), you don't need Baton: a direct prompt is faster and cheaper, and the [bench](#why-its-built-this-way) confirms a capable model matches Baton there at lower cost. Baton's triage knows this and runs such work **direct**, no ceremony. **Aim Baton at consequence, not mere complexity.**
+Baton earns its keep on **consequential, verification-heavy work**: security-sensitive edits, dependency and version bumps, migrations, changes to shared code, anything headed for production. Work like this usually spans several files and benefits from discovery before touching code, a separate review pass, and bounded recovery. But it's the **stakes**, not the step-count, that justify the loop. **Aim Baton at consequence, not mere complexity.**
 
 ## Shift-left by design
 
