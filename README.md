@@ -179,6 +179,8 @@ Baton stays loosely coupled — it depends on no other skill, and composition is
 
 Key design choices (manager-led lanes, behavioral verification, the ~2-attempt recovery bound, low-cost-model default) are informed by published code-translation research, mapped decision-by-decision in [`docs/research-basis.md`](docs/research-basis.md). Those results support the design **by analogy**, not as proof — Baton's own evals and live runs are the primary evidence.
 
+**Honest standing (measured).** A Baton-vs-baseline bench (`testing/fixtures/`, skill-on vs. `--no-skill`) ran four times across model tiers and difficulty, and **every run washed** — structured and unstructured produced equal end-state outcomes, at higher cost for Baton. The honest read: Baton does **not** beat a capable model on small-task correctness. Its value is **reliably vs. probabilistically** — it *always* verifies, gates outward-facing actions, splits review into its own lane, and keeps a run trail, where a bare model does these only when the task and model happen to favour it — plus scale, skill-composition, and accessibility, none of which a single-model toy bench can measure. Full reasoning in [`docs/research-basis.md`](docs/research-basis.md#where-we-drifted--and-whats-still-open).
+
 See [SKILL.md](.claude/skills/baton/SKILL.md) for the full loop, delegation policy, and lane map.
 
 ---
