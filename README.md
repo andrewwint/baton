@@ -212,7 +212,7 @@ Baton stays loosely coupled: it depends on no other skill, and composition is st
 
 Key design choices (manager-led lanes, behavioral verification, the ~2-round recovery bound, the low-cost-model default, the multi-agent bet) draw on published code-translation research, adapted to real dev work rather than copied from it. We're clear about which the evidence directly supports and which are pragmatic calls, kept flexible by intent and refined as we learn. The decision-by-decision mapping of what we took, where we adapted it, and what's open is in [`docs/research-basis.md`](docs/research-basis.md). Those results support the design **by analogy**, not as proof; Baton's own evals and live runs are the primary evidence.
 
-**A run is only as good as what you feed it.** The loop runs the same way every time, but quality tracks the inputs: the acceptance criteria, the standards you encode (`references/`, lane prompts), and above all the sharpness of the review brief. A vague brief still produces a tidy, green, archived run that can ship a defect; a sharp adversarial brief is what makes the same loop catch real bugs. Baton makes discipline repeatable and auditable. It does not supply it.
+**A run is only as good as what you feed it.** The loop runs the same way every time, but quality tracks the inputs: the acceptance criteria, the standards you encode (`references/`, lane prompts), and above all the sharpness of the review brief. A vague brief still produces a tidy, green, archived run that can ship a defect; a sharp adversarial brief is what makes the same loop catch real bugs. Baton makes discipline repeatable and auditable.
 
 See [SKILL.md](.claude/skills/baton/SKILL.md) for the full loop, delegation policy, and lane map.
 
