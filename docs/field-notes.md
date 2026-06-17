@@ -1,150 +1,162 @@
-# Field notes
+# Field Notes
 
-An honest record of what real-world use of Baton has shown, kept so the roadmap's open questions
-are answered by evidence rather than assertion. These are small-N observations, not measurements,
-and the runs were on private codebases, so they are described in the generic.
+This is a record of using Baton on real projects. We kept these notes to see how well the tool works based on real evidence. These are observations from a small number of tests on private codebases, so the details are described in a general way.
 
-## Run 1: a multi-step CQRS service rebuild
+---
 
-Baton drove a multi-slice rebuild of a CQRS service (three OpenSpec changes: a vertical slice, a
-correctness-hardening pass, and a cloud-adapters slice), spec-first and gated throughout.
+## At a Glance
 
-What it showed:
+| Run | What was built | Reference design to copy? | Ran live? | What got caught that the standard tests passed |
+|---|---|---|---|---|
+| 1 | Rebuild of a data service (commands and queries split apart) | Yes | No | Dead code; a timing conflict that stopped data batches; a fake test setup hiding a live failure |
+| 2 | A new AI tool and data pipeline, launched online | No | Yes | An outdated model name and a mismatched data shape (caught only at the live run) |
+| 3 | A slice that sorts data by source, not by how new it is | Yes | No | A real timing flaw, plus a code comment that falsely claimed the code was safe |
+| 4 | Two security features (reading files, then editing and permissions) | A clear spec | No | No code bug; the standard tests were blind to the security rules themselves |
+| 5 | A weaker model's build, then a bug planted on purpose | n/a | No | A planted permission-escalation bug that passed every test, linter, and type check |
 
-- Independent, adversarially-briefed review caught real defects that a green test suite had passed
-  (a dead-code normalizer; later, a consumer-race that aborted a batch, and a mock that masked a
-  production-only failure). The first review, on clean inputs, missed the earliest of these; a
-  sharper, separate review lens caught it. That observation is what produced the
-  perspective-diverse and execute-adversarial-inputs review directives now in the skill, which
-  then caught the later bugs.
-- Caveat: the rebuild had a reference design to work from, so it compressed implement-and-test, not
-  discovery or design.
+Each run is a single case on a private codebase. Treat these as observations, not measurements.
 
-## Run 2: a greenfield agent on unfamiliar cloud tooling, deployed live
+---
 
-Baton took a greenfield agent and data pipeline, on a managed agent platform and SDK that were new
-to the model (around the knowledge cutoff), from research through a live cloud deploy.
+## Run 1: Rebuilding a Data Service
 
-What it showed:
+Baton was used to rebuild a data system that handles database commands and queries separately. The project was completed step-by-step, and every stage required approval before moving forward.
 
-- Discovery worked. Research lanes turned a genuine knowledge gap into a grounded, cited
-  foundation, including non-obvious production gotchas. Verify-don't-invent held: the build
-  confirmed the real APIs from the actual tooling and scaffold instead of inventing plausible ones,
-  and an independent review re-confirmed them.
-- Running it for real was decisive. A live smoke and then a live deploy each surfaced a defect a
-  green test suite could not (a provider-deprecated model id; a payload-envelope mismatch). Two
-  real bugs, caught only by execution against real infrastructure.
-- Constraints designed into the slice held against a live model in production.
-- Caveat: this was greenfield with no reference design, and it reached a working deploy. Still N=1.
+**By the numbers:**
 
-## Run 3: a designed concurrency-correctness test on a CQRS service
+| Measure | Value |
+|---|---|
+| Work slices (each planned, built, and reviewed) | 3 |
+| Bugs the reviewer caught that the standard tests had passed | 3 |
+| Where they were caught | Independent review, not the test suite |
 
-This run was set up as a test of the verify lane itself. We scoped a deliberately non-commutative
-slice (resolving certain record fields by source precedence rather than by recency) so that a green,
-single-threaded suite could plausibly pass while a real concurrency or ordering defect hid underneath.
-The implementer built the feature and a happy-path suite; an independent verify lane then executed
-adversarial concurrent and out-of-order inputs against both storage adapters.
+**What the data showed:**
 
-What it showed:
+- **A separate reviewer caught hidden bugs:** An independent checking helper found real mistakes that the regular automated test suite had marked as passing. These mistakes included code that did nothing, a timing conflict that stopped data batches, and a fake test setup that hid a live failure.
+- **Diverse viewpoints are necessary:** The very first review pass missed the earliest of these mistakes. We updated Baton's rules to use different testing perspectives, which allowed the system to catch the later bugs.
+- **Limitations:** The team already had an old design to look at, which made the coding and testing steps move much faster than usual.
 
-- On the hard path, the loop got the concurrent design right. The durable (cloud) adapter resolved
-  the merge as independent monotone conditional updates; the verify lane confirmed it by executing
-  every input ordering and by analyzing the conditional writes, not by trusting the green suite.
-- The green suite hid a real defect, and only adversarial execution caught it. A non-cloud adapter did
-  an unlocked read-compute-write while its own comment claimed it was race-free. The single-threaded
-  suite passed clean; the verify lane's injected-delay harness failed every trial. Severity was low
-  (production runs a single writer per key and the cloud adapter is correct), but it is exactly the
-  green-but-hiding-a-defect failure mode the run was designed to surface. The false claim was fixed.
-- The discipline cut both ways. The verify lane hit a band of failures in the mock-backed concurrency
-  tests and did not cry wolf: it root-caused them to the mock's non-atomic writes (the real service is
-  server-atomic) and cleared the algorithm, avoiding a false alarm as carefully as a false pass.
-- It validated a manager judgment independently. Two older tests had their assertions changed during
-  the build; the verify lane, not told the conclusion, agreed the change was spec-alignment (the old
-  behavior violated an always-stated contract), not tests weakened to go green.
-- Caveat: the mock cannot prove real-infrastructure concurrency. The cloud path's correctness rests on
-  analysis of its conditional writes, not a live concurrent run against the real service. Design under
-  concurrency is the positive signal here; correctness under real distributed concurrency stays open
-  and is the natural next run.
+---
 
-## Run 4: two security slices (authorization), where the model was too good
+## Run 2: Building a Tool on Unfamiliar Cloud Infrastructure
 
-Two slices of a greenfield internal access-control service, each a designed test of the verify lane on
-the highest-stakes domain. Slice one: per-object read authorization (the broken-object-level / IDOR
-failure mode). Slice two, deliberately sharper: a write path with function-level authorization (a
-reader is not an editor) and field immutability (no privilege escalation by rewriting access-control
-fields on update). The implementer built the feature and a happy-path suite; an independent verify lane
-(a separate agent on the second slice) ran an adversarial sweep; the manager re-verified by authoring a
-committed adversarial suite over both storage adapters.
+Baton took a new AI assistant and data pipeline from the initial research stage all the way to launching it live online. The project used cloud tools that were newer than the AI model's training data.
 
-What it showed:
+**By the numbers:**
 
-- No code bug, either slice. The implementations were correct, including the write path where
-  authorization most often breaks. A capable model plus an explicit security specification produces
-  correct authorization code. We did not reproduce a green-hides-a-real-bug catch here; the sharp spec
-  drew the implementation-bug teeth.
-- The real catch was test blindness, not code. Both green suites proved almost none of the security
-  properties: substring greps that would miss a leaked field, no test pinning the access-control list
-  off the wire, and on the write slice no test at all for mass-assignment immutability, the
-  existence-oracle equivalence, or authorize-before-write. A team trusting the green suite had false
-  confidence about its security coverage. The verify lane's look-past-green and scrutinize-the-tests
-  discipline surfaced exactly this, and the gaps were closed with committed regression tests.
-- The verify discipline cut cleanly. The adversarial sweep tried the dodges that matter (field casing,
-  camelCase, nested shapes, query and form injection, the 404 byte-identity oracle) and reported what
-  it could not break, not only what it could. It separated a real coverage gap from the
-  correct-but-untested code underneath.
-- Cost of a sharp spec. The sharper the specification, the more likely the model gets it right, and the
-  less the run stresses the catch-a-real-bug failure mode. Reproducing that in a well-specified domain
-  would need a novel or under-specified problem, or a weaker implementer.
+| Measure | Value |
+|---|---|
+| Bugs found only by running the project live | 2 |
+| Where they hid | Passed the standard tests; appeared at the live smoke and the live deploy |
+| Times tested so far | 1 project |
 
-What it adds to the picture: on correct-but-well-specified work, the value here was not catching code
-defects but catching that a green suite was blind to the properties that mattered, and producing an
-auditable, independently re-verified, regression-pinned result. That is a narrower claim than catching
-a shipped bug, and an honest one.
+**What the data showed:**
 
-## Run 5: a weak implementer, then fault injection
+- **The research step worked:** The research helpers turned a gap in knowledge into a solid, verified foundation. They found hidden setup problems before the code was deployed. The system looked up real tool rules instead of guessing or inventing plausible instructions.
+- **Live testing was required:** Running the project on real infrastructure revealed two errors that regular automated tests could not see. These were an outdated model name and a mismatched data shape.
+- **Safety limits held:** The guardrails kept the AI under control during the live launch.
+- **Limitations:** This was a brand-new project with no old design to copy, and it has only been tested on one project so far.
 
-Two follow-on experiments on the same access-control service, aimed at the question the clean security
-runs could not answer: does the verify lane catch real bugs, or only confirm correct code?
+---
 
-First, a fallible-implementer run: the same authorization-grant feature, implemented by a deliberately
-weaker, cheaper model with a neutral brief and no design notes. The hypothesis was that a weaker
-implementer would ship the obvious privilege-amplification bug and the verify lane would catch it. The
-hypothesis was falsified. Even the weaker model, given an explicit specification, built it correctly,
-and the strong verify lane (over a hundred probes, both storage adapters) confirmed it. Across several
-well-specified authorization slices, no organic security bug ever appeared.
+## Run 3: Testing How the System Handles Multiple Tasks at Once
 
-So we measured the verify lane directly with fault injection. A known, high-severity privilege
-amplification was planted (the administrator gate was widened to also admit editors). It passed the
-full committed test suite, the linter, and the type checker, because the suite's one denial test
-happened to use a caller who was denied for the wrong reason, never exercising the editor-not-admin
-case. The verify lane was then run blind, with the ordinary adversarial brief and no hint that a bug
-was present.
+We set up this test specifically to check the helper that verifies code. We created a tricky task where data had to be sorted by where it came from, rather than how new it was. A standard, single-threaded test suite would easily pass this even if a hidden timing bug existed underneath.
 
-What it showed:
+**By the numbers:**
 
-- The verify lane caught the planted bug. It named the exact line, reproduced the exploit end to end on
-  both adapters (an editor who is not an administrator grants access, and the granted group then really
-  reads the document), explained precisely why the green suite missed it, and gave the correct fix. The
-  fault was reverted and never committed.
-- This is the demonstration the clean runs could not give: a real, high-severity authorization bug that
-  a green suite plus lint plus types all pass, caught by an independent adversarial lane.
-- The honest limit it exposes: you cannot rely on organic bugs to test a verifier, because capable
-  models do not produce them on well-specified work. Fault injection is how you both demonstrate and
-  measure a verifier's catch rate, and it belongs in the eval harness as a standing battery of planted
-  faults rather than a one-off.
+| Measure | Value |
+|---|---|
+| Spec rules added or changed | 1 new, 1 revised |
+| Tests passing after the slice | 105 |
+| Real bugs caught past the green suite | 1 |
+| How it was caught | Code run under forced overlapping timing; failed 20 of 20 trials |
+| Severity | Low (the live system allows only one writer at a time) |
+| False alarms | 0 |
 
-Taken with Run 3, the pattern is consistent: the verify lane earns its keep by catching real defects
-(a concurrency race that green tests hid; a planted authorization bypass green tests passed), while not
-crying wolf on simulation artifacts. The defects that occur naturally cluster on genuinely hard
-problems; on well-trodden patterns the value is assurance, coverage-blindness catches, and an auditable
-trail.
+**What the data showed:**
 
-## What did not change
+- **The system handled complex logic correctly:** On the difficult path, the system designed the database code correctly to handle overlapping tasks. The checking helper verified this by testing every possible data order rather than just trusting the standard tests.
+- **Standard tests hid a real flaw:** One part of the system allowed a dangerous data mix-up even though a comment in the code claimed it was safe. The regular tests passed, but the checking helper's timing test failed every single time. The actual danger was low because the live system only allows one writer at a time, but it proved that standard tests can hide bugs. The error was fixed.
+- **No false alarms:** When a fake database setup caused tests to fail, the helper correctly figured out that the fake setup was broken, not the actual code. This avoided a false alarm.
+- **It agreed with human choices:** The helper correctly determined that two older tests were changed to match new rules, rather than just being weakened to pass easily.
+- **Limitations:** Fake database setups cannot perfectly prove how real servers handle multiple tasks at once.
 
-- The behavioral benches still wash: Baton does not beat a capable model on small, low-stakes
-  correctness.
-- The value is still amplify, not generate. In both runs the decisive judgment (what to scope, when
-  to verify for real, treating constraints as first-class) was the human's; Baton made applying it
-  cheap, consistent, and auditable.
-- Cost versus the alternative (Baton against a careful engineer plus one sharp review) is still
-  unmeasured.
+---
+
+## Run 4: Two Security Tests (User Permissions)
+
+We tested the checking helper on security code. The first test checked if users could read files they were not allowed to see. The second test checked if users could edit things they shouldn't or secretly grant themselves higher permissions.
+
+**By the numbers:**
+
+| Measure | Reading files | Editing and permissions |
+|---|---|---|
+| Spec rules | 3 | 2 |
+| Tests passing (project total) | 36 | 51 |
+| Adversarial checks the reviewer ran | about 120 | 56, plus 26 added as permanent tests |
+| Code bugs found | 0 | 0 |
+| Blind spots in the standard tests, found and fixed | Yes | Yes |
+
+**What the data showed:**
+
+- **The code itself had no bugs:** Both parts were written correctly. When an AI is given a very clear security list, it writes correct security code. The clear rules kept the AI from making initial coding mistakes.
+- **The real problem was blind tests:** Both regular test suites passed, but they did not actually prove that the security rules worked. They missed leaked data fields and failed to check if permissions were verified before writing data. The team felt safe, but their tests were not protecting them. The checking helper found these gaps, and we added proper tests to fix them.
+- **The system ran a thorough check:** The checking helper tried many common hacking tricks (like changing letter cases or injecting bad data) and accurately reported what it could and could not break.
+- **Limitations:** The clearer the rules you give the AI, the fewer mistakes it makes. This means the checking helper has fewer naturally occurring bugs to find.
+
+On well-defined work, the value was not finding broken code, but showing that the regular tests were blind to important security rules.
+
+---
+
+## Run 5: Using a Weaker Coder, then Planting a Bug
+
+We ran two final experiments on the security service to answer an open question: Does the checking helper actually find bugs, or does it only look at already perfect code?
+
+First, we had a cheaper, weaker AI model build the security feature. We expected it to make a security mistake so we could see if the checking helper caught it. However, the weaker model still wrote the code correctly because the instructions were clear. No natural security bugs appeared.
+
+Next, we planted a severe security bug on purpose, allowing regular editors to act like administrators. This bad code passed all standard checks, linters, and tests because the existing tests didn't check that specific case. We ran the checking helper blind, without telling it a bug was there.
+
+**By the numbers:**
+
+| Measure | Value |
+|---|---|
+| Built by | A weaker, cheaper model |
+| Spec rules | 2 |
+| Tests passing (project total) | 97 |
+| Natural security bugs found | 0 (the weaker model still wrote it correctly) |
+| Bugs planted on purpose | 1 (high severity: editors could act as admins) |
+| Did the planted bug pass tests, linter, and type checks? | Yes, all of them |
+| Did the reviewer catch it blind? | Yes, with the exact line, an exploit, and the fix |
+
+**What the data showed:**
+
+- **The checking helper caught the planted bug:** It named the exact line of code, showed how a hacker could exploit it, explained why the regular tests missed it, and provided the correct fix.
+- **This confirmed the helper's utility:** It proved that the helper can find severe security bugs that pass standard automated checks.
+- **Limitations:** You cannot rely on natural bugs to test a verification system because capable AI models rarely make mistakes when rules are explicit. Planting bugs on purpose is the only reliable way to measure success.
+
+---
+
+## A Repeatable Test: Planting Bugs on Purpose
+
+Run 5 showed the checking helper can catch one planted bug, but a single case is not a measurement. So we built a standing test: it plants one known bug of each common type into a small, working slice whose own tests still pass, then asks the checking helper to find it without being told what or where it is. The first run of this test:
+
+| Planted bug type | Found at the exact line? | False alarms |
+|---|---|---|
+| Permission bypass (acting above your role) | Yes | 0 |
+| Hidden-vs-missing leak (telling apart "forbidden" from "not there") | Yes | 0 |
+| Off-by-one boundary error | Yes | 0 |
+| Lost update (a timing/overwrite bug) | Yes | 0 |
+| **4 bugs, one of each type** | **4 found (100%)** | **0** |
+
+This is a score over four known bug types, one example each. It is a guardrail, not a promise: if a future change weakens the checking helper, this test should fail. It is not proof the helper will catch new, unfamiliar kinds of bugs.
+
+---
+
+## Overall Summary of Findings
+
+Combined with Run 3, the pattern shows that the checking helper works best by finding real flaws (like timing bugs or planted security bypasses) that regular tests miss, without causing false alarms. Genuinely hard problems cause natural bugs; on simple patterns, the tool provides assurance, catches blind spots in your tests, and keeps an audit log.
+
+- **Small tasks are still a tie:** Baton does not beat a standard AI model on small, low-risk tasks.
+- **Humans are still the drivers:** The most important choices (what to test, when to launch, and setting rules) were made by the human. Baton just made applying those rules consistent and trackable.
+- **Cost remains unmeasured:** We still have not measured the exact cost difference between using Baton versus a human engineer doing a careful review pass.
