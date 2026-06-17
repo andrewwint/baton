@@ -205,8 +205,8 @@ Key design choices (manager-led lanes, behavioral verification, the ~2-round rec
 ![Chart titled "When Baton helps, and when it doesn't": four small tests sit at "no difference" from plain AI and cost more; two end-to-end projects (a CQRS service and a Strands/AgentCore agent) sit well above, where a separate review and real-world testing caught bugs the unit tests had missed; the middle is marked untested. Real results only, with no predicted trend line.](docs/evidence.png)
 
 - **Basic tasks (4 small tests):** no better than plain AI, and Baton costs more (it runs extra helper lanes). If getting a change wrong is cheap, run it direct.
-- **End-to-end development (a CQRS service and a Strands/AgentCore agent):** where Baton earns its keep. A separate review pass and real-world testing caught bugs the unit tests had passed.
-- **The space between:** not benchmarked, so we don't guess, extrapolate, or draw a fake trend line.
+- **End-to-end development (a CQRS service and a Strands/AgentCore agent):** where Baton earns its keep. A separate review pass and real-world testing caught bugs unit tests had passed.
+- **The space between:** not benchmarked, this is an area for future investigation.
 
 The gain comes from the extra checking, not the size of the work (a bigger but self-contained test still washed). What Baton adds is **reliability**: it always verifies, gates outward-facing actions, splits review into its own lane, and keeps an auditable run trail, where a bare model does these only when the task and model happen to favour it. Whether that beats a careful engineer plus one sharp review on cost is still untested. Full reasoning in [`docs/research-basis.md`](docs/research-basis.md#where-we-drifted--and-whats-still-open); the two runs in [`docs/field-notes.md`](docs/field-notes.md).
 
