@@ -3,6 +3,14 @@
 Notable changes to Baton. Baton is early: versions before 1.0 may change shape as the design is
 tested against real work.
 
+## 0.1.2 - license
+
+### Added
+
+- MIT LICENSE, declared in the LICENSE file, SKILL.md frontmatter, and the runtime
+  package.json. No functional change to the skill or runtime; this release exists to give
+  Baton explicit, lawful terms of use so it can actually be used and contributed to.
+
 ## 0.1.1 - docs + first field evidence
 
 No functional change to the skill: the verification and triage improvements shipped in 0.1.0. This
