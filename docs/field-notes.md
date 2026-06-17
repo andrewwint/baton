@@ -12,7 +12,7 @@ This is a record of using Baton on real projects. We kept these notes to see how
 | **2** | A new AI tool and data pipeline, launched online       | No                        | Yes       | An outdated model name and a mismatched data shape                                   |
 | **3** | A sorting slice (sorted by source instead of recency)  | Yes                       | No        | A timing flaw; a code comment falsely claiming the file was safe                     |
 | **4** | Two security features (file reading and editing roles) | No (Clear spec only)      | No        | Zero code bugs; standard tests were blind to the security rules                      |
-| **5** | A weaker model's build, then a bug planted on purpose  | No (Clear spec only)      | No        | A planted permission bypass that passed all automated checks                         |
+| **5** | A smaller model's build, then a bug planted on purpose  | No (Clear spec only)      | No        | A planted permission bypass that passed all automated checks                         |
 
 _Note: Each run is a single case on a private codebase. Treat these as observations, not permanent measurements._
 
@@ -107,7 +107,7 @@ We tested the checking helper on security code. The first test checked if users 
 
 ---
 
-## Run 5: Using a Weaker Coder, then Planting a Bug
+## Run 5: Using a Smaller Coder, then Planting a Bug
 
 We ran two final experiments on the security service to answer an open question: Does the checking helper actually find bugs, or does it only look at already perfect code?
 
@@ -115,7 +115,7 @@ We ran two final experiments on the security service to answer an open question:
 
 | Measure                                       | Value                                          |
 | --------------------------------------------- | ---------------------------------------------- |
-| Built by                                      | A weaker, cheaper model                        |
+| Built by                                      | A smaller, lower-cost model                        |
 | Spec rules enforced                           | 2                                              |
 | Tests passing (project total)                 | 97                                             |
 | Natural security bugs found                   | 0                                              |

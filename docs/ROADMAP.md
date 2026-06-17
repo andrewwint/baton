@@ -13,7 +13,7 @@ than another feature would.
 
 - **Does the verify lane catch real bugs, or only confirm correct code?** This is the central claim,
   and it now has initial evidence. Across several well-specified slices the implementer, even a
-  deliberately weaker model, wrote correct code and no organic bug appeared, so we measured the lane
+  deliberately smaller, lower-cost model, wrote correct code and no organic bug appeared, so we measured the lane
   directly with fault injection: a planted privilege-escalation bug that passed the tests, the linter,
   and the type checker was caught blind, with the exact line and an exploit. That became the
   `fault-catch` eval (v0.1.4), which scores the lane against a battery of planted defects; the first
@@ -39,8 +39,8 @@ than another feature would.
 
 - **Is the cost worth it?** A routed change runs several lanes and spends more model tokens than a
   one-shot prompt, and we have not measured Baton against a careful engineer plus one sharp adversarial
-  review on the same task, which is the comparison that would settle it. A related thread: a weaker,
-  cheaper model wrote correct code on well-specified work, which hints the implementer lane may not
+  review on the same task, which is the comparison that would settle it. A related thread: a smaller,
+  lower-cost model wrote correct code on well-specified work, which hints the implementer lane may not
   always need a top tier.
 
 ## Near-term
