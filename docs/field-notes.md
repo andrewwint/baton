@@ -37,6 +37,35 @@ What it showed:
 - Constraints designed into the slice held against a live model in production.
 - Caveat: this was greenfield with no reference design, and it reached a working deploy. Still N=1.
 
+## Run 3: a designed concurrency-correctness test on a CQRS service
+
+This run was set up as a test of the verify lane itself. We scoped a deliberately non-commutative
+slice (resolving certain record fields by source precedence rather than by recency) so that a green,
+single-threaded suite could plausibly pass while a real concurrency or ordering defect hid underneath.
+The implementer built the feature and a happy-path suite; an independent verify lane then executed
+adversarial concurrent and out-of-order inputs against both storage adapters.
+
+What it showed:
+
+- On the hard path, the loop got the concurrent design right. The durable (cloud) adapter resolved
+  the merge as independent monotone conditional updates; the verify lane confirmed it by executing
+  every input ordering and by analyzing the conditional writes, not by trusting the green suite.
+- The green suite hid a real defect, and only adversarial execution caught it. A non-cloud adapter did
+  an unlocked read-compute-write while its own comment claimed it was race-free. The single-threaded
+  suite passed clean; the verify lane's injected-delay harness failed every trial. Severity was low
+  (production runs a single writer per key and the cloud adapter is correct), but it is exactly the
+  green-but-hiding-a-defect failure mode the run was designed to surface. The false claim was fixed.
+- The discipline cut both ways. The verify lane hit a band of failures in the mock-backed concurrency
+  tests and did not cry wolf: it root-caused them to the mock's non-atomic writes (the real service is
+  server-atomic) and cleared the algorithm, avoiding a false alarm as carefully as a false pass.
+- It validated a manager judgment independently. Two older tests had their assertions changed during
+  the build; the verify lane, not told the conclusion, agreed the change was spec-alignment (the old
+  behavior violated an always-stated contract), not tests weakened to go green.
+- Caveat: the mock cannot prove real-infrastructure concurrency. The cloud path's correctness rests on
+  analysis of its conditional writes, not a live concurrent run against the real service. Design under
+  concurrency is the positive signal here; correctness under real distributed concurrency stays open
+  and is the natural next run.
+
 ## What did not change
 
 - The behavioral benches still wash: Baton does not beat a capable model on small, low-stakes
