@@ -223,14 +223,14 @@ Baton stays loosely coupled: it depends on no other skill, and composition is st
 
 The core difference is simple: an autonomous tool like Claude Code's `/goal` is a completion loop. It trusts a success condition and runs until it hits it. Baton is a gated, audited process that distrusts the green test suite and keeps you in control.
 
-| Feature | Claude Code `/goal` | Baton |
-| :--- | :--- | :--- |
-| **Optimizes for** | Hands-off convergence on a stated condition | Consistency and catching hidden issues |
-| **The checking helper** | A smaller evaluator asking: *"Are we done yet?"* | A separate, same-tier reviewer trying to break the work |
-| **What it checks** | Did the condition become true? (Tests pass, lint clean) | Is it actually correct, including cases tests missed? |
-| **Method** | One agent looping and grading its own progress | Disjoint lanes; the reviewer acts as an independent observer |
-| **Outward actions** | Autonomous by design (*"run on a branch"*) | Gated entirely on your explicit approval |
-| **Shape** | **Outcome-driven** (reach the goal however) | **Process-driven** (discovery, plan, verify, audit trail) |
+| Feature                 | Claude Code `/goal`                                     | Baton                                                                    |
+| :---------------------- | :------------------------------------------------------ | :----------------------------------------------------------------------- |
+| **Optimizes for**       | Hands-off convergence on a stated condition             | Consistency and catching hidden issues                                   |
+| **The checking helper** | A smaller evaluator asking: _"Are we done yet?"_        | A separate, same-tier reviewer trying to break the work                  |
+| **What it checks**      | Did the condition become true? (Tests pass, lint clean) | Is it actually correct, including cases tests missed?                    |
+| **Method**              | One agent looping and grading its own progress          | Disjoint lanes; the reviewer acts as an independent adversarial observer |
+| **Outward actions**     | Autonomous by design (_"run on a branch"_)              | Gated entirely on your explicit approval                                 |
+| **Shape**               | **Outcome-driven** (reach the goal however)             | **Process-driven** (discovery, plan, verify, audit trail)                |
 
 The independence is the point: an agent grading its own work shares the assumptions that produced the bug and tends to confirm it, while a separate reviewer in its own context, told to break the work, does not carry that bias.
 
