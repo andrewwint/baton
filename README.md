@@ -44,6 +44,14 @@ A Baton-vs-baseline bench (`testing/fixtures/`, skill-on vs. `--no-skill`) ran f
 
 The gain comes from the extra checking, not the size of the work (a bigger but self-contained test still washed). What Baton adds is **reliability**: it always verifies, gates outward-facing actions, splits review into its own lane, and keeps an auditable run trail, where a bare model does these only when the task and model happen to favour it. Whether that beats a careful engineer plus one sharp review on cost is still untested. Full reasoning in [`docs/research-basis.md`](docs/research-basis.md#where-we-drifted--and-whats-still-open); the field runs in [`docs/field-notes.md`](docs/field-notes.md).
 
+## Where it's not worth it
+
+Saying where a tool does not pay is part of being honest about where it does. Baton is overhead you should skip when:
+
+- **The work is trivial or low-stakes.** A typo, a one-line fix, a throwaway script: a direct prompt is faster and cheaper, and Baton's extra lanes buy nothing. Its own triage routes such work direct, and you should too.
+- **You will not invest in specs and process files.** Baton makes discipline repeatable; it does not supply it. With vague briefs and no `references/`, you get the ceremony without the payoff, and the cost is still real. Quality tracks the inputs you feed it.
+- **You expect a correctness multiplier.** Baton does not write better code than a capable model on ordinary work (the bench washed four times). It makes good practice consistent and auditable; it does not make the model smarter. Believing otherwise is the trap.
+
 ## How the loop works
 
 Substantial work runs the loop; trivial work skips it and runs direct.
