@@ -17,8 +17,9 @@ than another feature would.
   directly with fault injection: a planted privilege-escalation bug that passed the tests, the linter,
   and the type checker was caught blind, with the exact line and an exploit. That became the
   `fault-catch` eval (v0.1.4), which scores the lane against a battery of planted defects; the first
-  battery is 4 of 4 on known classes with no false alarms, but a weaker reviewer (Haiku) has since
-  scored 4 of 4 as well, so the battery does not yet tell a strong verifier from a weak one, and an
+  battery is 4 of 4 on known classes with no false alarms, but a smaller same-family reviewer (Haiku, a
+  lower Claude tier) has since scored 4 of 4 as well, so the battery does not yet tell a strong verifier
+  from a weak one, and an
   eval that cannot fail is not a measure. Open: harder fixtures (the current ones are single-line,
   textbook defects in tiny isolated files) and a no-defect control, so the score reflects the verifier
   rather than the difficulty. The lesson underneath: organic bugs do not
@@ -47,9 +48,14 @@ than another feature would.
 - Add a no-defect (clean) control fixture to `fault-catch`: code with no planted bug, which the lane
   should score as no finding. An all-faulted battery cannot measure specificity or the false-positive
   rate; a clean control can.
-- Harder `fault-catch` fixtures. The first battery is 4 of 4 from both Sonnet and a weaker Haiku
-  reviewer, so it does not yet discriminate; the fix is harder, more realistic fixtures (multi-file,
-  subtle defects), not a weaker model. Track the catch rate over time as the verify discipline changes.
+- Harder `fault-catch` fixtures. The first battery is 4 of 4 from both Sonnet and a smaller same-family
+  Haiku reviewer, so it does not yet discriminate; the fix is harder, more realistic fixtures
+  (multi-file, subtle defects), not a smaller or different reviewer. Track the catch rate over time as
+  the verify discipline changes.
+- Later, lower priority: a cross-vendor reviewer check that runs the battery with a non-Anthropic
+  model. This answers a different question from the discrimination one above, namely whether the verify
+  discipline generalizes across model families rather than whether the fixtures are hard enough, and it
+  would need a provider abstraction, since the runner calls the Anthropic API only today.
 - A faithful-but-buggy-port fixture: a port that passes its own tests while silently changing behavior.
   This was the original Project 2 and was deferred when that slot went to the security work.
 - A deeper no-reference trial that stress-tests discovery and design under ambiguity.
