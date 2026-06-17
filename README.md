@@ -219,6 +219,22 @@ Baton stays loosely coupled: it depends on no other skill, and composition is st
 - **Hooks.** Put automated, repeatable gates ("always run tests before done") in `settings.json` hooks, not in prose.
 - **`/loop`.** Wrap a routed run for recurring/scheduled execution.
 
+## How this differs from an autonomous goal loop
+
+A goal-seeking loop like Claude Code's `/goal` runs hands-off toward a condition you state and commits as it goes. Baton makes a different bet.
+
+| | Autonomous goal loop (e.g. `/goal`) | Baton |
+|---|---|---|
+| Optimizes for | Hands-off convergence on a stated condition | Catching issues and consistency |
+| Stops when | The condition is true (often "tests pass") | A separate reviewer clears it, past the tests |
+| The checker | A smaller model judging progress to the goal | An independent lane that **executes** adversarial and edge inputs |
+| Outward actions (push, deploy) | Autonomous; commits as it goes | Gated on your approval |
+| Best for | A clear, low-risk target you can fully specify | Consequential work where "tests pass" is not the last word |
+
+The analogy: a goal loop sprints to the whistle, and the whistle is "tests pass." Baton runs a relay with an independent judge, who can wave off a result the scoreboard called good. In our runs a green suite hid the bug every time (see [field notes](docs/field-notes.md)), so that distinction is the point, not a nicety.
+
+The two can compose: a goal loop driving the build, with Baton's review lane as the gate before done.
+
 ## Why it's built this way
 
 Key design choices (manager-led lanes, behavioral verification, the ~2-round recovery bound, the low-cost-model default, the multi-agent bet) draw on published code-translation research, adapted to real dev work rather than copied from it. We're clear about which the evidence directly supports and which are pragmatic calls, kept flexible by intent and refined as we learn. The decision-by-decision mapping of what we took, where we adapted it, and what's open is in [`docs/research-basis.md`](docs/research-basis.md). Those results support the design **by analogy**, not as proof; Baton's own evals and live runs are the primary evidence.
