@@ -202,6 +202,13 @@ Key design choices (manager-led lanes, behavioral verification, the ~2-round rec
 
 **What the bench shows.** A Baton-vs-baseline bench (`testing/fixtures/`, skill-on vs. `--no-skill`) ran four times across model tiers and difficulty, and **every run washed**: structured and unstructured produced equal end-state outcomes, at higher cost for Baton. Baton does **not** beat a capable model on small, low-stakes correctness. Its value is **reliably vs. probabilistically**. It _always_ verifies, gates outward-facing actions, splits review into its own lane, and keeps a run trail, where a bare model does these only when the task and model happen to favour it. Add scale, skill-composition, and accessibility, none of which a single-model toy bench can measure. Full reasoning in [`docs/research-basis.md`](docs/research-basis.md#where-we-drifted--and-whats-still-open).
 
+**From the field (small-N, not measurements).** Two real runs on private codebases, recorded generically in [`docs/field-notes.md`](docs/field-notes.md):
+
+- _A multi-slice CQRS service rebuild_, spec-first and gated. An independent, adversarially-briefed review caught real defects a green test suite had passed. The first review on clean inputs missed the earliest of them; a separate, sharper lens caught it, and that observation is what produced the perspective-diverse and execute-adversarial-inputs review directives now in the skill (which then caught the later bugs).
+- _A greenfield agent on cloud tooling new to the model_, taken from research through a live deploy. Research lanes turned a genuine knowledge gap into a grounded, cited foundation; running it for real (a live smoke, then a live deploy) each surfaced a defect that tests could not.
+
+These are N=2 on private code, not benchmarks, and the standing caveats hold: the behavioral benches still wash (no edge on small, low-stakes correctness), the value is amplify-not-generate (the decisive judgment was the human's), and cost versus a careful engineer plus one sharp review is unmeasured.
+
 **A run is only as good as what you feed it.** The loop runs the same way every time, but quality tracks the inputs: the acceptance criteria, the standards you encode (`references/`, lane prompts), and above all the sharpness of the review brief. A vague brief still produces a tidy, green, archived run that can ship a defect; a sharp adversarial brief is what makes the same loop catch real bugs. Baton makes discipline repeatable and auditable. It does not supply it.
 
 See [SKILL.md](.claude/skills/baton/SKILL.md) for the full loop, delegation policy, and lane map.
