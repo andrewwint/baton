@@ -221,19 +221,20 @@ Baton stays loosely coupled: it depends on no other skill, and composition is st
 
 ## How this differs from an autonomous goal loop
 
-A goal-seeking loop like Claude Code's `/goal` runs hands-off toward a condition you state and commits as it goes. Baton makes a different bet.
+The core difference: a goal loop like Claude Code's `/goal` is an autonomous completion loop that trusts a success condition and runs to it. Baton is a gated, audited process that distrusts the green suite and keeps you in control.
 
-| | Autonomous goal loop (e.g. `/goal`) | Baton |
+| | `/goal` | Baton |
 |---|---|---|
 | Optimizes for | Hands-off convergence on a stated condition | Catching issues and consistency |
-| Stops when | The condition is true (often "tests pass") | A separate reviewer clears it, past the tests |
-| The checker | A smaller model judging progress to the goal | An independent lane that **executes** adversarial and edge inputs |
-| Outward actions (push, deploy) | Autonomous; commits as it goes | Gated on your approval |
-| Best for | A clear, low-risk target you can fully specify | Consequential work where "tests pass" is not the last word |
+| The secondary model | A smaller evaluator judging "are we done yet?" each turn | A separate, often same-tier reviewer trying to break the work |
+| What it checks | Did the stated condition become true (tests pass, lint clean) | Is it actually correct, including the cases the tests don't cover |
+| Method | One agent looping; the evaluator grades the same agent's progress | Disjoint lanes; the reviewer is an independent, adversarial context |
+| Outward actions (commits, push) | Autonomous, by design ("run on a branch") | Gated on your approval, by design |
+| Shape | Outcome-driven (reach the goal however) | Process-driven (discovery, plan, verify, auditable trail) |
 
-The analogy: a goal loop sprints to the whistle, and the whistle is "tests pass." Baton runs a relay with an independent judge, who can wave off a result the scoreboard called good. In our runs a green suite hid the bug every time (see [field notes](docs/field-notes.md)), so that distinction is the point, not a nicety.
+Two precisions. `/goal` can only stop at a line you can state, and "tests pass" is the usual, leaky proxy: `/goal` stops at the line you drew; Baton checks whether the line was in the right place. And Baton is human at the gates, not at every step: it edits and verifies on its own, stopping only for outward-facing actions like push and deploy.
 
-The two can compose: a goal loop driving the build, with Baton's review lane as the gate before done.
+In short, `/goal` sprints to the whistle and trusts it; Baton runs a relay and keeps a judge who can wave off a result the scoreboard called good. Different bets: `/goal` for a clear target you can fully specify, Baton for consequential work where a green suite should not be the last word (in our runs it hid the bug every time; see [field notes](docs/field-notes.md)).
 
 ## Why it's built this way
 
