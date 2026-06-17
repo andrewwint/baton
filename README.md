@@ -46,11 +46,13 @@ The gain comes from the extra checking, not the size of the work (a bigger but s
 
 ## Where it's not worth it
 
-Saying where a tool does not pay is part of being honest about where it does. Baton is overhead you should skip when:
+A good tool should tell you when to skip it. Baton does extra work: it runs several helpers and checks each step, so it takes more time and costs more. That is worth it on big or risky jobs. It is not worth it here:
 
-- **The work is trivial or low-stakes.** A typo, a one-line fix, a throwaway script: a direct prompt is faster and cheaper, and Baton's extra lanes buy nothing. Its own triage routes such work direct, and you should too.
-- **You will not invest in specs and process files.** Baton makes discipline repeatable; it does not supply it. With vague briefs and no `references/`, you get the ceremony without the payoff, and the cost is still real. Quality tracks the inputs you feed it.
-- **You expect a correctness multiplier.** Baton does not write better code than a capable model on ordinary work (the bench washed four times). It makes good practice consistent and auditable; it does not make the model smarter. Believing otherwise is the trap.
+- **Small, low-risk jobs.** A typo, a one-line fix, a throwaway script. Just ask the AI directly. It is faster and cheaper, and Baton sends small jobs straight through on its own anyway.
+- **No plan written down.** Baton only helps when you give it a clear plan and clear rules. Skip that and you get the extra steps but not the payoff. **Better pattern: plan first, then let Baton build and check against the plan.** Use a planning tool like SpecKit, BMAD, or OpenSpec (recommended, since it is what Baton itself uses).
+- **Hoping it writes smarter code.** It does not. On normal work, its code is about as good as the AI on its own (our head-to-head tests tied four times). Baton adds care, not brains: it checks the work the same way every time and keeps a record you can read later. Reach for it when you want the work done carefully and consistently, not when you just want better code.
+
+**Simple rule: match the tool to the risk.** Low risk, ask the AI. High risk or many steps, plan it first, then run Baton to build, check, and keep a record.
 
 ## How the loop works
 
