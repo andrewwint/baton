@@ -1,6 +1,7 @@
 ---
 name: baton
 description: Manager-led development orchestrator. Routes substantial software work through a bounded subagent loop — discovery, planning, implementation, verification, and recovery — while keeping a single visible owner, approval gates, and auditable run artifacts. Use it for multi-step implementation, verification-heavy changes, or work that benefits from parallel, disjoint subagent lanes.
+license: MIT
 ---
 
 # Baton
