@@ -37,8 +37,13 @@ p <- ggplot() +
   annotate("text", x = 0.02, y = -0.30,
            label = "4 small tests:\nno better than plain AI, and Baton costs more",
            hjust = 0, size = 3.5, colour = red, lineheight = 0.95) +
-  annotate("text", x = 0.92, y = 0.52,
-           label = "2 projects: a separate review\nand real-world testing caught bugs\nthe unit tests missed",
+  # name the two anchors (architecture + public AWS tools, not client code)
+  annotate("text", x = 0.785, y = 0.84, label = "CQRS service",
+           hjust = 1, size = 3.2, colour = green) +
+  annotate("text", x = 0.885, y = 0.965, label = "Strands / AgentCore agent",
+           hjust = 1, size = 3.2, colour = green) +
+  annotate("text", x = 0.92, y = 0.50,
+           label = "a separate review and real-world testing\ncaught bugs the unit tests missed",
            hjust = 1, size = 3.5, colour = green, lineheight = 0.95) +
   # endpoint labels anchored INSIDE the panel so they never clip
   annotate("text", x = 0.0, y = -0.50, label = "basic tasks",
