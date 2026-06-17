@@ -3,6 +3,25 @@
 Notable changes to Baton. Baton is early: versions before 1.0 may change shape as the design is
 tested against real work.
 
+## 0.1.3 - sharper verification lane
+
+### Added
+
+- Verification-lane review discipline (OpenSpec change `sharpen-verification-lane`): the
+  code-reviewer lane now scrutinizes any changed or removed tests, judging each as spec-alignment
+  versus a weakened assertion made to pass, and root-causes a failing check to a real defect versus a
+  harness, environment, or simulation artifact before escalating (including whether a simulation can
+  even exhibit the failure under test). The verify step of the loop briefs the lane on these. Specced
+  in the `orchestrator-runtime` capability.
+- `docs/field-notes.md`: Run 3, a designed concurrency-correctness dogfood that earned the checks
+  above. An adversarial verify lane caught a real defect a green suite hid, while correctly declining
+  to escalate simulation artifacts.
+- `AGENTS.md`: a documented release process (version bump, changelog, tag, GitHub release).
+
+### Unchanged
+
+- No runtime or behavioral-bench change. This sharpens review guidance, not the harness.
+
 ## 0.1.2 - license
 
 ### Added
