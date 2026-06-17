@@ -30,29 +30,29 @@ p <- ggplot() +
   geom_point(data = bench, aes(x, y), size = 3.2, colour = red) +
   geom_point(data = field, aes(x, y), size = 4.2, colour = green) +
   # the middle is unmeasured; say so where a curve would otherwise be
-  annotate("text", x = 0.5, y = 0.30, label = "between the ends:\nunmeasured",
+  annotate("text", x = 0.5, y = 0.30, label = "in between:\nwe haven't tested this",
            hjust = 0.5, size = 3.6, colour = "grey55", fontface = "italic",
            lineheight = 0.95) +
   # finding callouts
-  annotate("text", x = 0.14, y = -0.30,
-           label = "bench x4: wash\n(ties a bare model, costs more)",
-           hjust = 0.5, size = 3.5, colour = red, lineheight = 0.95) +
-  annotate("text", x = 0.85, y = 0.55,
-           label = "field runs (N=2): independent review +\nrunning for real caught defects a\ntest suite passed",
+  annotate("text", x = 0.02, y = -0.30,
+           label = "4 small tests:\nno better than plain AI, and costs more",
+           hjust = 0, size = 3.5, colour = red, lineheight = 0.95) +
+  annotate("text", x = 0.92, y = 0.52,
+           label = "2 real projects: a separate review\nand real-world testing caught bugs\nthe tests had missed",
            hjust = 1, size = 3.5, colour = green, lineheight = 0.95) +
   # endpoint labels anchored INSIDE the panel so they never clip
-  annotate("text", x = 0.0, y = -0.50, label = "low stakes",
+  annotate("text", x = 0.0, y = -0.50, label = "basic tasks",
            hjust = 0, size = 3.8, colour = ink) +
-  annotate("text", x = 1.0, y = -0.50, label = "high stakes (production, real infra)",
+  annotate("text", x = 1.0, y = -0.50, label = "real development",
            hjust = 1, size = 3.8, colour = ink) +
   scale_x_continuous(limits = c(0, 1), expand = expansion(mult = 0.02),
                      breaks = NULL) +
-  scale_y_continuous(breaks = 0, labels = "none", limits = c(-0.55, 1.08)) +
+  scale_y_continuous(breaks = 0, labels = "no\ndifference", limits = c(-0.55, 1.08)) +
   labs(
-    title = "Where Baton's edge shows up, and where it doesn't",
-    subtitle = "Real points only, no fitted trend. 4 washed benches + 2 field runs (N=2, private code).",
+    title = "When Baton helps, and when it doesn't",
+    subtitle = "What we actually saw, not a prediction. 4 small tests and 2 real projects (private code).",
     x = NULL,
-    y = "Baton's edge over a bare model") +
+    y = "How much Baton helps (vs. plain AI)") +
   theme_minimal(base_size = 13) +
   theme(
     plot.title = element_text(face = "bold"),
