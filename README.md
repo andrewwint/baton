@@ -30,6 +30,18 @@ That early investment is a **cost**. It pays back only when there's an expensive
 
 Scope note: out of the box Baton is shift-**left**. It owns **Plan → Develop → Test** and _gates_ (rather than runs) anything outward-facing. The right side isn't a hard wall, though. Encode your **Deploy & Release** process in [`references/`](.claude/skills/baton/references/), along with point-in-time **Monitor & Analyze** checks (post-deploy health, smoke tests, acceptance), and Baton will sequence, gate, and verify those steps as part of the loop. What stays out is _execution_, not coverage: Baton still won't fire an irreversible deploy without your approval or act as a live production monitor. It drives the process you define and leaves the trigger to you or your pipeline.
 
+## When Baton helps (measured)
+
+A Baton-vs-baseline bench (`testing/fixtures/`, skill-on vs. `--no-skill`) ran four times across model tiers and difficulty, and **every run washed**: structured and unstructured tied, at higher cost for Baton. Baton does **not** make the model smarter. The observed split:
+
+![Chart titled "When Baton helps, and when it doesn't": four small tests sit at "no difference" from plain AI and cost more; two end-to-end projects (a CQRS service and a Strands/AgentCore agent) sit well above, where a separate review and real-world testing caught bugs the unit tests had missed; the middle is marked untested. Real results only, with no predicted trend line.](docs/evidence.png)
+
+- **Basic tasks (small, self-contained coding fixtures: implement a function to pass a failing test, fix a localized bug, add a feature without breaking a sibling):** no better than plain AI, and Baton costs more (it runs extra helper lanes). If a change is cheap to get wrong, run it direct.
+- **End-to-end development (a CQRS service and a Strands/AgentCore agent):** where Baton earns its keep. A separate review pass and real-world testing caught bugs the unit tests had passed.
+- **The space between:** not benchmarked, an area for future investigation.
+
+The gain comes from the extra checking, not the size of the work (a bigger but self-contained test still washed). What Baton adds is **reliability**: it always verifies, gates outward-facing actions, splits review into its own lane, and keeps an auditable run trail, where a bare model does these only when the task and model happen to favour it. Whether that beats a careful engineer plus one sharp review on cost is still untested. Full reasoning in [`docs/research-basis.md`](docs/research-basis.md#where-we-drifted--and-whats-still-open); the two runs in [`docs/field-notes.md`](docs/field-notes.md).
+
 ## How the loop works
 
 Substantial work runs the loop; trivial work skips it and runs direct.
@@ -199,16 +211,6 @@ Baton stays loosely coupled: it depends on no other skill, and composition is st
 ## Why it's built this way
 
 Key design choices (manager-led lanes, behavioral verification, the ~2-round recovery bound, the low-cost-model default, the multi-agent bet) draw on published code-translation research, adapted to real dev work rather than copied from it. We're clear about which the evidence directly supports and which are pragmatic calls, kept flexible by intent and refined as we learn. The decision-by-decision mapping of what we took, where we adapted it, and what's open is in [`docs/research-basis.md`](docs/research-basis.md). Those results support the design **by analogy**, not as proof; Baton's own evals and live runs are the primary evidence.
-
-**What we actually saw (measured).** A Baton-vs-baseline bench (`testing/fixtures/`, skill-on vs. `--no-skill`) ran four times across model tiers and difficulty, and **every run washed**: structured and unstructured tied, at higher cost for Baton. Baton does **not** make the model smarter. The observed split:
-
-![Chart titled "When Baton helps, and when it doesn't": four small tests sit at "no difference" from plain AI and cost more; two end-to-end projects (a CQRS service and a Strands/AgentCore agent) sit well above, where a separate review and real-world testing caught bugs the unit tests had missed; the middle is marked untested. Real results only, with no predicted trend line.](docs/evidence.png)
-
-- **Basic tasks (small, self-contained coding fixtures: implement a function to pass a failing test, fix a localized bug, add a feature without breaking a sibling):** no better than plain AI, and Baton costs more (it runs extra helper lanes). If a change is cheap to get wrong, run it direct.
-- **End-to-end development (a CQRS service and a Strands/AgentCore agent):** where Baton earns its keep. A separate review pass and real-world testing caught bugs the unit tests had passed.
-- **The space between:** not benchmarked, an area for future investigation.
-
-The gain comes from the extra checking, not the size of the work (a bigger but self-contained test still washed). What Baton adds is **reliability**: it always verifies, gates outward-facing actions, splits review into its own lane, and keeps an auditable run trail, where a bare model does these only when the task and model happen to favour it. Whether that beats a careful engineer plus one sharp review on cost is still untested. Full reasoning in [`docs/research-basis.md`](docs/research-basis.md#where-we-drifted--and-whats-still-open); the two runs in [`docs/field-notes.md`](docs/field-notes.md).
 
 **A run is only as good as what you feed it.** The loop runs the same way every time, but quality tracks the inputs: the acceptance criteria, the standards you encode (`references/`, lane prompts), and above all the sharpness of the review brief. A vague brief still produces a tidy, green, archived run that can ship a defect; a sharp adversarial brief is what makes the same loop catch real bugs. Baton makes discipline repeatable and auditable. It does not supply it.
 
