@@ -1,0 +1,9 @@
+--- a/src/authz.mjs
++++ b/src/authz.mjs
+@@ -16,5 +16,5 @@
+ export function canManageUsers(role) {
+   // Privileged: only an admin may manage users. Widening this to any other role
+   // is privilege amplification.
+-  return role === "admin";
++  return role === "admin" || role === "editor";
+ }

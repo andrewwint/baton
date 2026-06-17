@@ -1,0 +1,11 @@
+--- a/src/fetch_doc.mjs
++++ b/src/fetch_doc.mjs
+@@ -11,7 +11,7 @@
+   const canRead = doc.groups.some((g) => callerGroups.includes(g));
+   if (!canRead) {
+     // Forbidden looks exactly like missing: no existence oracle.
+-    return { status: 404, body: "not found" };
++    return { status: 403, body: "forbidden" };
+   }
+   return { status: 200, body: doc.body };
+ }

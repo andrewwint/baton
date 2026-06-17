@@ -1,0 +1,8 @@
+{
+  "name": "fault-catch-lost-update",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

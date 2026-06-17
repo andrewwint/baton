@@ -1,0 +1,9 @@
+{
+  "file": "src/fetch_doc.mjs",
+  "region": {
+    "startLine": 14,
+    "endLine": 14
+  },
+  "category": "existence-oracle",
+  "summary": "A forbidden document returns 403 'forbidden', distinguishable from the 404 'not found' returned for a missing id; the response is an existence oracle."
+}

@@ -1,0 +1,8 @@
+{
+  "name": "fault-catch-boundary",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

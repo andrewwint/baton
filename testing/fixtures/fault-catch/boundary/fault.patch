@@ -1,0 +1,9 @@
+--- a/src/range.mjs
++++ b/src/range.mjs
+@@ -2,5 +2,5 @@
+ // The upper bound is EXCLUSIVE (this is the contract callers rely on when they
+ // pass hi = length to mean "indices 0..length-1").
+ export function inRange(value, lo, hi) {
+-  return value >= lo && value < hi;
++  return value >= lo && value <= hi;
+ }

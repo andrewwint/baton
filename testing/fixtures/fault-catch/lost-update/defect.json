@@ -1,0 +1,9 @@
+{
+  "file": "src/account.mjs",
+  "region": {
+    "startLine": 10,
+    "endLine": 11
+  },
+  "category": "lost-update",
+  "summary": "applyChange no longer checks expectedVersion before writing; the optimistic-concurrency guard was removed, so a stale concurrent writer overwrites a newer update (lost update)."
+}

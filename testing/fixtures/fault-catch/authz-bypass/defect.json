@@ -1,0 +1,9 @@
+{
+  "file": "src/authz.mjs",
+  "region": {
+    "startLine": 19,
+    "endLine": 19
+  },
+  "category": "authz-bypass",
+  "summary": "canManageUsers widened to also admit 'editor' (role === 'admin' || role === 'editor'); a non-admin editor gains the admin-only manage-users capability (privilege amplification)."
+}

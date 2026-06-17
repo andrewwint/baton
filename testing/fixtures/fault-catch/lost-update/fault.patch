@@ -1,0 +1,12 @@
+--- a/src/account.mjs
++++ b/src/account.mjs
+@@ -8,9 +8,6 @@
+ // expectedVersion (N) no longer matches the stored version (N+1).
+ export function applyChange(store, id, delta, expectedVersion) {
+   const rec = store[id];
+-  if (rec.version !== expectedVersion) {
+-    return { ok: false, reason: "stale" };
+-  }
+   store[id] = { balance: rec.balance + delta, version: rec.version + 1 };
+   return { ok: true, balance: store[id].balance, version: store[id].version };
+ }

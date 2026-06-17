@@ -3,6 +3,24 @@
 Notable changes to Baton. Baton is early: versions before 1.0 may change shape as the design is
 tested against real work.
 
+## 0.1.4 - fault-catch eval
+
+### Added
+
+- A fault-catch eval (`npm run fault-catch`): a battery of planted-defect fixtures (authz bypass,
+  existence oracle, boundary, lost update), each a runnable slice whose own test suite stays green,
+  scored by whether the verification lane localizes the planted defect. It gives a measurable catch
+  rate, a regression guard for the verify discipline, explicitly not a guarantee against novel defects.
+  The key-free structural check runs inside `smoke`; the model-backed run needs an `ANTHROPIC_API_KEY`.
+  Specced in the `behavioral-proof` capability.
+
+### Evidence
+
+- On the initial battery the verify lane localized all four planted defects at the exact line with no
+  false alarms, including a privilege-amplification fault derived from a real dogfood. The review brief
+  is deliberately broadened so it does not name the planted classes, so the result is not teaching to
+  the test.
+
 ## 0.1.3 - sharper verification lane
 
 ### Added

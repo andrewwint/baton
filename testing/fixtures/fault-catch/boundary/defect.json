@@ -1,0 +1,9 @@
+{
+  "file": "src/range.mjs",
+  "region": {
+    "startLine": 5,
+    "endLine": 5
+  },
+  "category": "boundary",
+  "summary": "inRange uses <= on the upper bound, making the half-open interval inclusive of hi (off-by-one); value === hi is wrongly admitted."
+}
