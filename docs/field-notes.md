@@ -101,6 +101,44 @@ defects but catching that a green suite was blind to the properties that mattere
 auditable, independently re-verified, regression-pinned result. That is a narrower claim than catching
 a shipped bug, and an honest one.
 
+## Run 5: a weak implementer, then fault injection
+
+Two follow-on experiments on the same access-control service, aimed at the question the clean security
+runs could not answer: does the verify lane catch real bugs, or only confirm correct code?
+
+First, a fallible-implementer run: the same authorization-grant feature, implemented by a deliberately
+weaker, cheaper model with a neutral brief and no design notes. The hypothesis was that a weaker
+implementer would ship the obvious privilege-amplification bug and the verify lane would catch it. The
+hypothesis was falsified. Even the weaker model, given an explicit specification, built it correctly,
+and the strong verify lane (over a hundred probes, both storage adapters) confirmed it. Across several
+well-specified authorization slices, no organic security bug ever appeared.
+
+So we measured the verify lane directly with fault injection. A known, high-severity privilege
+amplification was planted (the administrator gate was widened to also admit editors). It passed the
+full committed test suite, the linter, and the type checker, because the suite's one denial test
+happened to use a caller who was denied for the wrong reason, never exercising the editor-not-admin
+case. The verify lane was then run blind, with the ordinary adversarial brief and no hint that a bug
+was present.
+
+What it showed:
+
+- The verify lane caught the planted bug. It named the exact line, reproduced the exploit end to end on
+  both adapters (an editor who is not an administrator grants access, and the granted group then really
+  reads the document), explained precisely why the green suite missed it, and gave the correct fix. The
+  fault was reverted and never committed.
+- This is the demonstration the clean runs could not give: a real, high-severity authorization bug that
+  a green suite plus lint plus types all pass, caught by an independent adversarial lane.
+- The honest limit it exposes: you cannot rely on organic bugs to test a verifier, because capable
+  models do not produce them on well-specified work. Fault injection is how you both demonstrate and
+  measure a verifier's catch rate, and it belongs in the eval harness as a standing battery of planted
+  faults rather than a one-off.
+
+Taken with Run 3, the pattern is consistent: the verify lane earns its keep by catching real defects
+(a concurrency race that green tests hid; a planted authorization bypass green tests passed), while not
+crying wolf on simulation artifacts. The defects that occur naturally cluster on genuinely hard
+problems; on well-trodden patterns the value is assurance, coverage-blindness catches, and an auditable
+trail.
+
 ## What did not change
 
 - The behavioral benches still wash: Baton does not beat a capable model on small, low-stakes
