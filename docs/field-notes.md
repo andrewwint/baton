@@ -66,6 +66,41 @@ What it showed:
   concurrency is the positive signal here; correctness under real distributed concurrency stays open
   and is the natural next run.
 
+## Run 4: two security slices (authorization), where the model was too good
+
+Two slices of a greenfield internal access-control service, each a designed test of the verify lane on
+the highest-stakes domain. Slice one: per-object read authorization (the broken-object-level / IDOR
+failure mode). Slice two, deliberately sharper: a write path with function-level authorization (a
+reader is not an editor) and field immutability (no privilege escalation by rewriting access-control
+fields on update). The implementer built the feature and a happy-path suite; an independent verify lane
+(a separate agent on the second slice) ran an adversarial sweep; the manager re-verified by authoring a
+committed adversarial suite over both storage adapters.
+
+What it showed:
+
+- No code bug, either slice. The implementations were correct, including the write path where
+  authorization most often breaks. A capable model plus an explicit security specification produces
+  correct authorization code. We did not reproduce a green-hides-a-real-bug catch here; the sharp spec
+  drew the implementation-bug teeth.
+- The real catch was test blindness, not code. Both green suites proved almost none of the security
+  properties: substring greps that would miss a leaked field, no test pinning the access-control list
+  off the wire, and on the write slice no test at all for mass-assignment immutability, the
+  existence-oracle equivalence, or authorize-before-write. A team trusting the green suite had false
+  confidence about its security coverage. The verify lane's look-past-green and scrutinize-the-tests
+  discipline surfaced exactly this, and the gaps were closed with committed regression tests.
+- The verify discipline cut cleanly. The adversarial sweep tried the dodges that matter (field casing,
+  camelCase, nested shapes, query and form injection, the 404 byte-identity oracle) and reported what
+  it could not break, not only what it could. It separated a real coverage gap from the
+  correct-but-untested code underneath.
+- Cost of a sharp spec. The sharper the specification, the more likely the model gets it right, and the
+  less the run stresses the catch-a-real-bug failure mode. Reproducing that in a well-specified domain
+  would need a novel or under-specified problem, or a weaker implementer.
+
+What it adds to the picture: on correct-but-well-specified work, the value here was not catching code
+defects but catching that a green suite was blind to the properties that mattered, and producing an
+auditable, independently re-verified, regression-pinned result. That is a narrower claim than catching
+a shipped bug, and an honest one.
+
 ## What did not change
 
 - The behavioral benches still wash: Baton does not beat a capable model on small, low-stakes
