@@ -147,6 +147,17 @@ Run 5 showed the checking helper can catch one planted bug, but a single case is
 
 _Note: This is a score over four known bug types, one example each. It is a guardrail, not a promise: if a future change weakens the checking helper, this test should fail. It is not proof the helper will catch new, unfamiliar kinds of bugs._
 
+### Does the Test Discriminate?
+
+We re-ran the same battery with a weaker, cheaper model as the reviewer, to check whether the test can ever score below 100% (a test that cannot fail is not a real measure).
+
+| Reviewer model    | Bugs found | False alarms |
+| ----------------- | ---------- | ------------ |
+| Standard (Sonnet) | 4 of 4     | 0            |
+| Weaker (Haiku)    | 4 of 4     | 0            |
+
+The weaker model also found all four at the exact line. So the test does not yet tell a strong checker apart from a weak one: the current bugs are too easy, being single-line, textbook mistakes in tiny, isolated files. The fix is harder, more realistic bugs, not a weaker model. (We also confirmed the reviewer is shown only the patched code, never the answer key, so the scores are honest.)
+
 ---
 
 ## Overall Summary of Findings
