@@ -43,6 +43,12 @@ TRANSAGENT achieves its results with small (<10B-parameter) backbone models insi
 ### D6. Coordinator / feedback-loop framing
 The agentic-reasoning survey (arXiv:2601.12538) organizes the field as planning + tool-use + feedback (self-evolving) + multi-agent collaboration — the vocabulary we use for the coordinator/hub-and-spoke manager and its verify→recover feedback loop. Framing only; no quantitative claim drawn from it.
 
+## Verification as out-of-sample error
+
+A single frame ties these decisions together, offered as a lens rather than a citation. An agent's own report that a change is done is in-sample evidence: it is measured on the cases the agent fit to (the visible tests, its own assumptions), so it is optimistically biased the way training accuracy is. What baton adds is an independent, out-of-sample estimate of correctness, a separate adversarial verify lane evaluating cases the implementer did not optimize against, with the human holding the labels (the spec and acceptance criteria) and the final gate. The bounded lanes, disjoint scopes, gated outward actions, and the fault-catch eval all follow from one axiom: do not report training error as the result. You can push verification up a level (verify the verifier with planted faults) but not push the labels onto the machine; if the model generates its own ground truth there is no signal left to measure.
+
+The frame also predicts the benches. On a small, self-contained task the generalization gap is small, so an out-of-sample check adds little over the in-sample one, and skill-on vs no-skill washes. On consequential, multi-step work the gap is large, so the independent check is where the value is, which is where the two field runs sit above the line. The same axiom explains the nulls and the wins, which is what distinguishes a design principle from a post-hoc story.
+
 ## Where we drifted — and what's still open
 
 The citations aren't the interesting part; the **drifts** are — the places we took a finding from a *constrained* task (code translation: a fixed source, a reference answer, executable tests) and bent it to **open-ended dev work**, where "correct" is fuzzier and there's no reference. We're not sure these bends are right. Each is a spot we're still learning, and would genuinely like to measure.
