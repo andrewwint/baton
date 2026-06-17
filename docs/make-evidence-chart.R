@@ -35,22 +35,22 @@ p <- ggplot() +
            lineheight = 0.95) +
   # finding callouts
   annotate("text", x = 0.02, y = -0.30,
-           label = "4 small tests:\nno better than plain AI, and costs more",
+           label = "4 small tests:\nno better than plain AI, and Baton costs more",
            hjust = 0, size = 3.5, colour = red, lineheight = 0.95) +
   annotate("text", x = 0.92, y = 0.52,
-           label = "2 real projects: a separate review\nand real-world testing caught bugs\nthe tests had missed",
+           label = "2 projects: a separate review\nand real-world testing caught bugs\nthe tests had missed",
            hjust = 1, size = 3.5, colour = green, lineheight = 0.95) +
   # endpoint labels anchored INSIDE the panel so they never clip
   annotate("text", x = 0.0, y = -0.50, label = "basic tasks",
            hjust = 0, size = 3.8, colour = ink) +
-  annotate("text", x = 1.0, y = -0.50, label = "real development",
+  annotate("text", x = 1.0, y = -0.50, label = "end-to-end development",
            hjust = 1, size = 3.8, colour = ink) +
   scale_x_continuous(limits = c(0, 1), expand = expansion(mult = 0.02),
                      breaks = NULL) +
   scale_y_continuous(breaks = 0, labels = "no\ndifference", limits = c(-0.55, 1.08)) +
   labs(
     title = "When Baton helps, and when it doesn't",
-    subtitle = "What we actually saw, not a prediction. 4 small tests and 2 real projects (private code).",
+    subtitle = "What we actually saw, not a prediction. 4 small tests and 2 projects (private code).",
     x = NULL,
     y = "How much Baton helps (vs. plain AI)") +
   theme_minimal(base_size = 13) +
