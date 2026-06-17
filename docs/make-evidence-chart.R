@@ -38,7 +38,7 @@ p <- ggplot() +
            label = "bench x4: wash\n(ties a bare model, costs more)",
            hjust = 0.5, size = 3.5, colour = red, lineheight = 0.95) +
   annotate("text", x = 0.85, y = 0.55,
-           label = "field runs (N=2): independent review +\nrunning for real caught defects a\ngreen suite passed",
+           label = "field runs (N=2): independent review +\nrunning for real caught defects a\ntest suite passed",
            hjust = 1, size = 3.5, colour = green, lineheight = 0.95) +
   # endpoint labels anchored INSIDE the panel so they never clip
   annotate("text", x = 0.0, y = -0.50, label = "low stakes",
