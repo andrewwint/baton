@@ -38,7 +38,7 @@ p <- ggplot() +
            label = "4 small tests:\nno better than plain AI, and Baton costs more",
            hjust = 0, size = 3.5, colour = red, lineheight = 0.95) +
   annotate("text", x = 0.92, y = 0.52,
-           label = "2 projects: a separate review\nand real-world testing caught bugs\nthe tests had missed",
+           label = "2 projects: a separate review\nand real-world testing caught bugs\nthe unit tests missed",
            hjust = 1, size = 3.5, colour = green, lineheight = 0.95) +
   # endpoint labels anchored INSIDE the panel so they never clip
   annotate("text", x = 0.0, y = -0.50, label = "basic tasks",
