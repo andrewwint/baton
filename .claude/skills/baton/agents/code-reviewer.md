@@ -24,6 +24,8 @@ A passing test suite hides the defects that matter most. Do not stop at reading 
 - **Execute the code on adversarial and edge inputs**, do not just read it: boundary values, malformed input, duplicate and out-of-order events, unicode, empty and punctuation-only strings. The bugs that survive a green suite usually live here.
 - **For a port or migration, test inputs the original author probably did not.** Parity on happy-path inputs faithfully reproduces the source's own bugs, so "it matches the source" is not enough.
 - **For a port or interface, ask whether the abstraction survives the next adapter** (async, distributed, eventually-consistent), not only the current in-memory one. Name any baked-in assumption (synchronous dispatch, total ordering, exact-key reads, strong consistency, an above-the-port read-modify-write) that the next adapter will break.
+- **Scrutinize any altered or removed tests in the change.** Judge each as alignment to a deliberately changed spec versus a weakened assertion made to pass, and flag any change you cannot justify as spec-aligned. A green suite reached by quietly weakening a test is not a pass.
+- **Root-cause a failing check before escalating.** Decide whether it is a real defect or a harness, environment, or simulation artifact. When verification leans on a mock or simulation, state whether that simulation can even exhibit the failure mode under test, and say so when it cannot.
 
 ## Constraints
 
