@@ -1,6 +1,6 @@
 # Baton
 
-_Disciplined, consistent, thorough. Boring in the best way._
+_Built for consistency and catching what tests miss. Boring in the best way._
 
 Baton is a lean, manager-led orchestration skill for **Claude Code**, with an optional TypeScript runtime on the [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview). Like a relay team, it routes development work through bounded, parallel subagent lanes (triage, discovery, planning, implementation, verification, recovery), handing off cleanly while a single coordinator owns integration, approval gates, and an auditable run trail. The point is consistency and independent verification that catches what green tests miss, not a smarter model. **Lean by default** for solo work; to make **your process repeatable**, encode your team's review, deploy, and acceptance steps in `references/` once, and Baton follows them across every project.
 
@@ -77,11 +77,11 @@ The coordinator owns integration, approval, and the run trail. The `recover` bou
 
 Under the hood this runs on Claude Code's native subagent system; Baton is the playbook for it, not a separate engine. Claude Code spawns and runs the lanes; Baton decides when to spawn which, and gates the result.
 
-| Claude Code provides | Baton adds |
-| --- | --- |
-| The Agent tool (spawns subagents) | When to spawn, and which lane |
-| Built-in `Explore` / `Plan` lanes | The loop (intake → triage → plan → implement → verify → recover) |
-| Custom agent definitions, a model per agent | The lane taxonomy and disjoint write scopes |
+| Claude Code provides                                      | Baton adds                                                       |
+| --------------------------------------------------------- | ---------------------------------------------------------------- |
+| The Agent tool (spawns subagents)                         | When to spawn, and which lane                                    |
+| Built-in `Explore` / `Plan` lanes                         | The loop (intake → triage → plan → implement → verify → recover) |
+| Custom agent definitions, a model per agent               | The lane taxonomy and disjoint write scopes                      |
 | `run_in_background`, worktree isolation, plan mode, hooks | Approval gates, the adversarial verify discipline, the run trail |
 
 ## Examples (simple → complex)
