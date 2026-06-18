@@ -3,6 +3,20 @@
 Notable changes to Baton. Baton is early: versions before 1.0 may change shape as the design is
 tested against real work.
 
+## 0.1.5 - cold-read verification
+
+### Added
+
+- Cold-read verification on high-stakes surfaces: a new `orchestrator-runtime` requirement (and matching
+  `SKILL.md` verify-step + `code-reviewer.md` guidance) that, on a high-stakes or seam-defining change,
+  at least one verification pass is briefed cold — given only the spec and the diff, with no manager
+  hypotheses about where the defect is. A brief the manager writes narrows the reviewer to the manager's
+  priors; an un-primed pass keeps the verification estimate out-of-sample. Sharpens the v0.1.3
+  perspective-diverse guidance: a *different* brief still originates from the manager, an un-briefed pass
+  does not. Rationale in `docs/research-basis.md`; evidence in `docs/field-notes.md` (Run 6, where a cold
+  outside read caught a fail-open defect two manager-briefed lanes cleared). Guidance only; no runtime
+  change.
+
 ## 0.1.4 - fault-catch eval
 
 ### Added

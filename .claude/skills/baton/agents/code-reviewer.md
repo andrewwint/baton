@@ -26,6 +26,7 @@ A passing test suite hides the defects that matter most. Do not stop at reading 
 - **For a port or interface, ask whether the abstraction survives the next adapter** (async, distributed, eventually-consistent), not only the current in-memory one. Name any baked-in assumption (synchronous dispatch, total ordering, exact-key reads, strong consistency, an above-the-port read-modify-write) that the next adapter will break.
 - **Scrutinize any altered or removed tests in the change.** Judge each as alignment to a deliberately changed spec versus a weakened assertion made to pass, and flag any change you cannot justify as spec-aligned. A green suite reached by quietly weakening a test is not a pass.
 - **Root-cause a failing check before escalating.** Decide whether it is a real defect or a harness, environment, or simulation artifact. When verification leans on a mock or simulation, state whether that simulation can even exhibit the failure mode under test, and say so when it cannot.
+- **When briefed cold, search the whole surface.** If your brief is the spec and the diff with no stated hypotheses about where a defect is, that is deliberate, not an omission — you are the un-primed pass, and a list of what to check would only re-import the manager's blind spots. Do not narrow to a handed set of checks, and do not ask the manager what to look for; review the entire changed surface on its own terms, including config defaults, parsing of options and flags, and anything that fails open.
 
 ## Constraints
 

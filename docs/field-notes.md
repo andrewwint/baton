@@ -160,6 +160,36 @@ The smaller model also found all four at the exact line. So the test does not ye
 
 ---
 
+## Run 6: A Real Login Feature, and Why the Reviewer's Instructions Matter
+
+We built a real feature end to end: replacing a stand-in login with a genuine "sign in with your company account" flow (OpenID Connect against a live identity provider), then logging in for real to confirm it worked. The question was what the checking helper catches on a real, consequential feature, and whether _how we instruct it_ changes what it finds.
+
+### By the Numbers
+
+| Measure                                | Value                                                            |
+| -------------------------------------- | ---------------------------------------------------------------- |
+| Feature                                | Real OpenID Connect login + sessions (replacing a stand-in)      |
+| Tests passing (project total)          | 110                                                              |
+| Serious bugs found by checking         | 2, that all 110 tests passed over                                |
+| - Critical: forgeable login            | A hardcoded default secret let anyone forge a logged-in session  |
+| - Medium: security silently turned off | A safety setting could be disabled by a typo, with no warning    |
+| Who caught the medium bug              | A separate, independent reviewer given no instructions from us   |
+| Also surfaced                          | The tested code had no runnable server at all                    |
+| Real login afterward                   | Passed: an authorized document loads; a forbidden one returns "not found" |
+
+### Core Observations
+
+- **The passing tests were wrong twice:** All 110 tests passed, yet the feature shipped a way to forge any login and a safety switch that a typo could silently turn off. Both were real, and both were caught by review, not by the tests, because the tests shared the coder's assumptions (they signed their own logins with a test secret, so they never exercised the unsafe default).
+- **The reviewer's instructions decide what it finds:** Baton's first reviewer caught the critical forgery bug. Baton's second reviewer, told what to double-check, cleared the change. A third look from a separate, independent tool, handed only the goal and the changes with no instructions from us, caught the medium bug the second reviewer missed. The difference was not a smarter reviewer; it was no instructions. Instructions we write point the reviewer at what we already suspect, so it inherits our blind spots — and here the outside look, with none of ours, is what found the flaw Baton's own reviewers walked past.
+- **"Tests pass" is not "it runs":** The 110 passing tests never started a real server; the actual runnable login was missing entirely and had to be built. A test suite can be green over a feature a person cannot yet use.
+- **What we changed:** On important changes, at least one reviewer now gets a "cold read" — only the goal and the changes, none of our hunches — so one check is never shaped by what we already think.
+
+### Known Limitations
+
+- This is one run, not a measurement. It shows a cold read _can_ catch what an instructed one misses, on one real feature; it does not say how often.
+
+---
+
 ## Overall Summary of Findings
 
 The pattern shows that the checking helper works best by finding real flaws (like timing bugs or planted security bypasses) that regular tests miss, without causing false alarms. Genuinely hard problems cause natural bugs; on simple patterns, the tool provides assurance, catches blind spots in your tests, and keeps an audit log.
