@@ -173,31 +173,9 @@ bash ~/.claude/skills/baton/runtime/scripts/install.sh ~   # lanes → ~/.claude
 
 The main conversation becomes the coordinator and runs the loop. For most people, that's the whole product, with no setup beyond the install.
 
-### Optional: headless runtime (local batch · CI/CD · cloud)
+### Headless runtime (optional)
 
-The bundled TypeScript runtime runs the **same loop without an interactive session**, for scripted, CI/CD, or cloud use. You don't need it for normal interactive work.
-
-```bash
-cd .claude/skills/baton/runtime
-npm install
-cp .env.example .env        # add ANTHROPIC_API_KEY (loaded automatically)
-npm run orchestrate -- "plan and implement X" --cwd /path/to/target/repo
-```
-
-**Execution modes:**
-
-- **LLM-backed (default).** Real model calls drive the coordinator and lanes. Needs `ANTHROPIC_API_KEY` (or a supported provider).
-- **Deterministic offline** (`--offline`, or automatic with no key). A no-model pass: reads the repo, prints the detected profile and lane registry, exits. A free dry run / CI smoke check.
-
-```bash
-npm run orchestrate -- "discovery pass" --cwd /path/to/target/repo --offline
-```
-
-**Cost** (LLM-backed): the coordinator loop dominates, so it defaults to **Sonnet at medium effort** with a 40-turn cap. Tune via env (`.env.example`): `BATON_MODEL=haiku BATON_EFFORT=low` for low-cost runs, `BATON_MODEL=opus BATON_EFFORT=xhigh` for the hardest work. Lanes keep their own models (triage→haiku, reviewer/researcher→sonnet, implementer→inherits the coordinator). Adding _more tools_ does **not** lower cost. Model tier, effort, and bounded turns do.
-
-**Run trail:** the run summary and cost (`total_cost_usd`) print to stdout on every run. The ledger is **opt-in**. Set `BATON_LEDGER_DIR` to also persist `run.json` + `summary.md` under that directory (e.g. `~/.baton/runs` for global history, or an in-tree, gitignored path); unset, no files are written.
-
-**Optional semantic navigation:** point `BATON_MCP_CONFIG` at an MCP server (e.g. Serena; template in `runtime/mcp.example.json`) for symbol-aware code navigation. Off by default; install the server yourself only if you opt in.
+A bundled TypeScript runtime runs the same loop without an interactive session, for local batch, CI/CD, or cloud use. You do not need it for normal interactive work. Setup, execution modes, cost and model tuning, the run trail, and optional MCP navigation are in [`docs/usage.md`](docs/usage.md).
 
 ## Make it yours
 
@@ -250,7 +228,7 @@ In short, `/goal` sprints to the whistle and trusts it. Baton runs a disciplined
 
 ## Why it's built this way
 
-Key design choices (manager-led lanes, behavioral verification, the ~2-round recovery bound, the low-cost-model default, the multi-agent bet) draw on published code-translation research, adapted to real dev work rather than copied from it. We're clear about which the evidence directly supports and which are pragmatic calls, kept flexible by intent and refined as we learn. The decision-by-decision mapping of what we took, where we adapted it, and what's open is in [`docs/research-basis.md`](docs/research-basis.md). Those results support the design **by analogy**, not as proof; Baton's own evals and live runs are the primary evidence.
+Key design choices (manager-led lanes, behavioral verification, the ~2-round recovery bound, the low-cost-model default) draw on published code-translation research, **by analogy** rather than proof, with Baton's own evals and live runs as the primary evidence. The decision-by-decision mapping of what we took, adapted, and left open is in [`docs/research-basis.md`](docs/research-basis.md).
 
 **A run is only as good as what you feed it.** The loop runs the same way every time, but quality tracks the inputs: the acceptance criteria, the standards you encode (`references/`, lane prompts), and above all the sharpness of the review brief. A vague brief still produces a tidy, green, archived run that can ship a defect; a sharp adversarial brief is what makes the same loop catch real bugs. Baton makes discipline repeatable and auditable.
 
