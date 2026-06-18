@@ -20,7 +20,7 @@ out <- file.path(if (length(here) == 1 && nzchar(here)) here else "docs", "evide
 
 # The only real anchors. No interpolation between them.
 bench <- data.frame(x = c(0.05, 0.11, 0.17, 0.23), y = -0.13)
-field <- data.frame(x = c(0.80, 0.90), y = c(0.84, 0.96))
+field <- data.frame(x = c(0.80, 0.86, 0.92), y = c(0.72, 0.84, 0.96))
 
 red <- "#b00020"; green <- "#1b7a3d"; ink <- "grey25"
 
@@ -37,10 +37,12 @@ p <- ggplot() +
   annotate("text", x = 0.02, y = -0.30,
            label = "4 small tests:\nno better than plain AI, and Baton costs more",
            hjust = 0, size = 3.5, colour = red, lineheight = 0.95) +
-  # name the two anchors (architecture + public AWS tools, not client code)
-  annotate("text", x = 0.785, y = 0.84, label = "CQRS service",
+  # name the three anchors (architecture + public tools, not client code)
+  annotate("text", x = 0.785, y = 0.72, label = "CQRS service",
            hjust = 1, size = 3.2, colour = green) +
-  annotate("text", x = 0.885, y = 0.965, label = "Strands / AgentCore agent",
+  annotate("text", x = 0.845, y = 0.84, label = "OIDC login service",
+           hjust = 1, size = 3.2, colour = green) +
+  annotate("text", x = 0.905, y = 0.965, label = "Strands / AgentCore agent",
            hjust = 1, size = 3.2, colour = green) +
   annotate("text", x = 0.92, y = 0.50,
            label = "a separate review and real-world testing\ncaught bugs the unit tests missed",
@@ -55,7 +57,7 @@ p <- ggplot() +
   scale_y_continuous(breaks = 0, labels = "no\ndifference", limits = c(-0.55, 1.08)) +
   labs(
     title = "When Baton helps, and when it doesn't",
-    subtitle = "What we actually saw, not a prediction. 4 small tests and 2 projects (private code).",
+    subtitle = "What we actually saw, not a prediction. 4 small tests and 3 projects (private code).",
     x = NULL,
     y = "How much Baton helps (vs. plain AI)") +
   theme_minimal(base_size = 13) +
