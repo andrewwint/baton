@@ -201,8 +201,6 @@ Baton orchestrates an AI agent, and is plain about what that means:
 Baton stays loosely coupled: it depends on no other skill, and composition is steered from your project, not baked into Baton:
 
 - **Specialist skills.** Baton prescribes nothing about other skills. If you want the coordinator to route a lane to a skill you've installed (e.g. `code-review`, `security-review`, `deep-research`), say so in your project's root `AGENTS.md`; the manager reads it as repo guidance and follows it (long-running ones as background lanes).
-- **Hooks.** Put automated, repeatable gates ("always run tests before done") in `settings.json` hooks, not in prose.
-- **`/loop`.** Wrap a routed run for recurring/scheduled execution.
 
 ## How this differs from an autonomous goal loop
 
