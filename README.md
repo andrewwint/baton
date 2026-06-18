@@ -62,7 +62,7 @@ Substantial work runs the loop; trivial work skips it and runs direct.
                   │
                   └─ delegated → plan → implement → verify ─┬─ pass → approve → close out
                                         (lanes)             │
-                                                            └─ fail → recover ──┐
+                                                            └─ fail → recover ───┐
                                                               ≈2 focused tries   │
                                                               on the failing     │
                                                               surface, then  ◀───┘
@@ -75,7 +75,14 @@ Lanes are bounded runners with **disjoint write scopes** that report back to the
 
 The coordinator owns integration, approval, and the run trail. The `recover` bound (~2 focused attempts, then escalate) is evidence-informed; see [Why it's built this way](#why-its-built-this-way).
 
-Under the hood this maps onto Claude Code's native subagent system (the Agent tool with `subagent_type`, `run_in_background`, `SendMessage`, worktree isolation, and plan mode), trimmed to development concerns.
+Under the hood this runs on Claude Code's native subagent system; Baton is the playbook for it, not a separate engine. Claude Code spawns and runs the lanes; Baton decides when to spawn which, and gates the result.
+
+| Claude Code provides | Baton adds |
+| --- | --- |
+| The Agent tool (spawns subagents) | When to spawn, and which lane |
+| Built-in `Explore` / `Plan` lanes | The loop (intake → triage → plan → implement → verify → recover) |
+| Custom agent definitions, a model per agent | The lane taxonomy and disjoint write scopes |
+| `run_in_background`, worktree isolation, plan mode, hooks | Approval gates, the adversarial verify discipline, the run trail |
 
 ## Examples (simple → complex)
 
