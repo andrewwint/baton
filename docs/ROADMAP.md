@@ -68,8 +68,7 @@ the project. Items are directional, not commitments; when one starts it becomes 
   runs above).
 - **Better `references/` guidance**, so a team's review, deploy, and acceptance steps repeat the same way
   across projects.
-- **Pin down what the ledger must capture for a clean resume** — to move durable runs from observed to
-  measured.
+- **Pin down what the ledger must capture for a clean resume.** The headless runtime writes only a terminal `run.json` today, so an interrupted headless run has nothing to resume from; the likely shape is append-only checkpoint events (the pattern Claude Code uses for its own transcripts), which would move durable runs from observed to measured.
 
 ## Not in focus
 
@@ -88,6 +87,7 @@ Two real questions, set aside on purpose and recorded so they are not mistaken f
 - **Honesty over hype** — record what does not work, including washed benches.
 - **Self-contained** — Baton depends on no other skill; composition lives in a project's `AGENTS.md`.
 - **Lean by default** — a markdown skill plus an optional runtime.
+- **Inherit the platform, own the orchestration layer** — Baton rides on Claude Code and inherits its infrastructure (compaction, the permission engine, persistence, subagent isolation). We do not reimplement platform internals; we own the thin orchestration layer (the loop, gates, verify lane, run trail) and only the gaps it leaves.
 
 ## How ideas move
 

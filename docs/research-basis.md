@@ -23,6 +23,9 @@ Vocabulary/framing only:
 Reviewed but not relied on:
 - **Unsupervised Translation of Programming Languages** (TransCoder) — Lachaux et al., NeurIPS 2020. arXiv:2006.03511. Pre-LLM, C++/Java/Python only; its one transferable point (functional/behavioral correctness beats reference-match) is already covered by the sources above. Excluded as load-bearing.
 
+Architecture grounding (a different domain, read as community analysis):
+- **Claude Code architecture, reverse-engineered** — community analysis, 2026. arXiv:2604.14228v1. Grounds baton's structural stance (see [Architecture grounding](#architecture-grounding-a-production-agent-is-mostly-harness)), not the verify-recover thesis. Reverse-engineered from extracted source, so specific figures (the ~1.6% / ~98.4% split) and field names are observations, not Anthropic-confirmed.
+
 ## Decision → evidence
 
 ### D1. Manager-led, bounded specialized lanes beat one undifferentiated pass
@@ -52,6 +55,16 @@ A single frame ties these decisions together, offered as a lens rather than a ci
 The frame also predicts the benches. On a small, self-contained task the generalization gap is small, so an out-of-sample check adds little over the in-sample one, and skill-on vs no-skill washes. On end-to-end, multi-step work the gap is large, so the independent check is where the value is, which is where the two field runs sit above the line. In practice the small, fully-specified case is the exception: most real work is open-ended enough that the gap is real and worth an independent check. What it finds varies: a hidden defect on genuinely ambiguous or hard work, or, on well-specified code, blind spots in the tests rather than a wrong answer. The same axiom explains the nulls and the wins, which is what distinguishes a design principle from a post-hoc story.
 
 The axiom applies one level up, to the verifier's brief. A verify lane briefed with the manager's hypotheses — check this parser, that boundary — searches where it is told, so it re-imports the manager's priors and its estimate drifts back toward in-sample: it can only find what the manager already suspected. A second lane with a different brief helps, but both briefs still originate from the manager. The un-primed case is a cold read: hand the lane only the spec and the diff and let it search the whole surface. In a field run this was the difference between catching a defect and missing it — two manager-briefed lanes cleared an auth change that a cold, independent read then found a real fail-open flaw in (Run 6). So on high-stakes surfaces at least one pass is briefed cold; the cost is one extra review, and the return is a verification estimate the manager's blind spots did not shape. It is the same move as holding out test data, applied to the instructions, not just the cases.
+
+## Architecture grounding: a production agent is mostly harness
+
+The studies above support the verify-and-recover thesis by analogy from constrained tasks. This source is different in kind: it grounds baton's *architectural* stance.
+
+A community reverse-engineering of Claude Code (arXiv:2604.14228) estimates that only about 1.6% of its codebase is AI decision logic; the other ~98.4% is operational infrastructure: state and persistence, permissions, context management, recovery, and resilience. Treat the exact ratio as an estimate from extracted source, not Anthropic-confirmed; the direction is the point. A production agent is mostly harness, which is the empirical shape of baton's bet that an orchestration layer's value lives in the infrastructure and discipline, not the model ("built for consistency, not to make the model smarter").
+
+The paper also names design principles baton already runs on (a graduated trust spectrum, values over rigid rules, graceful recovery and resilience) and one it states more sharply (hard, must-always gates belong in deterministic hooks, not prose the model must remember). So it is both a validation and a gap-finder: we are doing much of what it describes, and it points at seams we have not closed (for example, the headless runtime persists only a terminal run record, so a run interrupted mid-flight has nothing to resume from).
+
+The discipline it implies, and the lens we use to adopt from it: **inherit the platform, own the orchestration layer.** baton rides on Claude Code and inherits most of that 98.4% for free (compaction, the permission engine, subagent isolation, append-only persistence). baton's job is the thin layer on top: the loop, the gates, the verify and cold-read lane, the run trail. So we deliberately do not reimplement platform internals (no duplication) and we watch for orchestration-layer gaps the platform does not fill (no holes). What we take from the paper we take selectively and over time; its bibliography is a further source of architecture and agent-design papers to mine.
 
 ## Where we drifted — and what's still open
 
