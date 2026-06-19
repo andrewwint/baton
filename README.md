@@ -234,7 +234,7 @@ See [SKILL.md](.claude/skills/baton/SKILL.md) for the full loop, delegation poli
 
 ## Status
 
-Early project (v0.1.4). Roadmap in [docs/ROADMAP.md](docs/ROADMAP.md); contributing and ideas in [CONTRIBUTING.md](CONTRIBUTING.md). Real-world usage reports are especially welcome.
+Early project (v0.1.5). Roadmap in [docs/ROADMAP.md](docs/ROADMAP.md); contributing and ideas in [CONTRIBUTING.md](CONTRIBUTING.md). Real-world usage reports are especially welcome.
 
 ---
 
