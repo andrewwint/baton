@@ -125,14 +125,18 @@ The skill is **entirely self-contained**. Everything lives in a single folder (`
 * `references/README.md`: the org SDLC extension point (Workflow, Platform, Acceptance, and Security rules).
 * `evals/evals.json`: the 12 capability evaluation cases.
 
-### Canonical subagent lanes (read-only prompts)
+### Canonical subagent lanes
 
-* `agents/triage.md`: size and risk evaluation to determine task disposition.
-* `agents/implementer.md`: bounded implementation lane with a disjoint write scope.
-* `agents/code-reviewer.md`: verification and adversarial review lane.
+Only the implementer can edit files (it holds `Edit`/`Write` and a bounded write scope). The other three have no file-editing tools; they read, search, and run verification commands (`Bash` for build, test, and lint), and are prompted not to mutate the repo.
+
+* `agents/triage.md`: size and risk evaluation to determine task disposition (no edits).
+* `agents/implementer.md`: bounded implementation lane with a disjoint write scope (the only lane that edits).
+* `agents/code-reviewer.md`: verification and adversarial review; runs checks, does not edit.
 * `agents/researcher.md`: focused research and recovery investigation.
 
 ### Headless runtime engine (optional, opt-in)
+
+Requires Node. Set up with `npm install` and run for local batch, CI/CD, or cloud use, with an opt-in run trail (the ledger) for auditing each run. Full setup, modes, and tuning are in [`docs/usage.md`](docs/usage.md).
 
 * `runtime/src/orchestrator.ts`: the coordinator `query()` execution loop.
 * `runtime/src/lanes.ts`: loads `agents/*.md` as programmatic `AgentDefinitions`.
