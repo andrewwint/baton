@@ -117,29 +117,36 @@ Baton runs this as its loop (plan, implement, verify), but the independent-revie
 
 ## What's in here
 
-The skill is **self-contained**. Everything lives in one folder:
+The skill is **entirely self-contained**. Everything lives in a single folder (`.claude/skills/baton/`); all paths below are relative to that root.
 
-```
-.claude/skills/baton/
-├── SKILL.md                 # the orchestrator skill (loop, delegation, lane map)
-├── references/README.md     # org SDLC extension point (Workflow/Platform/Acceptance/Security)
-├── evals/evals.json         # 12 capability eval cases
-├── agents/                  # canonical lane prompts
-│   ├── triage.md            # size/risk triage → disposition (read-only)
-│   ├── implementer.md       # bounded implementation lane (disjoint write scope)
-│   ├── code-reviewer.md     # verification/review lane (read-only)
-│   └── researcher.md        # focused research / recovery investigation (read-only)
-└── runtime/                 # OPTIONAL programmatic execution engine (headless)
-    ├── src/orchestrator.ts  # coordinator query() loop
-    ├── src/lanes.ts         # loads agents/*.md as programmatic AgentDefinitions
-    ├── src/offline.ts       # deterministic repo detection (no model call)
-    ├── src/ledger.ts        # opt-in run ledger (run.json + summary.md when BATON_LEDGER_DIR set)
-    ├── src/mcp.ts           # optional MCP passthrough loader
-    ├── mcp.example.json     # ready-to-use Serena MCP template (opt-in)
-    └── scripts/             # install.sh + eval runner (run-evals.mjs, validate-evals.mjs)
-```
+### Core orchestration and rules
 
-Baton needs no server, no database, no control plane, and no new runtime to learn. It is a markdown skill (plus an optional Node runtime), copied into a repo. That is the whole footprint.
+* `SKILL.md`: the orchestrator skill (owns the loop, delegation rules, and lane map).
+* `references/README.md`: the org SDLC extension point (Workflow, Platform, Acceptance, and Security rules).
+* `evals/evals.json`: the 12 capability evaluation cases.
+
+### Canonical subagent lanes (read-only prompts)
+
+* `agents/triage.md`: size and risk evaluation to determine task disposition.
+* `agents/implementer.md`: bounded implementation lane with a disjoint write scope.
+* `agents/code-reviewer.md`: verification and adversarial review lane.
+* `agents/researcher.md`: focused research and recovery investigation.
+
+### Headless runtime engine (optional, opt-in)
+
+* `runtime/src/orchestrator.ts`: the coordinator `query()` execution loop.
+* `runtime/src/lanes.ts`: loads `agents/*.md` as programmatic `AgentDefinitions`.
+* `runtime/src/offline.ts`: deterministic, offline repo detection (no model calls).
+* `runtime/src/ledger.ts`: the opt-in run log (`run.json` and `summary.md` when `BATON_LEDGER_DIR` is set).
+* `runtime/src/mcp.ts`: the optional MCP passthrough loader.
+* `runtime/mcp.example.json`: a ready-to-use Serena MCP template.
+* `runtime/scripts/`: `install.sh` and the eval runners (`run-evals.mjs`, `validate-evals.mjs`).
+
+## Lean footprint, deliberate spend
+
+Baton needs no server, no database, no external control plane, and no new runtime to learn. It is a markdown skill (paired with an optional Node runtime), copied directly into your repository. That is the entire footprint.
+
+It is also nearly free to carry in working memory. Loaded, the skill is roughly 2,000 tokens, and the four lane prompts add only a few hundred between them. Each lane's full instructions live inside its own context window *only while it runs*, so they never bloat the main coordinator's view. You can verify this in ten seconds with `/context` during a session. The token weight is the development work itself; the loop spends more, deliberately, on independent verification and a gated, auditable trail. It is a choice for lean scaffolding, not a cheaper run.
 
 ## Install
 
