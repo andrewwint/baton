@@ -20,25 +20,25 @@ Use this skill when the user wants to:
 - do a discovery or repo-understanding pass before touching code
 - keep an auditable trail of what was planned, changed, and verified
 
-Do **not** force this path for trivial, obviously single-step tasks. A one-line fix should just be made directly.
+Do **not** force this path for work the routing gate (see The Loop) sends direct — a change that touches no risk trigger and fits a single edit and a single verification step. A one-line fix on a safe surface should just be made directly; a one-line fix on a risky one still routes through a lane.
 
 Be direct and evidence-driven. Do not add empty validation or reassuring filler. Challenge weak assumptions, name risks and tradeoffs plainly, and say when reasoning is incomplete. Prioritize truth and useful correction over comfort.
 
 ## The Loop
 
-Treat the orchestrator loop as the core feature. **Two paths:** a trivial task runs directly; anything substantial follows the full loop below, built from durable developer primitives:
+Treat the orchestrator loop as the core feature. **Two paths:** work the routing gate (below) sends direct runs directly; everything else follows the full loop below, built from durable developer primitives:
 
 1. **intake** — capture task type, target repo/paths, acceptance criteria, and reviewer expectations
-2. **triage** — classify risk and size, with risk leading: a small-looking change to shared code, a contract or seam, security, data, a migration, a dependency, or a port routes **delegated** (so discovery and review run), not direct. Decide direct vs. delegated; pick lanes
+2. **triage** — classify risk and size, with risk leading, then apply the routing gate below: run it **direct** or through the **loop**. For looped work, pick lanes per the Delegation Policy
 3. **plan** — establish architecture shape, module boundaries, and a sliced work plan; for delegated work, run discovery first to surface the repo's unstated conventions and contracts (error types, naming, layering, idempotency rules) so the change matches them, since matching the surrounding code is part of done
 4. **implement** — make the changes (directly or via implementation lanes)
 5. **verify** — run build/test/lint for the change — the full suite, not just the test nearest your edit, when shared code is touched (a change can break a sibling elsewhere); review the diff. For seam- or interface-defining changes, run perspective-diverse verification: at least two independent review lenses (for example a second reviewer with a different brief), since one brief reliably misses what another catches. On a high-stakes or seam-defining surface, make at least one of those lenses a cold read — give it only the spec and the diff, not your hypotheses about where the defect is — since a brief you write narrows the reviewer to your own blind spots; a different brief still originates from you, an un-briefed pass does not. When delegating the verify lane, brief it to execute past a green suite, scrutinize any changed tests (spec-alignment versus weakening), and distinguish real defects from harness or simulation artifacts
 6. **recover** — on failure, backtrack on the failing surface (the diff + failing test/build output), tracing to the root cause rather than patching the symptom (a failing test or error can point at the wrong file); bounded to ~2 focused attempts, then escalate to the developer with the evidence rather than looping; roll back destructive steps only with approval
-7. **approve** — gate anything outward-facing on explicit user approval
+7. **approve** — gate anything outward-facing on explicit user approval; if approval is declined or withheld, stop and report the blocked step — do not proceed with the outward-facing action or destructive rollback (local edits already made stand)
 8. **close out** — summarize outcome with acceptance evidence
 9. **preserve artifacts** — keep a concise run trail (see Run Artifacts)
 
-Bypass rule: if you can finish the task in a single edit pass and one verification step, run it directly; otherwise use the loop.
+Route by one gate, risk first. Run a change **direct** only when it touches no risk trigger — shared code, a contract or seam, security, data, a migration, a dependency, or a port — **and** fits a single edit and a single verification step. Everything else uses the loop: any risk trigger, or more than a single edit and verification, routes through it. Within the loop, the Delegation Policy decides what goes to lanes, with a risk trigger a strong signal to delegate so discovery and review run. The gate is risk-led, not size-led: a small change to a risky surface is exactly what should not bypass the loop.
 
 The ~2-attempt recovery bound is evidence-informed (automated repair plateaus after about two rounds; rationale in `docs/research-basis.md`), not a hard rule — keep a couple of focused tries, then escalate.
 
@@ -78,7 +78,7 @@ If a useful custom subagent is defined in `.claude/agents/`, prefer it over a ge
 Open a subagent lane only when **both** are true:
 
 1. the work splits into a bounded, non-overlapping lane with a concrete deliverable
-2. the split materially advances the task (parallel progress, independent verification, or reduced guesswork)
+2. the split does at least one of — enables independent verification, removes a sequential dependency (parallel progress), isolates edits to a disjoint write set, or surfaces unknowns that would otherwise leave the edit scope undefined (discovery before edits)
 
 Do **not** delegate for:
 
@@ -135,7 +135,7 @@ When work targets a repo, learn it from its files first. Detect only what routin
 - `Dockerfile` / `docker-compose.yml` and any CI config
 - existing agent guidance: prefer root `AGENTS.md` / `CLAUDE.md`, fall back to `README*`
 
-Do not assume a standard folder layout. When structure is still unclear, ask before scaffolding or editing.
+Do not assume a standard folder layout. When structure is still unclear, ask before scaffolding or editing. If the request is not repo-bound or no repository can be detected, do not fabricate a repo-based plan; ask for the relevant files or context first.
 
 Navigation is lexical by default (Grep/Glob/Read). The runtime can optionally pass through an MCP server for semantic navigation (symbol/reference lookup) — off by default, manager-only, and trust-gated; see `runtime/.env.example`.
 
@@ -146,7 +146,7 @@ If the skill's `references/*.md` exist, consult the one matching the topic in pl
 ## Approvals & Governance
 
 - Make local edits and run read-only/verification commands freely (within the active permission mode).
-- Gate anything **outward-facing or hard to reverse** on explicit user approval: pushing, opening/commenting on PRs, ticket transitions, deletions, destructive rollbacks.
+- Gate anything **outward-facing or hard to reverse** on explicit user approval: pushing, opening/commenting on PRs, ticket transitions, deletions, destructive rollbacks. If approval is declined or withheld, stop and report the blocked step; do not proceed with the outward-facing action or destructive rollback (local edits already made stand).
 - Ownership splits by kind: the manager owns execution and integration, while the developer stays the credited author and the approver of outward-facing actions. Agents may read context, draft updates, and prepare PR narrative; they do not claim authorship.
 - When a ticket id is available, prefer branch names like `feature/wa-1234-short-desc` or `bugfix/wa-1234-short-desc`.
 - No silent telemetry or export of repo contents.
@@ -182,7 +182,7 @@ For substantial work, keep these explicit in the ledger rather than inferring th
 
 For all routed work:
 
-1. Capture task type, target paths, acceptance criteria, and reviewer expectations.
+1. Capture task type, target paths, acceptance criteria, and reviewer expectations. If acceptance criteria, target paths, or reviewer expectations are missing, ask for them before planning or editing; do not infer them silently.
 2. Run the relevant build/test/lint for the touched surface. If the repo has no such commands, ask the user rather than inventing one.
 3. Record approval decisions and acceptance evidence.
 4. Close with a concise summary and artifact paths.
