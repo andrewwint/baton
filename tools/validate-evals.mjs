@@ -10,8 +10,8 @@ import {
 } from "./lib/skill-evals.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const SKILL_ROOT = path.resolve(HERE, "..", "..");
-const REPO_ROOT = path.resolve(SKILL_ROOT, "..", "..", "..");
+const REPO_ROOT = path.resolve(HERE, "..");
+const SKILL_ROOT = path.resolve(REPO_ROOT, ".claude", "skills", "baton");
 const EVALS = path.join(SKILL_ROOT, "evals", "evals.json");
 
 let merged;

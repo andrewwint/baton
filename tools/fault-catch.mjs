@@ -5,9 +5,9 @@
 // verify lane (in isolation, adversarial brief, structured finding contract),
 // and score CAUGHT iff a finding localizes the declared defect.
 //
-//   node scripts/fault-catch.mjs              # live run, needs ANTHROPIC_API_KEY
-//   node scripts/fault-catch.mjs --structural # key-free: fixtures well-formed?
-//   node scripts/fault-catch.mjs --only authz-bypass
+//   node fault-catch.mjs              # live run, needs ANTHROPIC_API_KEY
+//   node fault-catch.mjs --structural # key-free: fixtures well-formed?
+//   node fault-catch.mjs --only authz-bypass
 //
 // The catch rate is a measure over PLANTED defects of KNOWN classes (a regression
 // guard for the verify discipline), NOT a guarantee against novel defects.
@@ -26,9 +26,9 @@ import {
 } from "./lib/fault-catch.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const RUNTIME_ROOT = path.resolve(HERE, "..");
-const SKILL_ROOT = path.resolve(RUNTIME_ROOT, "..");
-const REPO_ROOT = path.resolve(SKILL_ROOT, "..", "..", "..");
+const REPO_ROOT = path.resolve(HERE, "..");
+const SKILL_ROOT = path.resolve(REPO_ROOT, ".claude", "skills", "baton");
+const RUNTIME_ROOT = path.resolve(SKILL_ROOT, "runtime");
 const FAULT_DIR = path.join(REPO_ROOT, "testing", "fixtures", "fault-catch");
 
 function loadDotEnv(file) {

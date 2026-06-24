@@ -29,12 +29,16 @@ the repo's style: lean, plain prose, no em dashes.
 
 Docs and skill-markdown changes (`SKILL.md`, `agents/`, `references/`) need no build.
 
-For runtime changes (`.claude/skills/baton/runtime/`), run the no-key checks first:
+For runtime changes (`.claude/skills/baton/runtime/`), run the no-key checks first. The
+eval / smoke / bench / fault-catch tooling lives in `tools/` (out of the shipped skill) and
+drives the built runtime:
 
 ```bash
 cd .claude/skills/baton/runtime
-npm install
-npm run build            # typecheck and compile
+npm install              # install the runtime's dependencies (the tooling reuses them)
+
+cd ../../../../tools      # repo-root tools/
+npm run build            # typecheck and compile the runtime
 npm run smoke            # offline harness: smoke + MCP + conformance, no API key
 npm run validate-evals   # structural eval check, no API key
 ```

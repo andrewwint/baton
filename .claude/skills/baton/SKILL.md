@@ -71,7 +71,7 @@ If a useful custom subagent is defined in `.claude/agents/`, prefer it over a ge
 | research | focused external/library/API lookup | `researcher` |
 | recovery | rollback or alternate-fix investigation | `researcher` (investigate) → `implementer` (apply) |
 
-`triage`, `implementer`, `code-reviewer`, and `researcher` ship inside this skill at `agents/*.md`. The bundled runtime (`runtime/`) registers them in-process, so they need no `.claude/agents/` install. The `triage` lane is optional: for substantial intake where the routing decision itself benefits from a dedicated repo-scanning pass, delegate it; for light work, the manager triages inline (loop step 2) without opening a lane. For interactive sessions without the runtime, they resolve only if copied into `.claude/agents/` (run `runtime/scripts/install.sh`); otherwise these lanes fall back to `general-purpose`. `Explore` and `Plan` are built-ins.
+`triage`, `implementer`, `code-reviewer`, and `researcher` ship inside this skill at `agents/*.md`. The bundled runtime (`runtime/`) registers them in-process, so they need no `.claude/agents/` install. The `triage` lane is optional: for substantial intake where the routing decision itself benefits from a dedicated repo-scanning pass, delegate it; for light work, the manager triages inline (loop step 2) without opening a lane. For interactive sessions without the runtime, they resolve only if copied into `.claude/agents/` (run `tools/install.sh` from the Baton repo); otherwise these lanes fall back to `general-purpose`. `Explore` and `Plan` are built-ins.
 
 ## Delegation Policy
 

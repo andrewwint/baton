@@ -13,10 +13,10 @@
 // structural check (same as `npm run validate-evals`) and exits 0.
 //
 // Usage:
-//   node scripts/run-evals.mjs                 # all cases, auto-pick backend
-//   node scripts/run-evals.mjs --only 2        # one case by id
-//   node scripts/run-evals.mjs --limit 3       # first N cases
-//   node scripts/run-evals.mjs --local         # force local `claude` (ignore key)
+//   node run-evals.mjs                 # all cases, auto-pick backend
+//   node run-evals.mjs --only 2        # one case by id
+//   node run-evals.mjs --limit 3       # first N cases
+//   node run-evals.mjs --local         # force local `claude` (ignore key)
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -27,9 +27,9 @@ import { loadMergedEvalDocument, validateEvalDocument } from "./lib/skill-evals.
 
 const execFileP = promisify(execFile);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const RUNTIME_ROOT = path.resolve(HERE, "..");
-const SKILL_ROOT = path.resolve(RUNTIME_ROOT, "..");
-const REPO_ROOT = path.resolve(SKILL_ROOT, "..", "..", "..");
+const REPO_ROOT = path.resolve(HERE, "..");
+const SKILL_ROOT = path.resolve(REPO_ROOT, ".claude", "skills", "baton");
+const RUNTIME_ROOT = path.resolve(SKILL_ROOT, "runtime");
 const EVALS = path.join(SKILL_ROOT, "evals", "evals.json");
 const ORCH = path.join(RUNTIME_ROOT, "dist", "orchestrator.js");
 

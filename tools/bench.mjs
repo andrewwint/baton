@@ -12,8 +12,8 @@
 // — the gap run-evals.mjs (assertion judge) doesn't cover. It runs the live
 // model, so it needs credentials. Cheap profile by default (haiku/low).
 //
-//   node scripts/bench.mjs                  # all fixtures, both arms
-//   node scripts/bench.mjs --only red-on-change
+//   node bench.mjs                  # all fixtures, both arms
+//   node bench.mjs --only red-on-change
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -23,11 +23,11 @@ import { promisify } from "node:util";
 
 const execFileP = promisify(execFile);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const RUNTIME_ROOT = path.resolve(HERE, "..");
-const SKILL_ROOT = path.resolve(RUNTIME_ROOT, "..");
+const REPO_ROOT = path.resolve(HERE, "..");
+const SKILL_ROOT = path.resolve(REPO_ROOT, ".claude", "skills", "baton");
+const RUNTIME_ROOT = path.resolve(SKILL_ROOT, "runtime");
 // Fixtures live OUTSIDE the installable skill (repo-root testing/) so a
 // `cp -r .claude/skills/baton` install doesn't carry the bench seed projects.
-const REPO_ROOT = path.resolve(SKILL_ROOT, "..", "..", "..");
 const FIXTURES = path.join(REPO_ROOT, "testing", "fixtures");
 const ORCH = path.join(RUNTIME_ROOT, "dist", "orchestrator.js");
 

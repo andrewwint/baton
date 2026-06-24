@@ -144,7 +144,7 @@ Requires Node. Set up with `npm install` and run for local batch, CI/CD, or clou
 * `runtime/src/ledger.ts`: the opt-in run log (`run.json` and `summary.md` when `BATON_LEDGER_DIR` is set).
 * `runtime/src/mcp.ts`: the optional MCP passthrough loader.
 * `runtime/mcp.example.json`: a ready-to-use Serena MCP template.
-* `runtime/scripts/`: `install.sh` and the eval runners (`run-evals.mjs`, `validate-evals.mjs`).
+* `tools/` (repo root, **outside** the shipped skill): `install.sh` and the eval / smoke / bench / fault-catch runners (`run-evals.mjs`, `validate-evals.mjs`, …). Kept out of the skill so it is not scanned or installed with it; the runners drive the built runtime at `.claude/skills/baton/runtime/`.
 
 ## Lean footprint, deliberate spend
 
@@ -166,7 +166,7 @@ The `/baton` command is then available in that repo.
 
 ```bash
 cp -r .claude/skills/baton ~/.claude/skills/        # skill: available everywhere
-bash ~/.claude/skills/baton/runtime/scripts/install.sh ~   # lanes → ~/.claude/agents/
+bash tools/install.sh ~                             # lanes → ~/.claude/agents/
 ```
 
 | What                  | Where it goes                                                     | Notes                                                                                                                                                          |

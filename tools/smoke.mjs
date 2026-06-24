@@ -3,10 +3,10 @@
 // with credentials for the live round-trip. Usage: npm run smoke (builds first).
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { loadLanes } from "../dist/lanes.js";
+import { loadLanes } from "../.claude/skills/baton/runtime/dist/lanes.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const agentsDir = path.resolve(here, "..", "..", "agents");
+const agentsDir = path.resolve(here, "..", ".claude", "skills", "baton", "agents");
 
 // model: undefined means the frontmatter said `inherit` (stripped) or was absent.
 const EXPECTED = {

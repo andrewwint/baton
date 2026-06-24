@@ -1,6 +1,6 @@
 // Offline smoke for the MCP passthrough loader. No model call, no MCP server —
 // just verifies the config parsing + fail-soft behavior. Usage: npm run smoke.
-import { loadMcpConfig } from "../dist/mcp.js";
+import { loadMcpConfig } from "../.claude/skills/baton/runtime/dist/mcp.js";
 import { writeFileSync, mkdtempSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";

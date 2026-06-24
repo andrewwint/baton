@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Report process-conformance signals for a routed run's transcript.
 //
-//   node scripts/process-conformance.mjs <transcript-file> [--ledger-dir <dir>]
-//   <command> | node scripts/process-conformance.mjs            # read stdin
+//   node process-conformance.mjs <transcript-file> [--ledger-dir <dir>]
+//   <command> | node process-conformance.mjs            # read stdin
 //
 // Output is conformance to Baton's contract, NOT a correctness claim.
 import fs from "node:fs";

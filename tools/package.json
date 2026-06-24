@@ -1,0 +1,17 @@
+{
+  "name": "@andrewwint/baton-tools",
+  "version": "0.1.5",
+  "private": true,
+  "type": "module",
+  "description": "Eval / bench / fault-catch / conformance dev tooling for Baton — kept OUT of the shipped skill so it is not scanned or installed with it. Resolves the runtime at ../.claude/skills/baton/runtime.",
+  "license": "MIT",
+  "scripts": {
+    "build": "npm --prefix ../.claude/skills/baton/runtime run build",
+    "smoke": "npm run build && node smoke.mjs && node mcp-smoke.mjs && node conformance-smoke.mjs && node fault-catch.mjs --structural",
+    "conformance": "node process-conformance.mjs",
+    "validate-evals": "node validate-evals.mjs",
+    "evals": "npm run build && node run-evals.mjs",
+    "bench": "npm run build && node bench.mjs",
+    "fault-catch": "npm run build && node fault-catch.mjs"
+  }
+}

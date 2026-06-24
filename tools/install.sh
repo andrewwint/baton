@@ -10,7 +10,7 @@
 # Usage: bash install.sh [target-repo]   (default: current directory)
 set -euo pipefail
 
-SKILL_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+SKILL_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.claude/skills/baton" && pwd)"
 TARGET="${1:-$(pwd)}"
 DEST="$TARGET/.claude/agents"
 
