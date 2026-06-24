@@ -3,6 +3,17 @@
 Notable changes to Baton. Baton is early: versions before 1.0 may change shape as the design is
 tested against real work.
 
+## 0.1.7 - restore the runtime lockfile
+
+### Changed
+
+- The runtime `package-lock.json` ships again. It was dropped in 0.1.6 to clear a per-file size finding,
+  but that finding was the cloud scanner's — the local skill-quality gate checks `max_skill_lines`, not
+  lockfile size, so removing it bought nothing there while giving up a real (if small, single-dependency)
+  supply-chain control: a committed lockfile pins the resolved dependency tree for reviewers and installs.
+  Restoring it is the more honest posture. The rest of the 0.1.6 surface trim (eval tooling in `tools/`,
+  no network surface, single config read) stands.
+
 ## 0.1.6 - risk-first routing gate + leaner shipped surface
 
 ### Changed

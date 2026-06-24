@@ -13,6 +13,3 @@ dist/
 
 # local review/working notes (kept on disk, not committed)
 docs/feedback.md
-
-# runtime lockfile not shipped (single optional dep, resolved at install)
-.claude/skills/baton/runtime/package-lock.json
