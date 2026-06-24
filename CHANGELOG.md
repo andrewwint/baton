@@ -3,6 +3,21 @@
 Notable changes to Baton. Baton is early: versions before 1.0 may change shape as the design is
 tested against real work.
 
+## 0.1.6 - risk-first routing gate + leaner shipped surface
+
+### Changed
+
+- Routing consolidated into one risk-first gate in `SKILL.md` (the `clarify-routing-gate` change, which
+  adds a "Risk-first routing gate" requirement to the `orchestrator-runtime` spec): run direct only when
+  a change touches no risk trigger and fits one edit + one verification; otherwise the loop, with
+  delegation decided within it. Resolves a bypass-vs-triage contradiction, restores the discovery-lane
+  delegation case, and adds declined-approval / non-repo / missing-criteria coverage. Caught and refined
+  by baton's own cold-read pass.
+- Leaner shipped skill: the eval / bench / fault-catch / conformance tooling moved out of the skill to
+  repo-level `tools/` (development tooling, not part of an installation), the runtime lockfile is no
+  longer shipped, and a `SECURITY.md` documents the benign surface. The installed skill dropped from 29
+  to ~16 tracked files, with no network surface and a single operator-controlled config read.
+
 ## 0.1.5 - cold-read verification
 
 ### Added
