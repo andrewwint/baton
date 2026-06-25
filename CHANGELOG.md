@@ -3,6 +3,19 @@
 Notable changes to Baton. Baton is early: versions before 1.0 may change shape as the design is
 tested against real work.
 
+## 0.1.8 - leaner implementer (principled YAGNI)
+
+### Changed
+
+- The `implementer` lane now writes the **minimum that works**: a minimal-change ladder (does it need to
+  exist? → reuse what's already in the codebase → stdlib / platform / installed dependency → one line →
+  the minimum that works), applied *after* reading the code, with no speculative features or abstractions
+  (YAGNI — "not yet," not "never"). Safety is carved out of the optimization: trust-boundary and
+  authorization checks, input validation, data-loss and concurrency handling, error handling, security,
+  and accessibility are never minimization candidates. Adapted from ponytail
+  (github.com/DietrichGebert/ponytail), whose benchmark motivates it; rationale and honest framing in
+  `docs/research-basis.md` (D7). Guidance only; no runtime change.
+
 ## 0.1.7 - restore the runtime lockfile
 
 ### Changed
