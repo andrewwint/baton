@@ -1,6 +1,6 @@
 # Contributing
 
-Baton is early (v0.1.5) and maintained by one person, so set expectations accordingly: issues and
+Baton is early (v0.1.10) and maintained by one person, so set expectations accordingly: issues and
 ideas are welcome, responses may be slow, and not every suggestion will land. The most useful
 thing you can give the project right now is evidence.
 
