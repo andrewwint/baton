@@ -3,6 +3,25 @@
 Notable changes to Baton. Baton is early: versions before 1.0 may change shape as the design is
 tested against real work.
 
+## 0.1.10 - proportional routing narration
+
+### Changed
+
+- `SKILL.md` routing gate + `agents/triage.md`: narrate routing **proportional to risk**. When the gate
+  sends a change direct, do it and state the disposition in one line rather than expounding the gate — on
+  trivial work the narration is the overhead, not the orchestration; the full routing rationale is
+  reserved for delegated or risky work where the auditable reasoning earns its cost. Motivated by a
+  skill-creator benchmark showing baton paid a token premium narrating even trivial *direct* routing.
+
+### Docs
+
+- `docs/research-basis.md`: record the 5-eval skill-creator run — it reproduced the documented wash
+  (equal pass-rate, ~40% in-harness token overhead) and surfaced two honest caveats: an own-repo baseline
+  confound and the instrument's blind spot to process legibility (the axis where baton's value actually
+  shows). Notes what a discriminating run would need (neutral repo + separating tasks).
+
+Guidance only; no runtime change.
+
 ## 0.1.9 - run-ledger example + field-test prose
 
 ### Added
