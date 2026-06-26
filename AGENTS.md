@@ -29,19 +29,21 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 ## Releasing
 
-Versions live in `.claude/skills/baton/runtime/package.json` and every release is recorded in `CHANGELOG.md`. Releases are tagged and published on GitHub; follow the existing `v0.1.x` tags and releases for the convention. Keep release notes honest: state what changed, and when little did (a docs- or license-only release), say so plainly rather than dressing it up.
+Versions live in `.claude/skills/baton/runtime/package.json` and every release is recorded in `CHANGELOG.md`. Keep release notes honest: state what changed, and when little did (a docs- or license-only release), say so plainly rather than dressing it up.
 
-The sequence, patch release shown:
+**Branch flow.** `main` is protected (no deletion, no force-push; PRs run CI). Land substantial work and contributions via a short-lived feature branch → PR into `main` (CI gates the merge). Tags are cut off `main`. There is no standing `dev` branch — the `v*` tags already mark released state versus latest `main`.
 
-1. Bump `version` in `runtime/package.json` and add a `## x.y.z - <theme>` entry to `CHANGELOG.md`.
-2. Commit locally (`chore: bump to x.y.z ...`).
-3. Push, tag, and publish. Each step below is outward-facing, so gate it on explicit user approval:
+**Release flow.** Pushing a `vX.Y.Z` tag triggers `.github/workflows/release.yml`, which gates on the structural checks, extracts the matching `CHANGELOG.md` section as the notes, and **creates the GitHub release**. So the sequence is:
+
+1. Bump `version` in `runtime/package.json` and add a `## x.y.z - <theme>` entry to `CHANGELOG.md`. The heading must be exactly `## x.y.z - ...` (no brackets) — the workflow's extractor matches on it.
+2. Commit, then re-sync the lockfile if the version changed (`npm install --package-lock-only --prefix .claude/skills/baton/runtime`).
+3. Tag and push the tag (outward-facing — gate on explicit user approval):
 
 ```bash
-git push origin main
 git tag -a vX.Y.Z -m "X.Y.Z - <theme>"
 git push origin vX.Y.Z
-gh release create vX.Y.Z --title "Baton vX.Y.Z" --notes "<honest summary of what changed>"
 ```
+
+**Do not run `gh release create`** — the workflow creates the release from the tag, and doing both would double-create.
 
 A substantive release goes through the OpenSpec change flow and Baton's own loop first (see the OpenSpec block above); a docs- or license-only release skips that and just records the change accurately.
