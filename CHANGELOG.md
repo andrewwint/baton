@@ -3,6 +3,26 @@
 Notable changes to Baton. Baton is early: versions before 1.0 may change shape as the design is
 tested against real work.
 
+## 0.1.9 - run-ledger example + field-test prose
+
+### Added
+
+- `examples/run-ledger.md`: a concrete run trail for substantial routed work, aligned to the
+  runtime's actual `RunRecord` (`runtime/src/ledger.ts`) — `run.json` + `summary.md`, lane
+  progression, checkpoints, and a worked two-lens verify (briefed + cold read) showing what the cold
+  read catches. Makes the auditable-trail claim legible instead of prose-only.
+
+### Changed
+
+- `SKILL.md` Delegation Policy: when a step that would normally get its own lane is kept inline
+  (verifying inline instead of opening a `code-reviewer` lane), state the one-line reason — so a
+  skipped lane reads as a deliberate routing call, not an oversight.
+- `SKILL.md` Run Artifacts: the ledger boundary is **loop steps, not edit size** — three or more loop
+  steps is routed work and earns at least a minimal ledger entry, even when each step is small.
+
+Both prose changes come from the first real field test (a PR review + Jira run) during adoption into a
+corporate skill registry. Guidance only; no runtime change.
+
 ## 0.1.8 - leaner implementer (principled YAGNI)
 
 ### Changed

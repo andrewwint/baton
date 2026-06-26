@@ -87,7 +87,7 @@ Do **not** delegate for:
 - overlapping edits to the same files (unless each lane gets its own worktree)
 - vague research with no concrete output
 
-When you delegate, say so in the visible progress: state the lane, its owner scope, and why the split is worth the overhead. The manager stays the single visible owner and integration point. If a named lane is unavailable, say so and proceed with the `general-purpose` fallback rather than degrading silently.
+When you delegate, say so in the visible progress: state the lane, its owner scope, and why the split is worth the overhead. The manager stays the single visible owner and integration point. If a named lane is unavailable, say so and proceed with the `general-purpose` fallback rather than degrading silently. The inverse also holds: when you keep a step inline that the lane map would normally delegate — verifying inline instead of opening a `code-reviewer` lane, say — state the one-line reason (single verification step; no disjoint split to gain), so a skipped lane reads as a deliberate routing call, not an oversight.
 
 ### Lane ownership
 
@@ -165,6 +165,8 @@ Keep the trail proportional to the work.
   - per-lane deliverables and verification evidence
   - approval decisions and any deferrals
   - a final summary with acceptance evidence
+
+The boundary is loop steps, not edit size: work that passes through three or more loop steps (say triage → verify → approve) is routed work and earns at least a minimal ledger entry, even when each step is small.
 
 Treat the run folder as local working state — not committed product source.
 
