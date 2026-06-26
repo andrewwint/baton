@@ -1,0 +1,33 @@
+name: CI
+
+# Key-free structural checks only — no model calls, no ANTHROPIC_API_KEY.
+# Skips on pure prose/docs changes (SKILL.md, README, docs) since there's
+# nothing to build or test there; runs when the runtime, tools, or evals change.
+on:
+  pull_request:
+  push:
+    branches: [main]
+    paths:
+      - ".claude/skills/baton/runtime/**"
+      - ".claude/skills/baton/evals/**"
+      - "tools/**"
+      - ".github/workflows/ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+          cache-dependency-path: .claude/skills/baton/runtime/package-lock.json
+      # Install the runtime's deps (the only package with a lockfile); tools has none.
+      - run: npm ci --prefix .claude/skills/baton/runtime
+      # smoke builds the runtime, then runs lane/mcp/conformance/fault-catch structural checks.
+      - run: npm --prefix tools run smoke
+      - run: npm --prefix tools run validate-evals

@@ -1,0 +1,45 @@
+name: Release
+
+# Fires when a vX.Y.Z tag is pushed. Gates on the same structural checks as CI,
+# extracts the matching CHANGELOG section as the notes, and creates the GitHub
+# release. So the release flow becomes: bump + changelog + commit + tag + push —
+# this does the rest. Do NOT also run `gh release create` (it would double-create).
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+          cache-dependency-path: .claude/skills/baton/runtime/package-lock.json
+      - run: npm ci --prefix .claude/skills/baton/runtime
+      - run: npm --prefix tools run smoke
+      - run: npm --prefix tools run validate-evals
+      - name: Extract release notes from CHANGELOG
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          # baton's CHANGELOG headings are "## 0.1.10 - title" (no brackets).
+          # Match the line starting "## <version> ", print until the next "## ".
+          awk -v h="## $version " '
+            index($0, h) == 1 { flag = 1; next }
+            flag && /^## / { exit }
+            flag { print }
+          ' CHANGELOG.md > RELEASE_NOTES.md
+          if [ ! -s RELEASE_NOTES.md ]; then
+            echo "No CHANGELOG section found for version $version"
+            exit 1
+          fi
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: RELEASE_NOTES.md
