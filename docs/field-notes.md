@@ -6,7 +6,7 @@ This is a record of using Baton on real projects. We kept these notes to see how
 
 ## At a Glance
 
-| Run   | What was built                                         | What got caught that standard tests passed                                           |
+| Run   | What was built                                         | What the review / adversarial cross-check caught that standard tests passed          |
 | ----- | ------------------------------------------------------ | ------------------------------------------------------------------------------------ |
 | **1** | A data service (commands and queries split apart)      | Standard tests passed, yet review caught dead code, a batch-stopping timing conflict, and a fake test setup hiding a live failure |
 | **2** | A new AI tool and data pipeline, launched online       | Passed standard tests, then surfaced only when run live: an outdated model name and a mismatched data shape |
