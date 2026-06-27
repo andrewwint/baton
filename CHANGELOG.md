@@ -4,7 +4,7 @@ Notable changes to Baton. From 1.0.0 the public contract is stable and changes f
 versioning; the surface frozen at 1.0 is the loop and routing gate, the lane map and four bundled
 agents, the `RunRecord` ledger shape, and MCP-via-`.mcp.json`.
 
-## 1.0.1
+## 1.0.1 - reachability guidance and field evidence
 
 Additive guidance and field evidence. The runtime code is unchanged from 1.0.0; this is a guidance/docs
 patch, and the frozen contract (the loop and routing gate, the lane map and four bundled agents, the
