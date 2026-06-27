@@ -137,7 +137,7 @@ When work targets a repo, learn it from its files first. Detect only what routin
 
 Do not assume a standard folder layout. When structure is still unclear, ask before scaffolding or editing. If the request is not repo-bound or no repository can be detected, do not fabricate a repo-based plan; ask for the relevant files or context first.
 
-Navigation is lexical by default (Grep/Glob/Read). The runtime can optionally pass through an MCP server for semantic navigation (symbol/reference lookup) — off by default, manager-only, and trust-gated; see `runtime/.env.example`.
+Navigation is lexical by default (Grep/Glob/Read). As part of looking around, baton uses whatever MCP servers the project already configures — the standard `.mcp.json`, inherited from Claude Code in interactive sessions and read by the runtime headlessly — for capabilities the lanes lack (semantic navigation, browser verification), where they help. Off when none are configured, manager-only, trust-gated, and each discovered server's tools are allowlisted by exact name. See `docs/MCP.md` for which servers fill real gaps and the local-vs-cloud caveats.
 
 ## Org extension via `references/`
 
