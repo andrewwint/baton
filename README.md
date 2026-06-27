@@ -26,6 +26,8 @@ Baton uses more of the AI's effort than a single prompt, because it runs several
 
 Every substantial run leaves a structured trail you can read after the fact: the default, not a setting you switch on. The runtime writes a `RunRecord` (run id, task, the lanes that ran and their outcomes, verification evidence, approval decisions, model and cost) plus a `summary.md` under `.agents/runs/<runId>/` on every completed run; the interactive manager keeps the same proportional trail by the skill's run-artifacts discipline. It is local working state, never committed product source. For consequential or regulated work, _what was planned, changed, verified, and approved, and by which lane_ is the point as much as the result. Override the location with `BATON_LEDGER_DIR`, or turn persistence off with `=off`.
 
+Together, the trail, the approval gates, and a local-only / data-residency posture ([`docs/MCP.md`](docs/MCP.md#for-regulated--local-only-environments)) are the evidence a regulated reviewer asks for — surfaced by design, not asserted as a certification Baton doesn't hold.
+
 ## Shift-left by design
 
 ![Shift-left vs. traditional quality model: attention to quality concentrated early (at Plan & Design and Develop & Build) instead of late, at Test and Deploy.](https://raw.githubusercontent.com/andrewwint/baton/main/docs/image.png)
