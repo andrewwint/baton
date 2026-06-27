@@ -15,6 +15,7 @@ This is a record of using Baton on real projects. We kept these notes to see how
 | **5** | A smaller model's build, then a bug planted on purpose  | Passed all 97 tests, the linter, and the type checks, yet a planted high-severity permission bypass got through — caught blind, with the exact line and exploit |
 | **6** | A real sign-in feature (replacing a stand-in login)    | Both passed all 110 tests: a forgeable login (a hardcoded default secret) and a safety switch a typo could silently disable — the second caught only by an uninstructed cold read |
 | **7** | Resumed a 10-day-cold service; added a lower-trust ingest slice | All 135 tests green — and this time the code was genuinely correct: 100+ adversarial cases _confirmed_ the invariant, no defect (a clean pass, not a catch). Notable instead: resumed cold from durable specs, and checking corrected an over-optimistic self-report |
+| **8** | A dependency-backlog cleanup on an old service (437 alerts) | The dependency scan and the tests flagged none of it: tracing reachability found an OS command-injection RCE (in two duplicate code paths), two more injection endpoints, and a path traversal |
 
 _Note: Each run is a single case on a private codebase. Treat these as observations, not permanent measurements._
 
@@ -219,6 +220,37 @@ We pointed the release candidate at a real, multi-source CQRS service rebuild we
 ### Known Limitations
 
 - One clean run shows the frozen process works on real work and resumes cold; it does not add a new data point on how often a cold read catches a defect, because this slice had none.
+
+---
+
+## Run 8: A Dependency Backlog That Hid an RCE the Dependency Scan Missed
+
+We pointed Baton at a real security-remediation task: an old NestJS monorepo with 437 open Dependabot alerts, all about vulnerable package versions. The question was what the discipline applied _around_ a scanner's output finds — specifically, whether tracing reachability (is the vulnerable code actually called, and where does untrusted input flow?) surfaces risk the dependency scan cannot see.
+
+### By the Numbers
+
+| Measure                              | Value                                                                 |
+| ------------------------------------ | --------------------------------------------------------------------- |
+| Task                                 | Remediate a Dependabot security backlog on an old NestJS monorepo     |
+| Open alerts at start                 | 437, across 71 distinct packages                                      |
+| What the dependency scan flagged     | Vulnerable package versions only                                      |
+| Found by reachability, unflagged by the scan and the tests | 1 OS command-injection RCE, 2 more command-injection endpoints (unauthenticated), 1 path traversal |
+| Severity of the missed RCE           | Critical — code execution on managed hosts via the deploy path        |
+| Where the RCE lived                  | Two duplicate code paths; the first fix missed the twin               |
+| Caught the incomplete fix            | A read-only audit pass, before the fix shipped                        |
+| Dependency work verified             | Advisory closed; a dead XML parser migrated; the build unblocked       |
+| Outward-facing actions by Baton      | None until approved — the developer committed and pushed              |
+
+### Core Observations
+
+- **A dependency scan counts packages; it cannot see a data flow.** A dependency scanner reports "this version is vulnerable"; it has no concept of "an untrusted URL parameter is interpolated into a shell command run on a remote host." Tracing reachability from the alerts found exactly that: a remote-code-execution hole the 437 alerts and the test suite never mentioned. A dedicated injection/SAST scanner is the right first layer for this class (as the summary below notes) and might flag it too — the honest point is that the discipline surfaced a critical RCE _in the course of dependency work_, and the alerts were the doorway, not the danger.
+- **The most serious finding was not a dependency at all.** The task was scoped as "clear the security backlog." Its highest-value output was an RCE in the application's own code, reachable from a deploy endpoint. The advisories were real and worth closing, but they were not where the danger was.
+- **Checking caught the checker.** The first fix was incomplete: the same vulnerable pattern lived in a second, duplicate code path. A follow-up audit pass found the twin before the fix shipped — the independent check guarding against the optimism of the first fix, the same shape as the over-claimed gate in Run 7.
+- **Reachability removes noise as well as adding signal.** Of the no-fix advisories, tracing usage showed two were not reachable at all (transitive, never called) and could be honestly documented rather than chased, while the reachable ones were fixed. The same lens that found the RCE also right-sized the backlog.
+
+### Known Limitations
+
+- This is one run, not a measurement. It shows reachability tracing can surface a severe defect that a dependency scan and the test suite both missed; it does not say how often, and it was not a head-to-head trial against a plain scan or a dedicated injection scanner. The claim is the severity of what was found, not a frequency or a win rate.
 
 ---
 
