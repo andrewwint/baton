@@ -26,7 +26,7 @@ Baton uses more of the AI's effort than a single prompt, because it runs several
 
 Every substantial run leaves a structured trail you can read after the fact: the default, not a setting you switch on. The runtime writes a `RunRecord` (run id, task, the lanes that ran and their outcomes, verification evidence, approval decisions, model and cost) plus a `summary.md` under `.agents/runs/<runId>/` on every completed run; the interactive manager keeps the same proportional trail by the skill's run-artifacts discipline. It is local working state, never committed product source. For consequential or regulated work, _what was planned, changed, verified, and approved, and by which lane_ is the point as much as the result. Override the location with `BATON_LEDGER_DIR`, or turn persistence off with `=off`.
 
-Together, the trail, the approval gates, and a local-only / data-residency posture ([`docs/MCP.md`](docs/MCP.md#for-regulated--local-only-environments)) are the evidence a regulated reviewer asks for — surfaced by design, not asserted as a certification Baton doesn't hold.
+Together, the trail, the approval gates, and a local-only / data-residency posture ([`docs/MCP.md`](docs/MCP.md#for-regulated--local-only-environments)) are the evidence a regulated reviewer asks for: surfaced by design, not asserted as a certification Baton doesn't hold.
 
 ## Shift-left by design
 
@@ -54,10 +54,10 @@ The gain comes from the extra checking, not the size of the work (a bigger but s
 
 Baton earns its cost on consequential, multi-step work. The shapes that show up in real runs:
 
-- **Security remediation.** Point Baton at a security backlog — e.g. findings from a Snyk MCP server — and it triages by severity, routes each fix through a gated lane, and verifies the patch didn't break a sibling. Baton's orchestrator pattern grew out of exactly this finding-to-fix work.
-- **Auth and login services.** Build or change an OIDC/login flow with an independent, adversarial review of the security-critical paths. On one such service, a cold review caught a forgeable-login defect that all 110 of its tests had passed. ([field notes](docs/field-notes.md))
+- **Security remediation.** Point Baton at a security backlog (e.g. findings from a Snyk MCP server) and it triages by severity, routes each fix through a gated lane, and verifies the patch didn't break a sibling. Baton's orchestrator pattern grew out of exactly this finding-to-fix work.
+- **Auth and login services.** Build or change an OIDC login flow (e.g. Okta), a known-hard and security-critical integration, with an independent, adversarial review of the paths that invite a forged login. On one such service, a cold review caught a forgeable-login defect that all 110 of its tests had passed. ([field notes](docs/field-notes.md))
 - **Cloud API services (CQRS, IaC).** Stand up a CQRS service and its AWS/CDK infrastructure spec-first, verified before anything is called done. ([field notes](docs/field-notes.md))
-- **End-to-end AI agents.** Deliver a Strands / Bedrock AgentCore agent from spec to deployable, with a compliance-ready data model (jurisdiction, consent, suppression) from day one — the regulated shape Baton is built for. ([field notes](docs/field-notes.md))
+- **End-to-end AI agents.** Deliver a Strands / Bedrock AgentCore agent from spec to deployable, with a compliance-ready data model (jurisdiction, consent, suppression) from day one, the regulated shape Baton is built for. ([field notes](docs/field-notes.md))
 
 ## Built on LLM-as-Judge, hardened
 
@@ -181,7 +181,7 @@ It is also nearly free to carry in working memory. Loaded, the skill is roughly 
 
 ## Install
 
-First, get Baton — clone the repo, then copy the skill folder out of it into your own project:
+First, get Baton: clone the repo, then copy the skill folder out of it into your own project:
 
 ```bash
 git clone https://github.com/andrewwint/baton && cd baton
