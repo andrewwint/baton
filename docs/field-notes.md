@@ -8,13 +8,13 @@ This is a record of using Baton on real projects. We kept these notes to see how
 
 | Run   | What was built                                         | What got caught that standard tests passed                                           |
 | ----- | ------------------------------------------------------ | ------------------------------------------------------------------------------------ |
-| **1** | A data service (commands and queries split apart)      | Dead code; a batch-stopping timing conflict; a fake test setup hiding a live failure |
-| **2** | A new AI tool and data pipeline, launched online       | An outdated model name and a mismatched data shape                                   |
-| **3** | A sorting slice (sorted by source instead of recency)  | A timing flaw; a code comment falsely claiming the file was safe                     |
-| **4** | Two security features (file reading and editing roles) | Zero code bugs; standard tests were blind to the security rules                      |
-| **5** | A smaller model's build, then a bug planted on purpose  | A planted permission bypass that passed all automated checks                         |
-| **6** | A real sign-in feature (replacing a stand-in login)    | A forgeable login (a hardcoded default secret) and a safety switch a typo could silently disable — both passed all 110 tests; the second caught only by an uninstructed cold read |
-| **7** | Resumed a 10-day-cold service; added a lower-trust ingest slice | Nothing — no defect existed; 100+ adversarial cases _confirmed_ the invariant (a clean pass, not a catch). Notable instead: resumed cold from durable specs, and checking corrected an over-optimistic self-report |
+| **1** | A data service (commands and queries split apart)      | Standard tests passed, yet review caught dead code, a batch-stopping timing conflict, and a fake test setup hiding a live failure |
+| **2** | A new AI tool and data pipeline, launched online       | Passed standard tests, then surfaced only when run live: an outdated model name and a mismatched data shape |
+| **3** | A sorting slice (sorted by source instead of recency)  | All 105 tests green, yet a timing flaw slipped through — under a comment that falsely claimed the file was race-free |
+| **4** | Two security features (file reading and editing roles) | Both test suites passed but were blind to the security rules: zero code bugs, yet leaked data fields and an unverified-permission write the tests never checked |
+| **5** | A smaller model's build, then a bug planted on purpose  | Passed all 97 tests, the linter, and the type checks, yet a planted high-severity permission bypass got through — caught blind, with the exact line and exploit |
+| **6** | A real sign-in feature (replacing a stand-in login)    | Both passed all 110 tests: a forgeable login (a hardcoded default secret) and a safety switch a typo could silently disable — the second caught only by an uninstructed cold read |
+| **7** | Resumed a 10-day-cold service; added a lower-trust ingest slice | All 135 tests green — and this time the code was genuinely correct: 100+ adversarial cases _confirmed_ the invariant, no defect (a clean pass, not a catch). Notable instead: resumed cold from durable specs, and checking corrected an over-optimistic self-report |
 
 _Note: Each run is a single case on a private codebase. Treat these as observations, not permanent measurements._
 
