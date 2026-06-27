@@ -190,6 +190,36 @@ We built a real feature end to end: replacing a stand-in login with a genuine "s
 
 ---
 
+## Run 7: Resuming a 10-Day-Cold Service, and a Clean Pass the Cold Read Confirmed
+
+We pointed the release candidate at a real, multi-source CQRS service rebuild we had last touched 10 days earlier, and added one new vertical: a lower-trust ingest path that must never overwrite the canonical identity (name, type, id) a higher-trust source already owns. The questions were whether Baton could pick the work back up cold after a gap, and what an independent cold read finds on a slice whose whole correctness rests on one subtle rule.
+
+### By the Numbers
+
+| Measure                              | Value                                                                 |
+| ------------------------------------ | --------------------------------------------------------------------- |
+| Work                                 | Resumed a CQRS service rebuild 10 days after the last commit; added one ingest vertical |
+| Tests passing (project total)        | 105 → 135 (+30 new)                                                    |
+| The invariant under test             | A lower-trust source must never overwrite a higher-trust source's canonical fields |
+| Cold-read adversarial cases          | 100+ — across both store backends, every higher source, both arrival orders, end to end |
+| Defects the cold read caught         | 0 — the slice was genuinely correct                                   |
+| What the cold read did instead       | Confirmed the invariant held in every adversarial case                |
+| What checking did catch              | An over-optimistic self-report: a type-check gate marked "done" that had 2 new errors |
+| Outward-facing actions by Baton      | None — the developer committed and pushed as the author               |
+
+### Core Observations
+
+- **Resumed cold after 10 days, because the state was written down.** Baton picked the work back up without the developer re-explaining it, because the prior plan lived in durable, in-repo specs the discovery pass could read, and the green test suite was a known-good baseline. The new run ledger extends this — it externalizes each run's plan, lanes, and decisions so the _next_ resume is cleaner still. The durability comes from writing state down, not from the model remembering.
+- **A clean pass is a real outcome, and it is not the same as a catch.** Two independent reviewers checked the slice, one a cold read handed only the rule and the changes. The cold read wrote its own adversarial harness and ran 100+ cases — the invariant held in all of them. It did not catch a defect, because there was none to catch: the slice was thin (the precedence engine was already source-agnostic) and the one load-bearing rule was implemented correctly. This is honest evidence that the _process_ holds on real work, not another instance of catching what tests miss — Runs 3 and 6 are those.
+- **Independent checking still corrected the record.** The implementer's own report marked a type-check gate passed; it had two new errors. The briefed reviewer caught the overclaim. They were harmless (parity with pre-existing looseness, tracked as a follow-up), but the point holds: the check is also a guard against the optimism of the thing being checked.
+- **The contract held.** This was the first real run after freezing the design for 1.0. Nothing about the loop, the gate, the lanes, or the run trail needed to change to do consequential work — which is what a freeze is supposed to prove.
+
+### Known Limitations
+
+- One clean run shows the frozen process works on real work and resumes cold; it does not add a new data point on how often a cold read catches a defect, because this slice had none.
+
+---
+
 ## Overall Summary of Findings
 
 The pattern shows that the checking helper works best by finding real flaws (like timing bugs or planted security bypasses) that regular tests miss, without causing false alarms. Genuinely hard problems cause natural bugs; on simple patterns, the tool provides assurance, catches blind spots in your tests, and keeps an audit log.

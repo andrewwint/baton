@@ -1,7 +1,28 @@
 # Changelog
 
-Notable changes to Baton. Baton is early: versions before 1.0 may change shape as the design is
-tested against real work.
+Notable changes to Baton. From 1.0.0 the public contract is stable and changes follow semantic
+versioning; the surface frozen at 1.0 is the loop and routing gate, the lane map and four bundled
+agents, the `RunRecord` ledger shape, and MCP-via-`.mcp.json`.
+
+## 1.0.0 - stable contract
+
+Baton is 1.0. The release candidate baked against a real run with **no contract change forced**, so the
+freeze stands and semver applies from here.
+
+The frozen public contract: the loop and risk-first routing gate; the lane map and the four bundled
+agents (`triage`, `implementer`, `code-reviewer`, `researcher`) plus built-in `Explore`/`Plan`; the
+`RunRecord` ledger shape (audit by default); and MCP discovered from the project's standard `.mcp.json`
+(no baton-specific variable). The eval JSON shape is internal dev tooling and is explicitly **not** part
+of the contract.
+
+### Evidence
+
+- The RC was dogfooded on a real, 10-day-cold CQRS service rebuild (`docs/field-notes.md`, Run 7): the
+  frozen loop, gate, lanes, and run trail ran clean and gated on consequential work, and Baton resumed
+  the work cold from durable in-repo specs. An independent cold-read verification confirmed the slice's
+  load-bearing invariant across 100+ adversarial cases (it found no defect because none existed) and
+  corrected an over-optimistic type-check self-report. No part of the contract needed to change — which
+  is what the freeze was meant to prove.
 
 ## 1.0.0-rc.1 - contract freeze candidate
 
