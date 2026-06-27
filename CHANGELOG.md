@@ -19,6 +19,9 @@ patch, and the frozen contract (the loop and routing gate, the lane map and four
   pattern a SAST scanner owns.
 - **README**: storefront polish (renders off-GitHub, concrete use cases, a regulated-fitness line) and
   one honest security-use-case line.
+- **Evidence chart**: the "When Baton helps" figure now plots Run 8 (a NestJS security remediation) as a
+  fourth field project, where a separate audit pass caught what the unit tests and the dependency scan
+  missed; chart source committed at `docs/make-evidence-chart.R`.
 
 ## 1.0.0 - stable contract
 
