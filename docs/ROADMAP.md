@@ -1,6 +1,6 @@
 # Roadmap
 
-Baton is early (v0.1.5). We focus on **two things, and only two**:
+Baton is early (v0.1.10). We focus on **two things, and only two**:
 
 - **Catching issues** that ordinary tests miss.
 - **Consistency** — the same disciplined loop every time, gated and auditable.
@@ -9,6 +9,50 @@ Each theme below is split into **Observed** (what we have seen so far) and **Nex
 prove, or sharpen it). The roadmap leads with the open questions, because that is the honest state of
 the project. Items are directional, not commitments; when one starts it becomes an OpenSpec change under
 `openspec/changes/`, built through Baton's own loop.
+
+## Road to 1.0
+
+1.0 is a **freeze**, not a finish line. It means the public contract is stable and we hold semver from
+there — *not* that the open questions below are answered (those are 1.x research). The temptation at 1.0
+is to add; the discipline is to stop changing the shape and prove it.
+
+**Frozen at 1.0 — the contract we promise not to break:**
+
+- **The loop and the routing gate.** The most-tested surface, corroborated by the same-lineage
+  control-tower's production runs.
+- **The lane map and the four bundled agents** (`triage`, `implementer`, `code-reviewer`, `researcher`)
+  plus built-in `Explore`/`Plan`. A cross-check against a domain control-tower — which adds `security`,
+  `frontend`, and `platform` lanes — confirmed the leanness is right: those are vertical *leaves* baton
+  externalizes to a project's `references/`, not core lanes. The four custom lanes earn their place by
+  tool-grant enforcement (e.g. `code-reviewer` is read-only by its grant, not by instruction).
+- **The `RunRecord` ledger shape.** baton's audit contract — the reason a run is auditable — and a
+  front-line feature, not a footnote.
+
+**Explicitly not frozen:**
+
+- **The eval schema (`evals/evals.json`).** Internal dev/CI tooling, not part of the Agent Skills standard
+  (which is `SKILL.md`; `anthropics/skills` ships no `evals.json`). It may evolve; external users are not
+  asked to conform to it.
+
+**Pre-freeze refactors — the freeze is not honest until these land:**
+
+- **`ledger-default-on`** — write the run ledger to `.agents/runs/<runId>/` by default for routed work
+  (audit-by-default), with `BATON_LEDGER_DIR` as the override. Freeze the shape, configure the location.
+- **`mcp-reframe-discovery`** — drop `BATON_MCP_CONFIG` (the name wrongly implies baton is an MCP server).
+  Confirmed against the Agent SDK: interactive baton inherits all of Claude Code's configured MCP servers
+  automatically (no var needed); the headless runtime discovers them from the standard project `.mcp.json`
+  via the SDK's default `settingSources: ["project"]` — the platform's location, not a baton one.
+  Serena/Playwright go in `.mcp.json` plus a `references/` guidance doc, and baton picks them up. (Regulated
+  note: `settingSources` also governs which settings/permissions load, so keep headless scoped to `project`.)
+
+**Docs before the cut:** elevate the ledger / audit-readiness as a core feature in the root `README`, and
+soften the `baton.evals.json` language in `SKILL.md` so 1.0 does not promise a frozen eval API.
+
+**The cut:** freeze `SKILL.md`, tag a `1.0.0-rc`, run it unchanged on a real consequential dogfood
+(right-axis evidence, recorded in [field notes](field-notes.md)); if real work forces a contract change,
+reset the freeze — far better now than after 1.0. Then cut `1.0.0`: the CHANGELOG records "contract frozen,
+semver from here," and the "versions before 1.0 may change shape" caveat comes out. 1.0 unlocks the
+community-marketplace submission.
 
 ## Catching issues
 
