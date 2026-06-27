@@ -249,7 +249,7 @@ See [SKILL.md](.claude/skills/baton/SKILL.md) for the full loop, delegation poli
 
 ## Status
 
-Early project (v0.1.10). Roadmap in [docs/ROADMAP.md](docs/ROADMAP.md); contributing and ideas in [CONTRIBUTING.md](CONTRIBUTING.md). Real-world usage reports are especially welcome.
+**1.0.0 — stable contract** (semver from here; the frozen surface is in [CHANGELOG.md](CHANGELOG.md) and [docs/ROADMAP.md](docs/ROADMAP.md#road-to-10)). Contributing and ideas in [CONTRIBUTING.md](CONTRIBUTING.md). Real-world usage reports are especially welcome.
 
 ---
 
