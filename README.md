@@ -22,6 +22,10 @@ You can teach Baton your own rules (your review steps, deploy checks, ticket con
 
 Baton uses more of the AI's effort than a single prompt, because it runs several helpers per job. In return you get a steady, checked process on every run, and you do not have to keep track of every handoff yourself.
 
+## Auditable by default
+
+Every substantial run leaves a structured trail you can read after the fact — the default, not a setting you switch on. The runtime writes a `RunRecord` (run id, task, the lanes that ran and their outcomes, verification evidence, approval decisions, model and cost) plus a `summary.md` under `.agents/runs/<runId>/` on every completed run; the interactive manager keeps the same proportional trail by the skill's run-artifacts discipline. It is local working state, never committed product source. For consequential or regulated work, *what was planned, changed, verified, and approved — and by which lane* is the point as much as the result. Override the location with `BATON_LEDGER_DIR`, or turn persistence off with `=off`.
+
 ## Shift-left by design
 
 ![Shift-left vs. traditional quality model: attention to quality concentrated early (at Plan & Design and Develop & Build) instead of late, at Test and Deploy.](docs/image.png)
@@ -195,7 +199,7 @@ Baton is generic out of the box. Two folders are meant to be **adapted to your c
 - **`references/`**: your org's SDLC, like ticketing/PR conventions, platform/deploy, acceptance gates, security posture. The coordinator consults the relevant one on demand; with none, it stays generic. See [`references/README.md`](.claude/skills/baton/references/README.md).
 - **`evals/`**: Baton's 12 built-in capability cases encode what good orchestration _looks like_ (route vs. act direct, read-only review lanes, gated outward actions, recover-not-declare-done). Check structure with `npm run validate-evals` (no key); run live, LLM-judged, with `npm run evals`. **Add your own SDLC cases** in a `baton.evals.json` at your repo root (or point `BATON_EVALS` at any path): the runners merge it with the built-ins (new ids append, a matching id overrides), so your cases stay _yours_ and survive a skill update. Tie them to your `references/` gates (e.g. assert "checks `Acceptance.md` before declaring done") so "done" means what it means for your team. The repo's own [`baton.evals.json`](baton.evals.json) is a working example.
 
-The live eval suite is **exploratory**: abstract prompts on empty workspaces don't yield a clean pass/fail, so treat `validate-evals` (structural) as the CI gate and live runs as a sanity check until you add fixtures for your own cases.
+The live eval suite is **exploratory**: abstract prompts on empty workspaces don't yield a clean pass/fail, so treat `validate-evals` (structural) as the CI gate and live runs as a sanity check until you add fixtures for your own cases. The eval JSON shape is **internal dev tooling, not part of Baton's 1.0 contract** — it may change between versions, so treat it as a convenience, not an external API to build against.
 
 ## Security & trust
 

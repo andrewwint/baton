@@ -3,6 +3,25 @@
 Notable changes to Baton. Baton is early: versions before 1.0 may change shape as the design is
 tested against real work.
 
+## 1.0.0-rc.1 - contract freeze candidate
+
+The release candidate for 1.0. The public contract is **frozen** here, and semver applies from 1.0: the
+loop and the risk-first routing gate; the lane map and the four bundled agents (`triage`, `implementer`,
+`code-reviewer`, `researcher`) plus built-in `Explore`/`Plan`; and the `RunRecord` ledger shape. MCP is
+discovered from the project's standard `.mcp.json` (no baton-specific variable). The eval JSON shape is
+explicitly **not** frozen — it is internal dev tooling and may change.
+
+Both pre-freeze refactors landed first: `ledger-default-on` (audit by default) and `mcp-reframe-discovery`
+(drop `BATON_MCP_CONFIG`). This RC now bakes against a real consequential run; if that run forces a
+contract change the freeze resets — far cheaper than after 1.0, and a clean run promotes this to `1.0.0`.
+
+### Changed
+
+- `README.md`: a named **Auditable by default** section elevating the run trail / `RunRecord` to a
+  front-line feature.
+- `README.md`: the `baton.evals.json` extension is documented as internal dev tooling, not a frozen 1.0
+  eval API.
+
 ## 0.1.10 - proportional routing narration
 
 ### Changed
