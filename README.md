@@ -28,7 +28,7 @@ Every substantial run leaves a structured trail you can read after the fact: the
 
 ## Shift-left by design
 
-![Shift-left vs. traditional quality model: attention to quality concentrated early (at Plan & Design and Develop & Build) instead of late, at Test and Deploy.](docs/image.png)
+![Shift-left vs. traditional quality model: attention to quality concentrated early (at Plan & Design and Develop & Build) instead of late, at Test and Deploy.](https://raw.githubusercontent.com/andrewwint/baton/main/docs/image.png)
 
 Baton's loop is shaped like the shift-left curve: it concentrates attention on quality **early**, with discovery before touching code, a planning pass, reading the surrounding code to match its conventions, and verification before work is called done. The economics are the classic ones: a defect caught at _Plan_ or _Develop_ is far cheaper than the same defect caught at _Test_, _Deploy_, or in production.
 
@@ -40,7 +40,7 @@ Scope note: out of the box Baton is shift-**left**. It owns **Plan → Develop �
 
 A Baton-vs-baseline bench (`testing/fixtures/`, skill-on vs. `--no-skill`) ran four times across model tiers and difficulty, and **every run washed**: structured and unstructured tied, at higher cost for Baton. Baton does **not** make the model smarter. The observed split:
 
-![Chart titled "When Baton helps, and when it doesn't": four small tests sit at "no difference" from plain AI and cost more; three end-to-end projects (a CQRS service, an OIDC login service, and a Strands/AgentCore agent) sit well above, where a separate review and real-world testing caught bugs the unit tests had missed; the middle is marked untested. Real results only, with no predicted trend line.](docs/evidence.png)
+![Chart titled "When Baton helps, and when it doesn't": four small tests sit at "no difference" from plain AI and cost more; three end-to-end projects (a CQRS service, an OIDC login service, and a Strands/AgentCore agent) sit well above, where a separate review and real-world testing caught bugs the unit tests had missed; the middle is marked untested. Real results only, with no predicted trend line.](https://raw.githubusercontent.com/andrewwint/baton/main/docs/evidence.png)
 
 - **Basic tasks (small, self-contained coding fixtures: implement a function to pass a failing test, fix a localized bug, add a feature without breaking a sibling):** no better than plain AI, and Baton costs more (it runs extra helper lanes). If a change is cheap to get wrong, run it direct.
 - **End-to-end development (a CQRS service, an OIDC login service, and a Strands/AgentCore agent):** where Baton earns its keep. A separate review pass and real-world testing caught bugs the unit tests had passed, including a critical forgeable-login defect on the OIDC service that all 110 of its tests passed over.
@@ -169,6 +169,12 @@ Baton needs no server, no database, no external control plane, and no new runtim
 It is also nearly free to carry in working memory. Loaded, the skill is roughly 2,000 tokens, and the four lane prompts add only a few hundred between them. Each lane's full instructions live inside its own context window _only while it runs_, so they never bloat the main coordinator's view. You can verify this in ten seconds with `/context` during a session. The token weight is the development work itself; the loop spends more, deliberately, on independent verification and a gated, auditable trail. It is a choice for lean scaffolding, not a cheaper run.
 
 ## Install
+
+First, get Baton — clone the repo, then copy the skill folder out of it into your own project:
+
+```bash
+git clone https://github.com/andrewwint/baton && cd baton
+```
 
 **Per project.** Copy the folder into the repo you're working in:
 
