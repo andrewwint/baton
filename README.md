@@ -48,6 +48,18 @@ A Baton-vs-baseline bench (`testing/fixtures/`, skill-on vs. `--no-skill`) ran f
 
 The gain comes from the extra checking, not the size of the work (a bigger but self-contained test still washed). What Baton adds is **reliability**: it always verifies, gates outward-facing actions, splits review into its own lane, and keeps an auditable run trail, where a bare model does these only when the task and model happen to favour it. Whether that beats a careful engineer plus one sharp review on cost is still untested. Full reasoning in [`docs/research-basis.md`](docs/research-basis.md#where-we-drifted--and-whats-still-open); the field runs in [`docs/field-notes.md`](docs/field-notes.md).
 
+## Built on LLM-as-Judge, hardened
+
+Baton's verification _is_ the **LLM-as-Judge** pattern — with its known failure modes engineered against, and wrapped in a gated loop instead of left as a passive grader at the end:
+
+- **Execution-grounded, not text-scoring** — the verify lane runs the build, tests, and lint, and writes its own adversarial checks; the verdict rests on observed behavior, not the model's read of the diff.
+- **Independent by brief** — a judge handed the author's framing inherits the author's blind spots, so on high-stakes surfaces at least one reviewer is briefed _cold_: only the spec and the diff, none of the author's hypotheses. The estimate is out-of-sample, not a rubber stamp.
+- **Adversarial, not a score** — the reviewer's job is to _break_ the change (find the fail-open, the bypass, the race), not rate it 1–5.
+- **Human-anchored** — the spec and acceptance criteria are the ground truth; the reviewer is an instrument to surface defects you confirm, never the source of truth. Model grading model with no external anchor is the circularity Baton avoids.
+- **A gate, not a dashboard** — a finding routes to recovery (bounded to ~2 attempts) or escalates to you; it controls whether the work moves forward.
+
+Honest limits: it is still LLM judgment — the cold read _reduces_ shared blind spots, it doesn't remove them, and it can miss or invent a defect. This is why Baton _washes on small tasks_ (a lone judge is plenty there) and only earns its cost where the work is consequential enough that an independent, executed check pays for itself.
+
 ## Where it's not worth it
 
 A good tool should tell you when to skip it. Baton does extra work: it runs several helpers and checks each step, so it takes more time and costs more. That is worth it on big or risky jobs. It is not worth it here:
