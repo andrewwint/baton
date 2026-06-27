@@ -106,38 +106,37 @@ The manager SHALL bound failure recovery: it SHALL make at most a small number (
 - **THEN** the run reports the failure and escalates, and does not declare the work done
 
 ### Requirement: Optional MCP server passthrough
+The runtime SHALL use whatever MCP servers are already configured for the environment rather than a baton-specific config: in an interactive Claude Code session the manager inherits the user's configured servers automatically, and the headless runtime reads the standard project `.mcp.json` and passes its declared servers into the `query()` loop. The passthrough SHALL be off when nothing is configured, SHALL NOT alter behavior when unconfigured, and SHALL degrade to the existing lexical behavior — never failing the run — when a config is malformed. It SHALL auto-allow each discovered server's tools by exact name (`mcp__<server>__*`, well-formed names only) and wire them to the manager loop only. Offline mode SHALL be unaffected. There SHALL be no `BATON_MCP_CONFIG` variable.
 
-The runtime SHALL support an optional, env-gated MCP server passthrough that wires configured Model Context Protocol servers into the live `query()` loop, so semantic code-navigation backends (e.g. an LSP-backed MCP server) can be used without becoming a baseline dependency. The passthrough SHALL be off by default, SHALL NOT alter behavior when unconfigured, and SHALL degrade to the existing lexical behavior — never failing the run — when misconfigured. Offline mode SHALL be unaffected.
+#### Scenario: Disabled when nothing is configured
+- **WHEN** the runtime starts a live run and no MCP servers are configured (no project `.mcp.json` and none inherited)
+- **THEN** no MCP tools are wired and behavior is identical to a run without MCP
 
-#### Scenario: Disabled by default
+#### Scenario: Headless reads the standard config
+- **WHEN** the headless runtime starts a live run and the project root has a `.mcp.json` declaring one or more MCP servers
+- **THEN** the runtime reads it and passes those servers to `query()`, logs which servers it discovered, and the manager can call their tools — without any baton-specific variable
 
-- **WHEN** the runtime starts a live run and `BATON_MCP_CONFIG` is unset
-- **THEN** no `mcpServers` are passed to `query()` and behavior is identical to a run without MCP
+#### Scenario: Interactive inherits automatically
+- **WHEN** baton runs inside an interactive Claude Code session
+- **THEN** the manager has the user's already-configured MCP servers available without baton configuring anything
 
-#### Scenario: Configured servers are wired into the live run
-
-- **WHEN** `BATON_MCP_CONFIG` points at a readable JSON file declaring one or more MCP servers in the SDK's `mcpServers` shape
-- **THEN** the runtime passes those servers to `query()`'s `mcpServers` option, and the manager can call their tools during the run
-
-#### Scenario: Configured MCP tools are auto-allowed
-
-- **WHEN** one or more MCP servers are configured
-- **THEN** the runtime adds `mcp__<server>__*` to `allowedTools` for each configured server name, so the headless loop can call them without a permission prompt that has no approver
+#### Scenario: Discovered MCP tools are auto-allowed by exact name
+- **WHEN** one or more MCP servers are discovered for a headless run
+- **THEN** the runtime adds `mcp__<server>__*` to `allowedTools` for each discovered server name, so the headless loop can call them without a permission prompt that has no approver
+- **AND WHEN** a declared server name is not well-formed (outside `[a-zA-Z0-9_-]`)
+- **THEN** that server is skipped rather than widening the allowlist, keeping the blast radius bounded to exact, named servers
 
 #### Scenario: Lanes remain lexical
-
-- **WHEN** MCP servers are configured for a live run
+- **WHEN** MCP servers are available for a live run
 - **THEN** the wiring targets the manager loop only; lane agents with explicit `tools` allowlists and the built-in `Explore` lane do not receive MCP tools and continue to navigate lexically
 
 #### Scenario: Misconfiguration degrades, does not abort
-
-- **WHEN** `BATON_MCP_CONFIG` is set but the file is missing, is not valid JSON, or declares no servers
+- **WHEN** the project `.mcp.json` is present but is not valid JSON or declares no servers
 - **THEN** the runtime prints a warning to stderr and proceeds with the existing lexical behavior, without failing the run
 
 #### Scenario: Offline mode ignores MCP
-
 - **WHEN** the runtime runs in offline mode (`--offline` or no credentials)
-- **THEN** no MCP servers are wired, regardless of `BATON_MCP_CONFIG`, because no model call is made
+- **THEN** no MCP servers are wired, since offline mode makes no model call
 
 ### Requirement: Triage lane disposition
 The `triage` lane SHALL classify a task's size and risk by reading the target repo and SHALL return exactly one disposition — `direct`, `delegated_safe`, `needs_approval`, or `escalate` — along with the salient risk signals and the recommended lanes. It SHALL be read-only (no file-mutating tools). It is optional: trivial work is triaged inline by the manager (loop step 2) without opening the lane.
