@@ -164,13 +164,13 @@ The smaller model also found all four at the exact line. So the test does not ye
 
 ## Run 6: A Real Login Feature, and Why the Reviewer's Instructions Matter
 
-We built a real feature end to end: replacing a stand-in login with a genuine "sign in with your company account" flow (OpenID Connect against a live identity provider), then logging in for real to confirm it worked. The question was what the checking helper catches on a real, consequential feature, and whether _how we instruct it_ changes what it finds.
+We built a real feature end to end: replacing a stand-in login with a genuine "sign in with your company account" flow (OpenID Connect against Okta, a live identity provider), then logging in for real to confirm it worked. Real OIDC login is a known-hard, security-critical integration, the kind of surface where one small slip becomes a way to forge a login. The question was what the checking helper catches on a real, consequential feature, and whether _how we instruct it_ changes what it finds.
 
 ### By the Numbers
 
 | Measure                                | Value                                                            |
 | -------------------------------------- | ---------------------------------------------------------------- |
-| Feature                                | Real OpenID Connect login + sessions (replacing a stand-in)      |
+| Feature                                | Real OpenID Connect login against Okta + sessions (replacing a stand-in) |
 | Tests passing (project total)          | 110                                                              |
 | Serious bugs found by checking         | 2, that all 110 tests passed over                                |
 | - Critical: forgeable login            | A hardcoded default secret let anyone forge a logged-in session  |
