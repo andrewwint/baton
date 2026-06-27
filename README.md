@@ -1,6 +1,6 @@
 # Baton
 
-_Consistently disciplined: it hunts blind spots in code and tests on the high-risk work that warrants it. The trade is more tokens and time, not a smarter model. Boring in the best way._
+_Consistently disciplined: it hunts blind spots in code and tests on the high-risk work that warrants it. The trade-off is more tokens and time, not a smarter model. Boring in the best way._
 
 Baton is a lean, manager-led orchestration skill for **Claude Code**, with an optional TypeScript runtime on the [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview). A single coordinator routes development work through bounded subagent lanes (triage, discovery, planning, implementation, verification, recovery), owning integration, approval gates, and an auditable run trail. The point is consistency and independent verification that catches what green tests miss, not a smarter model. **Lean by default** for solo work; encode your team's review, deploy, and acceptance steps in `references/` once, and Baton repeats them across every project.
 
