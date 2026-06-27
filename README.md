@@ -136,12 +136,12 @@ Only the implementer can edit files (it holds `Edit`/`Write` and a bounded write
 
 ### Headless runtime engine (optional, opt-in)
 
-Requires Node. Set up with `npm install` and run for local batch, CI/CD, or cloud use, with an opt-in run trail (the ledger) for auditing each run. Full setup, modes, and tuning are in [`docs/usage.md`](docs/usage.md).
+Requires Node. Set up with `npm install` and run for local batch, CI/CD, or cloud use, with an on-by-default run trail (the ledger) auditing every run. Full setup, modes, and tuning are in [`docs/usage.md`](docs/usage.md).
 
 - `runtime/src/orchestrator.ts`: the coordinator `query()` execution loop.
 - `runtime/src/lanes.ts`: loads `agents/*.md` as programmatic `AgentDefinitions`.
 - `runtime/src/offline.ts`: deterministic, offline repo detection (no model calls).
-- `runtime/src/ledger.ts`: the opt-in run log (`run.json` and `summary.md` when `BATON_LEDGER_DIR` is set).
+- `runtime/src/ledger.ts`: the on-by-default run log (`run.json` and `summary.md` under `.agents/runs/`; override the location with `BATON_LEDGER_DIR`, disable with `=off`).
 - `runtime/src/mcp.ts`: the optional MCP passthrough loader.
 - `runtime/mcp.example.json`: a ready-to-use Serena MCP template.
 - `tools/` (repo root, **outside** the shipped skill): `install.sh` and the eval / smoke / bench / fault-catch runners (`run-evals.mjs`, `validate-evals.mjs`, …). Kept out of the skill so it is not scanned or installed with it; the runners drive the built runtime at `.claude/skills/baton/runtime/`.
