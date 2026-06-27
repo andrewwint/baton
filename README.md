@@ -4,7 +4,7 @@ _Consistently disciplined: it hunts blind spots in code and tests on the high-ri
 
 Baton is a lean, manager-led orchestration skill for **Claude Code**, with an optional TypeScript runtime on the [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview). A single coordinator routes development work through bounded subagent lanes (triage, discovery, planning, implementation, verification, recovery), owning integration, approval gates, and an auditable run trail. The point is consistency and independent verification that catches what green tests miss, not a smarter model. **Lean by default** for solo work; encode your team's review, deploy, and acceptance steps in `references/` once, and Baton repeats them across every project.
 
-## Executive summary (plain English)
+## Executive summary
 
 **Baton** is a skill for Claude Code (an AI that writes code), following the open [Agent Skills](https://agentskills.io/home) standard.
 
@@ -24,7 +24,7 @@ Baton uses more of the AI's effort than a single prompt, because it runs several
 
 ## Auditable by default
 
-Every substantial run leaves a structured trail you can read after the fact: the default, not a setting you switch on. The runtime writes a `RunRecord` (run id, task, the lanes that ran and their outcomes, verification evidence, approval decisions, model and cost) plus a `summary.md` under `.agents/runs/<runId>/` on every completed run; the interactive manager keeps the same proportional trail by the skill's run-artifacts discipline. It is local working state, never committed product source. For consequential or regulated work, *what was planned, changed, verified, and approved, and by which lane* is the point as much as the result. Override the location with `BATON_LEDGER_DIR`, or turn persistence off with `=off`.
+Every substantial run leaves a structured trail you can read after the fact: the default, not a setting you switch on. The runtime writes a `RunRecord` (run id, task, the lanes that ran and their outcomes, verification evidence, approval decisions, model and cost) plus a `summary.md` under `.agents/runs/<runId>/` on every completed run; the interactive manager keeps the same proportional trail by the skill's run-artifacts discipline. It is local working state, never committed product source. For consequential or regulated work, _what was planned, changed, verified, and approved, and by which lane_ is the point as much as the result. Override the location with `BATON_LEDGER_DIR`, or turn persistence off with `=off`.
 
 ## Shift-left by design
 
