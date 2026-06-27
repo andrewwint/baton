@@ -1,8 +1,8 @@
 # Baton
 
-_Consistently disciplined: it hunts blind spots in code and tests on the high-risk work that warrants it. The trade is more tokens and time, not a smarter model. Boring in the best way._
+_Consistently disciplined: it hunts blind spots in code and tests on the high-risk work that warrants it. The trade-off is more tokens and time, not a smarter model. Boring in the best way._
 
-Baton is a lean, manager-led orchestration skill for **Claude Code**, with an optional TypeScript runtime on the [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview). Like a relay team, it routes development work through bounded, parallel subagent lanes (triage, discovery, planning, implementation, verification, recovery), handing off cleanly while a single coordinator owns integration, approval gates, and an auditable run trail. The point is consistency and independent verification that catches what green tests miss, not a smarter model. **Lean by default** for solo work; to make **your process repeatable**, encode your team's review, deploy, and acceptance steps in `references/` once, and Baton follows them across every project.
+Baton is a lean, manager-led orchestration skill for **Claude Code**, with an optional TypeScript runtime on the [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview). A single coordinator routes development work through bounded subagent lanes (triage, discovery, planning, implementation, verification, recovery), owning integration, approval gates, and an auditable run trail. The point is consistency and independent verification that catches what green tests miss, not a smarter model. **Lean by default** for solo work; encode your team's review, deploy, and acceptance steps in `references/` once, and Baton repeats them across every project.
 
 ## Executive summary (plain English)
 
@@ -24,7 +24,7 @@ Baton uses more of the AI's effort than a single prompt, because it runs several
 
 ## Auditable by default
 
-Every substantial run leaves a structured trail you can read after the fact — the default, not a setting you switch on. The runtime writes a `RunRecord` (run id, task, the lanes that ran and their outcomes, verification evidence, approval decisions, model and cost) plus a `summary.md` under `.agents/runs/<runId>/` on every completed run; the interactive manager keeps the same proportional trail by the skill's run-artifacts discipline. It is local working state, never committed product source. For consequential or regulated work, *what was planned, changed, verified, and approved — and by which lane* is the point as much as the result. Override the location with `BATON_LEDGER_DIR`, or turn persistence off with `=off`.
+Every substantial run leaves a structured trail you can read after the fact: the default, not a setting you switch on. The runtime writes a `RunRecord` (run id, task, the lanes that ran and their outcomes, verification evidence, approval decisions, model and cost) plus a `summary.md` under `.agents/runs/<runId>/` on every completed run; the interactive manager keeps the same proportional trail by the skill's run-artifacts discipline. It is local working state, never committed product source. For consequential or regulated work, *what was planned, changed, verified, and approved, and by which lane* is the point as much as the result. Override the location with `BATON_LEDGER_DIR`, or turn persistence off with `=off`.
 
 ## Shift-left by design
 
@@ -43,22 +43,22 @@ A Baton-vs-baseline bench (`testing/fixtures/`, skill-on vs. `--no-skill`) ran f
 ![Chart titled "When Baton helps, and when it doesn't": four small tests sit at "no difference" from plain AI and cost more; three end-to-end projects (a CQRS service, an OIDC login service, and a Strands/AgentCore agent) sit well above, where a separate review and real-world testing caught bugs the unit tests had missed; the middle is marked untested. Real results only, with no predicted trend line.](docs/evidence.png)
 
 - **Basic tasks (small, self-contained coding fixtures: implement a function to pass a failing test, fix a localized bug, add a feature without breaking a sibling):** no better than plain AI, and Baton costs more (it runs extra helper lanes). If a change is cheap to get wrong, run it direct.
-- **End-to-end development (a CQRS service, an OIDC login service, and a Strands/AgentCore agent):** where Baton earns its keep. A separate review pass and real-world testing caught bugs the unit tests had passed — including a critical forgeable-login defect on the OIDC service that all 110 of its tests passed over.
+- **End-to-end development (a CQRS service, an OIDC login service, and a Strands/AgentCore agent):** where Baton earns its keep. A separate review pass and real-world testing caught bugs the unit tests had passed, including a critical forgeable-login defect on the OIDC service that all 110 of its tests passed over.
 - **The space between:** not benchmarked, an area for future investigation.
 
 The gain comes from the extra checking, not the size of the work (a bigger but self-contained test still washed). What Baton adds is **reliability**: it always verifies, gates outward-facing actions, splits review into its own lane, and keeps an auditable run trail, where a bare model does these only when the task and model happen to favour it. Whether that beats a careful engineer plus one sharp review on cost is still untested. Full reasoning in [`docs/research-basis.md`](docs/research-basis.md#where-we-drifted--and-whats-still-open); the field runs in [`docs/field-notes.md`](docs/field-notes.md).
 
 ## Built on LLM-as-Judge, hardened
 
-Baton's verification _is_ the **LLM-as-Judge** pattern — with its known failure modes engineered against, and wrapped in a gated loop instead of left as a passive grader at the end:
+Baton's verification _is_ the **LLM-as-Judge** pattern, with its known failure modes engineered against, and wrapped in a gated loop instead of left as a passive grader at the end:
 
-- **Execution-grounded, not text-scoring** — the verify lane runs the build, tests, and lint, and writes its own adversarial checks; the verdict rests on observed behavior, not the model's read of the diff.
-- **Independent by brief** — a judge handed the author's framing inherits the author's blind spots, so on high-stakes surfaces at least one reviewer is briefed _cold_: only the spec and the diff, none of the author's hypotheses. The estimate is out-of-sample, not a rubber stamp.
-- **Adversarial, not a score** — the reviewer's job is to _break_ the change (find the fail-open, the bypass, the race), not rate it 1–5.
-- **Human-anchored** — the spec and acceptance criteria are the ground truth; the reviewer is an instrument to surface defects you confirm, never the source of truth. Model grading model with no external anchor is the circularity Baton avoids.
-- **A gate, not a dashboard** — a finding routes to recovery (bounded to ~2 attempts) or escalates to you; it controls whether the work moves forward.
+- **Execution-grounded, not text-scoring.** The verify lane runs the build, tests, and lint, and writes its own adversarial checks; the verdict rests on observed behavior, not the model's read of the diff.
+- **Independent by brief.** A judge handed the author's framing inherits the author's blind spots, so on high-stakes surfaces at least one reviewer is briefed _cold_: only the spec and the diff, none of the author's hypotheses. The estimate is out-of-sample, not a rubber stamp.
+- **Adversarial, not a score.** The reviewer's job is to _break_ the change (find the fail-open, the bypass, the race), not rate it 1–5.
+- **Human-anchored.** The spec and acceptance criteria are the ground truth; the reviewer is an instrument to surface defects you confirm, never the source of truth. Model grading model with no external anchor is the circularity Baton avoids.
+- **A gate, not a dashboard.** A finding routes to recovery (bounded to ~2 attempts) or escalates to you; it controls whether the work moves forward.
 
-Honest limits: it is still LLM judgment — the cold read _reduces_ shared blind spots, it doesn't remove them, and it can miss or invent a defect. This is why Baton _washes on small tasks_ (a lone judge is plenty there) and only earns its cost where the work is consequential enough that an independent, executed check pays for itself.
+Honest limits: it is still LLM judgment, and the cold read _reduces_ shared blind spots, it doesn't remove them, and it can miss or invent a defect. This is why Baton _washes on small tasks_ (a lone judge is plenty there) and only earns its cost where the work is consequential enough that an independent, executed check pays for itself.
 
 ## Where it's not worth it
 
@@ -211,7 +211,7 @@ Baton is generic out of the box. Two folders are meant to be **adapted to your c
 - **`references/`**: your org's SDLC, like ticketing/PR conventions, platform/deploy, acceptance gates, security posture. The coordinator consults the relevant one on demand; with none, it stays generic. See [`references/README.md`](.claude/skills/baton/references/README.md).
 - **`evals/`**: Baton's 12 built-in capability cases encode what good orchestration _looks like_ (route vs. act direct, read-only review lanes, gated outward actions, recover-not-declare-done). Check structure with `npm run validate-evals` (no key); run live, LLM-judged, with `npm run evals`. **Add your own SDLC cases** in a `baton.evals.json` at your repo root (or point `BATON_EVALS` at any path): the runners merge it with the built-ins (new ids append, a matching id overrides), so your cases stay _yours_ and survive a skill update. Tie them to your `references/` gates (e.g. assert "checks `Acceptance.md` before declaring done") so "done" means what it means for your team. The repo's own [`baton.evals.json`](baton.evals.json) is a working example.
 
-The live eval suite is **exploratory**: abstract prompts on empty workspaces don't yield a clean pass/fail, so treat `validate-evals` (structural) as the CI gate and live runs as a sanity check until you add fixtures for your own cases. The eval JSON shape is **internal dev tooling, not part of Baton's 1.0 contract** — it may change between versions, so treat it as a convenience, not an external API to build against.
+The live eval suite is **exploratory**: abstract prompts on empty workspaces don't yield a clean pass/fail, so treat `validate-evals` (structural) as the CI gate and live runs as a sanity check until you add fixtures for your own cases. The eval JSON shape is **internal dev tooling, not part of Baton's 1.0 contract**: it may change between versions, so treat it as a convenience, not an external API to build against.
 
 ## Security & trust
 
@@ -261,7 +261,7 @@ See [SKILL.md](.claude/skills/baton/SKILL.md) for the full loop, delegation poli
 
 ## Status
 
-**1.0.0 — stable contract** (semver from here; the frozen surface is in [CHANGELOG.md](CHANGELOG.md) and [docs/ROADMAP.md](docs/ROADMAP.md#road-to-10)). Contributing and ideas in [CONTRIBUTING.md](CONTRIBUTING.md). Real-world usage reports are especially welcome.
+**1.0.0: stable contract** (semver from here; the frozen surface is in [CHANGELOG.md](CHANGELOG.md) and [docs/ROADMAP.md](docs/ROADMAP.md#road-to-10)). Contributing and ideas in [CONTRIBUTING.md](CONTRIBUTING.md). Real-world usage reports are especially welcome.
 
 ---
 
