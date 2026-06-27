@@ -5,7 +5,7 @@ import { query, type PermissionMode } from "@anthropic-ai/claude-agent-sdk";
 import { loadLanes, parseFrontmatter } from "./lanes.js";
 import { detectRepo, type RepoProfile } from "./offline.js";
 import { newRunId, writeLedger, resolveLedgerBase, type RunRecord } from "./ledger.js";
-import { loadMcpConfig } from "./mcp.js";
+import { discoverMcpServers } from "./mcp.js";
 
 /**
  * baton runtime.
@@ -220,14 +220,21 @@ async function main(): Promise<void> {
   const maxTurns =
     Number.isInteger(maxTurnsRaw) && maxTurnsRaw > 0 ? maxTurnsRaw : 40;
 
-  // Optional MCP passthrough (manager-only; default off). Auto-allow each
-  // configured server's tools so the headless loop can call them without a
-  // permission prompt that has no approver.
-  const mcpServers = loadMcpConfig(process.env.BATON_MCP_CONFIG);
-  if (mcpServers) {
-    for (const name of Object.keys(mcpServers)) {
-      allowedTools.push(`mcp__${name}__*`);
-    }
+  // MCP discovery (manager-only; default off). Read the project's standard
+  // .mcp.json — the platform's location, no baton-specific variable — and
+  // precisely allowlist each declared server's tools (mcp__<name>__*) so the
+  // headless loop can call them without a permission prompt that has no approver.
+  // Per-server allowlisting (not a mcp__* wildcard) keeps the blast radius bounded
+  // to exactly the discovered servers; the discovery is logged so it stays auditable.
+  const mcpServers = discoverMcpServers(cwd);
+  const mcpNames = Object.keys(mcpServers);
+  for (const name of mcpNames) {
+    allowedTools.push(`mcp__${name}__*`);
+  }
+  if (mcpNames.length) {
+    process.stdout.write(
+      `[mcp] discovered ${mcpNames.length} server(s) from .mcp.json: ${mcpNames.join(", ")}\n`
+    );
   }
 
   const lanesReported: string[] = [];
@@ -246,7 +253,7 @@ async function main(): Promise<void> {
       agents: noSkill ? {} : agents,
       allowedTools,
       permissionMode,
-      ...(mcpServers ? { mcpServers } : {}),
+      ...(mcpNames.length ? { mcpServers } : {}),
       // Forward subagent prose to the stream so lane output and the reported-lane
       // count actually appear (default emits only subagent tool_use/tool_result).
       forwardSubagentText: true,

@@ -38,11 +38,15 @@ cost; model tier, effort, and bounded turns do.
 
 ## Run trail
 
-The run summary and cost (`total_cost_usd`) print to stdout on every run. The ledger is **opt-in**. Set
-`BATON_LEDGER_DIR` to also persist `run.json` and `summary.md` under that directory (for example
-`~/.baton/runs` for global history, or an in-tree, gitignored path); unset, no files are written.
+The run summary and cost (`total_cost_usd`) print to stdout on every run. The ledger is **on by default**:
+`run.json` and `summary.md` persist under `<repo>/.agents/runs/<runId>/` for every completed run. Set
+`BATON_LEDGER_DIR` to a path to write them elsewhere (for example `~/.baton/runs` for global history), or to
+`off` to disable persistence.
 
-## Optional semantic navigation (MCP)
+## MCP servers (semantic navigation, browser, ...)
 
-Point `BATON_MCP_CONFIG` at an MCP server (for example Serena; template in `runtime/mcp.example.json`)
-for symbol-aware code navigation. Off by default; install the server yourself only if you opt in.
+Baton uses whatever MCP servers the project configures in the standard `.mcp.json` (the same file Claude
+Code reads): interactive sessions inherit them; the headless runtime reads `<repo>/.mcp.json`, allowlists
+each declared server's tools by exact name, and logs what it found. Off when none are configured. See
+[`MCP.md`](MCP.md) for which servers fill real gaps and the local-vs-cloud caveats; `runtime/mcp.example.json`
+is a sample `.mcp.json`.

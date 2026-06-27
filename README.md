@@ -204,7 +204,7 @@ Baton orchestrates an AI agent, and is plain about what that means:
 - **It runs an agent with real tools.** Interactively it uses Read/Edit/Write/Bash within Claude Code's permission model; the headless runtime defaults to `acceptEdits` (edits apply without prompts) so it can work unattended. Run it on code you're willing to let an agent change.
 - **Hardening headless / CI runs.** Because the runtime defaults to `acceptEdits`, run it where unattended edits are safe: a sandboxed container or ephemeral CI job, on a fresh checkout or a git worktree it cannot escape. Give it a dedicated, least-privilege `ANTHROPIC_API_KEY` (or provider role) scoped to the pipeline, and rotate it. Even headless, outward-facing actions stay refused: the runtime does the reversible work and reports pushes, PRs, and deletions as follow-ups rather than performing them.
 - **Outward-facing actions are approval-gated.** Push, PRs, ticket changes, deletions, and destructive rollbacks wait for your explicit OK, and you stay the credited author.
-- **The optional MCP passthrough launches a local command** you configure (e.g. Serena) with your privileges, so point `BATON_MCP_CONFIG` only at servers you trust. Off by default.
+- **MCP servers you configure launch local commands** (e.g. Serena) with your privileges, so put only servers you trust in the project's `.mcp.json`. Baton discovers and allowlists exactly what it declares; off when none are configured.
 - **No telemetry.** Baton makes model calls (and any MCP server you add) and writes a local run ledger; nothing else leaves your machine.
 
 ## Composing with other Claude Code features
