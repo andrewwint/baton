@@ -1,6 +1,6 @@
 # Roadmap
 
-Baton is early (v0.1.10). We focus on **two things, and only two**:
+Baton is at **1.0.0** — the public contract is stable (see [Road to 1.0](#road-to-10) for what froze). We focus on **two things, and only two**:
 
 - **Catching issues** that ordinary tests miss.
 - **Consistency** — the same disciplined loop every time, gated and auditable.
