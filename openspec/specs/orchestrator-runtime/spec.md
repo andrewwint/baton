@@ -52,7 +52,7 @@ The runtime SHALL apply per-lane tool restrictions and model/effort settings, an
 - **THEN** that lane uses the configured model without requiring a code change
 
 ### Requirement: Run results and observability
-The runtime SHALL capture each lane's final result and emit a concise run summary attributing outcomes to their lanes. The summary and cost SHALL print to stdout on every run; persisted ledger files SHALL be opt-in.
+The runtime SHALL capture each lane's final result and emit a concise run summary attributing outcomes to their lanes. The summary and cost SHALL print to stdout on every run; a persisted run ledger SHALL be written by default to `.agents/runs/<runId>/` when a run completes, with `BATON_LEDGER_DIR` overriding the location and `BATON_LEDGER_DIR=off` disabling persistence.
 
 #### Scenario: Per-lane attribution
 - **WHEN** a run completes
@@ -66,11 +66,13 @@ The runtime SHALL capture each lane's final result and emit a concise run summar
 - **WHEN** a run completes
 - **THEN** it prints the run summary, and for live runs `total_cost_usd`, to stdout — so a headless caller can capture outcomes and cost without any files
 
-#### Scenario: Opt-in run ledger
-- **WHEN** `BATON_LEDGER_DIR` is set and a run completes (live or offline)
-- **THEN** a `run.json` (and `summary.md`) is written under that directory capturing task, repo, mode, status, model/effort, lanes, and cost
-- **AND WHEN** `BATON_LEDGER_DIR` is not set
-- **THEN** no ledger files are written (stdout still carries the summary and cost)
+#### Scenario: Default-on run ledger
+- **WHEN** a run completes (live or offline) and `BATON_LEDGER_DIR` is unset
+- **THEN** a `run.json` (and `summary.md`) is written under `.agents/runs/<runId>/` capturing task, repo, mode, status, model/effort, lanes, and cost
+- **AND WHEN** `BATON_LEDGER_DIR` is set to a path
+- **THEN** the ledger is written under that directory instead
+- **AND WHEN** `BATON_LEDGER_DIR` is set to `off`
+- **THEN** no ledger files are written, and stdout still carries the summary and cost
 
 ### Requirement: Offline repo-detection mode
 The runtime SHALL support an offline mode — via `--offline` or whenever no credentials are available — that performs a deterministic repo-detection pass and prints the lane registry without making any model call.
