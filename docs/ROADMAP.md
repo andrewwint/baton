@@ -71,6 +71,14 @@ community-marketplace submission.
   bugs the tests could not; a later slice caught a real race a green suite hid — but only against a mock
   store (which could not even exhibit some real-infrastructure behavior), so correctness under real
   concurrency is still untested. (See [field notes](field-notes.md).)
+- *Does the discipline find what a scanner's output alone does not?* Field evidence: yes. In a real
+  security-remediation run ([field notes](field-notes.md), Run 8), tracing reachability from a 437-alert
+  dependency backlog surfaced an OS command-injection RCE — present in two duplicate code paths, the
+  first fix missing the twin — plus two more injection endpoints and a path traversal, none flagged by
+  the dependency scan or the tests. Honest caveat: injection is a *known pattern* a SAST scanner
+  (Semgrep/CodeQL) owns, so this is a field data point about the dependency-scan blind spot and the
+  value of reachability tracing during remediation, not a controlled win over static analysis — that
+  measurement is still Next.
 
 **Next:**
 

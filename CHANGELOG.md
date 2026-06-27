@@ -4,6 +4,22 @@ Notable changes to Baton. From 1.0.0 the public contract is stable and changes f
 versioning; the surface frozen at 1.0 is the loop and routing gate, the lane map and four bundled
 agents, the `RunRecord` ledger shape, and MCP-via-`.mcp.json`.
 
+## 1.0.1
+
+Additive guidance and field evidence. The runtime code is unchanged from 1.0.0; this is a guidance/docs
+patch, and the frozen contract (the loop and routing gate, the lane map and four bundled agents, the
+`RunRecord` ledger shape, MCP-via-`.mcp.json`) is untouched.
+
+- **Verify-step guidance**: one line on assessing advisory/dependency reachability before acting — fix
+  what the code actually calls, document what it does not, and defer to a security-review skill or
+  `references/Security.md` when the project provides one.
+- **Field notes Run 8**: a real security-remediation run where reachability tracing surfaced a
+  command-injection RCE (in two duplicate paths) that a 437-alert dependency scan and the test suite
+  both missed. Existence-and-severity evidence, not a frequency claim; injection itself is a known
+  pattern a SAST scanner owns.
+- **README**: storefront polish (renders off-GitHub, concrete use cases, a regulated-fitness line) and
+  one honest security-use-case line.
+
 ## 1.0.0 - stable contract
 
 Baton is 1.0. The release candidate baked against a real run with **no contract change forced**, so the
