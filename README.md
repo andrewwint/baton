@@ -143,7 +143,7 @@ Requires Node. Set up with `npm install` and run for local batch, CI/CD, or clou
 - `runtime/src/offline.ts`: deterministic, offline repo detection (no model calls).
 - `runtime/src/ledger.ts`: the on-by-default run log (`run.json` and `summary.md` under `.agents/runs/`; override the location with `BATON_LEDGER_DIR`, disable with `=off`).
 - `runtime/src/mcp.ts`: the optional MCP passthrough loader.
-- `runtime/mcp.example.json`: a ready-to-use Serena MCP template.
+- `runtime/.mcp.example.json`: a sample `.mcp.json` (Serena + Playwright, both local).
 - `tools/` (repo root, **outside** the shipped skill): `install.sh` and the eval / smoke / bench / fault-catch runners (`run-evals.mjs`, `validate-evals.mjs`, …). Kept out of the skill so it is not scanned or installed with it; the runners drive the built runtime at `.claude/skills/baton/runtime/`.
 
 ## Lean footprint, deliberate spend

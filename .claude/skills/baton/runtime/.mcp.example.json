@@ -9,6 +9,11 @@
         "--transport", "stdio"
       ],
       "alwaysLoad": true
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"],
+      "alwaysLoad": true
     }
   }
 }

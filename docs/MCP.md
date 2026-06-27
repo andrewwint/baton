@@ -4,7 +4,14 @@ Baton has **no MCP variable of its own**. It uses whatever MCP servers the proje
 the standard `.mcp.json` — the same file Claude Code reads. In an interactive session the manager inherits
 them automatically; the headless runtime reads `<repo>/.mcp.json`, allowlists each declared server's tools
 by exact name (`mcp__<name>__*`, well-formed names only), logs what it discovered, and wires them to the
-manager loop. Off when no `.mcp.json` is present. `runtime/mcp.example.json` is a sample `.mcp.json`.
+manager loop. Off when no `.mcp.json` is present. `runtime/.mcp.example.json` is a sample `.mcp.json`
+(Serena + Playwright, both local).
+
+**Discovery is best-effort and project-scoped.** The headless runtime reads only `<repo>/.mcp.json` —
+deliberately, so the read stays single, deterministic, and inside the project. A server a developer
+configures only at the user/global level (e.g. `~/.claude.json`) is therefore *not* auto-discovered in a
+headless run, though an interactive Claude Code session inherits it. To rely on a server headlessly,
+declare it in the project's `.mcp.json`.
 
 This page is a **map of gaps, not a shopping list.** Baton's built-in lanes (Read/Grep/Glob/Bash/Edit +
 WebSearch/WebFetch) already cover lexical navigation, shell verification, and web research. A server is only

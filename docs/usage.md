@@ -48,5 +48,5 @@ The run summary and cost (`total_cost_usd`) print to stdout on every run. The le
 Baton uses whatever MCP servers the project configures in the standard `.mcp.json` (the same file Claude
 Code reads): interactive sessions inherit them; the headless runtime reads `<repo>/.mcp.json`, allowlists
 each declared server's tools by exact name, and logs what it found. Off when none are configured. See
-[`MCP.md`](MCP.md) for which servers fill real gaps and the local-vs-cloud caveats; `runtime/mcp.example.json`
+[`MCP.md`](MCP.md) for which servers fill real gaps and the local-vs-cloud caveats; `runtime/.mcp.example.json`
 is a sample `.mcp.json`.
