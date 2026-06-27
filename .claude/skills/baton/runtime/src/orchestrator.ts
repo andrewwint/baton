@@ -4,7 +4,7 @@ import path from "node:path";
 import { query, type PermissionMode } from "@anthropic-ai/claude-agent-sdk";
 import { loadLanes, parseFrontmatter } from "./lanes.js";
 import { detectRepo, type RepoProfile } from "./offline.js";
-import { newRunId, writeLedger, type RunRecord } from "./ledger.js";
+import { newRunId, writeLedger, resolveLedgerBase, type RunRecord } from "./ledger.js";
 import { loadMcpConfig } from "./mcp.js";
 
 /**
@@ -107,12 +107,12 @@ async function runOffline(
   return { report: out.join("\n"), profile };
 }
 
-// Run ledger is opt-in: the run summary and cost already print to stdout on every
-// run, so a headless caller can capture outcomes without any files. Persist
-// run.json (+ summary.md) only when BATON_LEDGER_DIR is set, and never let a
-// ledger write failure flip an otherwise-successful run to a failure.
+// Run ledger is on by default: the run summary and cost always print to stdout, and
+// a persisted run.json (+ summary.md) lands under <repo>/.agents/runs/ for every
+// completed run. BATON_LEDGER_DIR overrides the location; BATON_LEDGER_DIR=off
+// disables persistence. A ledger write failure never flips an otherwise-successful run.
 async function safeWriteLedger(record: RunRecord): Promise<void> {
-  const baseDir = process.env.BATON_LEDGER_DIR;
+  const baseDir = resolveLedgerBase(process.env.BATON_LEDGER_DIR, record.repoPath);
   if (!baseDir) return;
   try {
     const dir = await writeLedger(baseDir, record);

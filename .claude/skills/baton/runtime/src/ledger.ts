@@ -48,3 +48,17 @@ export async function writeLedger(
   }
   return dir;
 }
+
+// Default-on: the run ledger persists under <repoPath>/.agents/runs/ unless
+// BATON_LEDGER_DIR overrides the location, or is set to "off" (case-insensitive)
+// to disable persistence. Returns the base dir to write under, or undefined when
+// persistence is disabled.
+export function resolveLedgerBase(
+  envVal: string | undefined,
+  repoPath: string
+): string | undefined {
+  const v = envVal?.trim();
+  if (v && v.toLowerCase() === "off") return undefined;
+  if (v) return v;
+  return path.join(repoPath, ".agents", "runs");
+}
