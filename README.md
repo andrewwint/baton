@@ -48,6 +48,15 @@ A Baton-vs-baseline bench (`testing/fixtures/`, skill-on vs. `--no-skill`) ran f
 
 The gain comes from the extra checking, not the size of the work (a bigger but self-contained test still washed). What Baton adds is **reliability**: it always verifies, gates outward-facing actions, splits review into its own lane, and keeps an auditable run trail, where a bare model does these only when the task and model happen to favour it. Whether that beats a careful engineer plus one sharp review on cost is still untested. Full reasoning in [`docs/research-basis.md`](docs/research-basis.md#where-we-drifted--and-whats-still-open); the field runs in [`docs/field-notes.md`](docs/field-notes.md).
 
+## What it's good for
+
+Baton earns its cost on consequential, multi-step work. The shapes that show up in real runs:
+
+- **Security remediation.** Point Baton at a security backlog — e.g. findings from a Snyk MCP server — and it triages by severity, routes each fix through a gated lane, and verifies the patch didn't break a sibling. Baton's orchestrator pattern grew out of exactly this finding-to-fix work.
+- **Auth and login services.** Build or change an OIDC/login flow with an independent, adversarial review of the security-critical paths. On one such service, a cold review caught a forgeable-login defect that all 110 of its tests had passed. ([field notes](docs/field-notes.md))
+- **Cloud API services (CQRS, IaC).** Stand up a CQRS service and its AWS/CDK infrastructure spec-first, verified before anything is called done. ([field notes](docs/field-notes.md))
+- **End-to-end AI agents.** Deliver a Strands / Bedrock AgentCore agent from spec to deployable, with a compliance-ready data model (jurisdiction, consent, suppression) from day one — the regulated shape Baton is built for. ([field notes](docs/field-notes.md))
+
 ## Built on LLM-as-Judge, hardened
 
 Baton's verification _is_ the **LLM-as-Judge** pattern, with its known failure modes engineered against, and wrapped in a gated loop instead of left as a passive grader at the end:
