@@ -54,7 +54,7 @@ The gain comes from the extra checking, not the size of the work (a bigger but s
 
 Baton earns its cost on consequential, multi-step work. The shapes that show up in real runs:
 
-- **Security remediation.** Point Baton at a security backlog (e.g. findings from a Snyk MCP server) and it triages by severity, routes each fix through a gated lane, and verifies the patch didn't break a sibling. Baton's orchestrator pattern grew out of exactly this finding-to-fix work.
+- **Security remediation.** Point Baton at a security backlog (e.g. findings from a Snyk MCP server) and it triages by severity, routes each fix through a gated lane, and verifies the patch didn't break a sibling. Baton's orchestrator pattern grew out of exactly this finding-to-fix work. In one run, tracing reachability this way surfaced an OS command-injection RCE that a 437-alert dependency scan and the test suite both missed ([field notes](docs/field-notes.md)).
 - **Auth and login services.** Build or change an OIDC login flow (e.g. Okta), a known-hard and security-critical integration, with an independent, adversarial review of the paths that invite a forged login. On one such service, a cold review caught a forgeable-login defect that all 110 of its tests had passed. ([field notes](docs/field-notes.md))
 - **Cloud API services (CQRS, IaC).** Stand up a CQRS service and its AWS/CDK infrastructure spec-first, verified before anything is called done. ([field notes](docs/field-notes.md))
 - **End-to-end AI agents.** Deliver a Strands / Bedrock AgentCore agent from spec to deployable, with a compliance-ready data model (jurisdiction, consent, suppression) from day one, the regulated shape Baton is built for. ([field notes](docs/field-notes.md))
