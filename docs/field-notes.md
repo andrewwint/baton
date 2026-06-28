@@ -6,16 +6,19 @@ This is a record of using Baton on real projects. We kept these notes to see how
 
 ## At a Glance
 
-| Run   | What was built                                         | What the review / adversarial cross-check caught that standard tests passed          |
-| ----- | ------------------------------------------------------ | ------------------------------------------------------------------------------------ |
-| **1** | A data service (commands and queries split apart)      | Standard tests passed, yet review caught dead code, a batch-stopping timing conflict, and a fake test setup hiding a live failure |
-| **2** | A new AI tool and data pipeline, launched online       | Passed standard tests, then surfaced only when run live: an outdated model name and a mismatched data shape |
-| **3** | A sorting slice (sorted by source instead of recency)  | All 105 tests green, yet a timing flaw slipped through — under a comment that falsely claimed the file was race-free |
-| **4** | Two security features (file reading and editing roles) | Both test suites passed but were blind to the security rules: zero code bugs, yet leaked data fields and an unverified-permission write the tests never checked |
-| **5** | A smaller model's build, then a bug planted on purpose  | Passed all 97 tests, the linter, and the type checks, yet a planted high-severity permission bypass got through — caught blind, with the exact line and exploit |
-| **6** | A real sign-in feature (replacing a stand-in login)    | Both passed all 110 tests: a forgeable login (a hardcoded default secret) and a safety switch a typo could silently disable — the second caught only by an uninstructed cold read |
-| **7** | Resumed a 10-day-cold service; added a lower-trust ingest slice | All 135 tests green — and this time the code was genuinely correct: 100+ adversarial cases _confirmed_ the invariant, no defect (a clean pass, not a catch). Notable instead: resumed cold from durable specs, and checking corrected an over-optimistic self-report |
-| **8** | A dependency-backlog cleanup on an old service (437 alerts) | The dependency scan and the tests flagged none of it: tracing reachability found an OS command-injection RCE (in two duplicate code paths), two more injection endpoints, and a path traversal |
+| Run   | What was built                                                                           | What the review / adversarial cross-check caught that standard tests passed                                                                                                                                                                                          |
+| ----- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1** | A data service (commands and queries split apart)                                        | Standard tests passed, yet review caught dead code, a batch-stopping timing conflict, and a fake test setup hiding a live failure                                                                                                                                    |
+| **2** | A new AI tool and data pipeline, launched online                                         | Passed standard tests, then surfaced only when run live: an outdated model name and a mismatched data shape                                                                                                                                                          |
+| **3** | A sorting slice (sorted by source instead of recency)                                    | All 105 tests green, yet a timing flaw slipped through — under a comment that falsely claimed the file was race-free                                                                                                                                                 |
+| **4** | Two security features (file reading and editing roles)                                   | Both test suites passed but were blind to the security rules: zero code bugs, yet leaked data fields and an unverified-permission write the tests never checked                                                                                                      |
+| **5** | A smaller model's build, then a bug planted on purpose                                   | Passed all 97 tests, the linter, and the type checks, yet a planted high-severity permission bypass got through — caught blind, with the exact line and exploit                                                                                                      |
+| **6** | A real sign-in feature (replacing a stand-in login)                                      | Both passed all 110 tests: a forgeable login (a hardcoded default secret) and a safety switch a typo could silently disable — the second caught only by an uninstructed cold read                                                                                    |
+| **7** | Resumed a 10-day-cold service; added a lower-trust ingest slice                          | All 135 tests green — and this time the code was genuinely correct: 100+ adversarial cases _confirmed_ the invariant, no defect (a clean pass, not a catch). Notable instead: resumed cold from durable specs, and checking corrected an over-optimistic self-report |
+| **8** | A dependency-backlog cleanup on an old service (437 alerts)                              | The scan and the tests flagged none of it: tracing reachability found a command-injection RCE (plus two more injection points and a path traversal), never in the alert count                                                                                        |
+| **9** | Rebuilt that same app — new framework, modern tools, smaller — because patching couldn't | A cold read caught a security control no test ever exercised: an install endpoint's auth lock, correctly wired but never _proven_ by a test                                                                                                                          |
+
+_Runs 8 and 9 are one arc on the same app: Run 8's careful fix couldn't reach the deep problems (it even nudged the alert count up — the count is noise), so Run 9 rebuilt from scratch. The rebuild now passes 35 tests at about 95% coverage, including the security lock the cold read had flagged._
 
 _Note: Each run is a single case on a private codebase. Treat these as observations, not permanent measurements._
 
@@ -118,7 +121,7 @@ We ran two final experiments on the security service to answer an open question:
 
 | Measure                                       | Value                                          |
 | --------------------------------------------- | ---------------------------------------------- |
-| Built by                                      | A smaller, lower-cost model                        |
+| Built by                                      | A smaller, lower-cost model                    |
 | Spec rules enforced                           | 2                                              |
 | Tests passing (project total)                 | 97                                             |
 | Natural security bugs found                   | 0                                              |
@@ -154,10 +157,10 @@ _Note: This is a score over four known bug types, one example each. It is a guar
 
 We re-ran the same battery with a smaller model from the same family as the reviewer (Haiku, a lower Claude tier than the default Sonnet), to check whether the test can ever score below 100% (a test that cannot fail is not a real measure).
 
-| Reviewer model    | Bugs found | False alarms |
-| ----------------- | ---------- | ------------ |
-| Standard (Sonnet) | 4 of 4     | 0            |
-| Smaller, same family (Haiku) | 4 of 4 | 0 |
+| Reviewer model               | Bugs found | False alarms |
+| ---------------------------- | ---------- | ------------ |
+| Standard (Sonnet)            | 4 of 4     | 0            |
+| Smaller, same family (Haiku) | 4 of 4     | 0            |
 
 The smaller model also found all four at the exact line. So the test does not yet tell a strong checker apart from a weak one: the current bugs are too easy, being single-line, textbook mistakes in tiny, isolated files. The fix is harder, more realistic bugs, not a smaller or different reviewer. (We also confirmed the reviewer is shown only the patched code, never the answer key, so the scores are honest.)
 
@@ -169,15 +172,15 @@ We built a real feature end to end: replacing a stand-in login with a genuine "s
 
 ### By the Numbers
 
-| Measure                                | Value                                                            |
-| -------------------------------------- | ---------------------------------------------------------------- |
-| Feature                                | Real OpenID Connect login against Okta + sessions (replacing a stand-in) |
-| Tests passing (project total)          | 110                                                              |
-| Serious bugs found by checking         | 2, that all 110 tests passed over                                |
-| - Critical: forgeable login            | A hardcoded default secret let anyone forge a logged-in session  |
-| - Medium: security silently turned off | A safety setting could be disabled by a typo, with no warning    |
-| Who caught the medium bug              | A separate, independent reviewer given no instructions from us   |
-| Also surfaced                          | The tested code had no runnable server at all                    |
+| Measure                                | Value                                                                     |
+| -------------------------------------- | ------------------------------------------------------------------------- |
+| Feature                                | Real OpenID Connect login against Okta + sessions (replacing a stand-in)  |
+| Tests passing (project total)          | 110                                                                       |
+| Serious bugs found by checking         | 2, that all 110 tests passed over                                         |
+| - Critical: forgeable login            | A hardcoded default secret let anyone forge a logged-in session           |
+| - Medium: security silently turned off | A safety setting could be disabled by a typo, with no warning             |
+| Who caught the medium bug              | A separate, independent reviewer given no instructions from us            |
+| Also surfaced                          | The tested code had no runnable server at all                             |
 | Real login afterward                   | Passed: an authorized document loads; a forbidden one returns "not found" |
 
 ### Core Observations
@@ -199,16 +202,16 @@ We pointed the release candidate at a real, multi-source CQRS service rebuild we
 
 ### By the Numbers
 
-| Measure                              | Value                                                                 |
-| ------------------------------------ | --------------------------------------------------------------------- |
-| Work                                 | Resumed a CQRS service rebuild 10 days after the last commit; added one ingest vertical |
-| Tests passing (project total)        | 105 → 135 (+30 new)                                                    |
-| The invariant under test             | A lower-trust source must never overwrite a higher-trust source's canonical fields |
-| Cold-read adversarial cases          | 100+ — across both store backends, every higher source, both arrival orders, end to end |
-| Defects the cold read caught         | 0 — the slice was genuinely correct                                   |
-| What the cold read did instead       | Confirmed the invariant held in every adversarial case                |
-| What checking did catch              | An over-optimistic self-report: a type-check gate marked "done" that had 2 new errors |
-| Outward-facing actions by Baton      | None — the developer committed and pushed as the author               |
+| Measure                         | Value                                                                                   |
+| ------------------------------- | --------------------------------------------------------------------------------------- |
+| Work                            | Resumed a CQRS service rebuild 10 days after the last commit; added one ingest vertical |
+| Tests passing (project total)   | 105 → 135 (+30 new)                                                                     |
+| The invariant under test        | A lower-trust source must never overwrite a higher-trust source's canonical fields      |
+| Cold-read adversarial cases     | 100+ — across both store backends, every higher source, both arrival orders, end to end |
+| Defects the cold read caught    | 0 — the slice was genuinely correct                                                     |
+| What the cold read did instead  | Confirmed the invariant held in every adversarial case                                  |
+| What checking did catch         | An over-optimistic self-report: a type-check gate marked "done" that had 2 new errors   |
+| Outward-facing actions by Baton | None — the developer committed and pushed as the author                                 |
 
 ### Core Observations
 
@@ -229,28 +232,59 @@ We pointed Baton at a real security-remediation task: an old NestJS monorepo wit
 
 ### By the Numbers
 
-| Measure                              | Value                                                                 |
-| ------------------------------------ | --------------------------------------------------------------------- |
-| Task                                 | Remediate a Dependabot security backlog on an old NestJS monorepo     |
-| Open alerts at start                 | 437, across 71 distinct packages                                      |
-| What the dependency scan flagged     | Vulnerable package versions only                                      |
+| Measure                                                    | Value                                                                                              |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Task                                                       | Remediate a Dependabot security backlog on an old NestJS monorepo                                  |
+| Open alerts at start                                       | 437, across 71 distinct packages                                                                   |
+| What the dependency scan flagged                           | Vulnerable package versions only                                                                   |
 | Found by reachability, unflagged by the scan and the tests | 1 OS command-injection RCE, 2 more command-injection endpoints (unauthenticated), 1 path traversal |
-| Severity of the missed RCE           | Critical — code execution on managed hosts via the deploy path        |
-| Where the RCE lived                  | Two duplicate code paths; the first fix missed the twin               |
-| Caught the incomplete fix            | A read-only audit pass, before the fix shipped                        |
-| Dependency work verified             | Advisory closed; a dead XML parser migrated; the build unblocked       |
-| Outward-facing actions by Baton      | None until approved — the developer committed and pushed              |
+| Severity of the missed RCE                                 | Critical — code execution on managed hosts via the deploy path                                     |
+| Where the RCE lived                                        | Two duplicate code paths; the first fix missed the twin                                            |
+| Caught the incomplete fix                                  | A read-only audit pass, before the fix shipped                                                     |
+| Dependency work verified                                   | Advisory closed; a dead XML parser migrated; the build unblocked                                   |
+| Alert count after the fix                                  | 437 → 450 open despite 252 closed (mostly by dropping an unused sub-app, not patching) — a real fix can raise the count |
+| Outward-facing actions by Baton                            | None until approved — the developer committed and pushed                                           |
 
 ### Core Observations
 
-- **A dependency scan counts packages; it cannot see a data flow.** A dependency scanner reports "this version is vulnerable"; it has no concept of "an untrusted URL parameter is interpolated into a shell command run on a remote host." Tracing reachability from the alerts found exactly that: a remote-code-execution hole the 437 alerts and the test suite never mentioned. A dedicated injection/SAST scanner is the right first layer for this class (as the summary below notes) and might flag it too — the honest point is that the discipline surfaced a critical RCE _in the course of dependency work_, and the alerts were the doorway, not the danger.
-- **The most serious finding was not a dependency at all.** The task was scoped as "clear the security backlog." Its highest-value output was an RCE in the application's own code, reachable from a deploy endpoint. The advisories were real and worth closing, but they were not where the danger was.
-- **Checking caught the checker.** The first fix was incomplete: the same vulnerable pattern lived in a second, duplicate code path. A follow-up audit pass found the twin before the fix shipped — the independent check guarding against the optimism of the first fix, the same shape as the over-claimed gate in Run 7.
-- **Reachability removes noise as well as adding signal.** Of the no-fix advisories, tracing usage showed two were not reachable at all (transitive, never called) and could be honestly documented rather than chased, while the reachable ones were fixed. The same lens that found the RCE also right-sized the backlog.
+- **Scanners map versions; reachability maps data flow.** A dependency scanner reports that a package version is vulnerable, but it cannot see an untrusted URL parameter being interpolated into a shell command. Tracing reachability from those alerts found exactly that: a remote-code-execution hole the 437 alerts and the test suite never mentioned.
+- **The most serious finding was not a dependency at all.** The task was scoped to clear a security backlog, but its highest-value output was an RCE in the application's own code, reachable from a deploy endpoint. The alerts were the doorway to the real danger, not the danger itself.
+- **Auditing caught an incomplete patch.** The first fix missed an identical, duplicate code path. A follow-up audit pass caught the twin before the code shipped — the independent check guarding against the optimism of a first fix, the same shape as the over-claimed gate in Run 7.
+- **Reachability removes noise.** Tracing usage showed that two high-priority warnings were never called at all. That let us document them honestly rather than chase patches, right-sizing the backlog while we hunted the real risks.
 
 ### Known Limitations
 
-- This is one run, not a measurement. It shows reachability tracing can surface a severe defect that a dependency scan and the test suite both missed; it does not say how often, and it was not a head-to-head trial against a plain scan or a dedicated injection scanner. The claim is the severity of what was found, not a frequency or a win rate.
+- This is a single run, not a broad trial. It shows reachability tracing can find a severe defect that a dependency scan and the test suite both miss; it does not claim a frequency or a win rate, and it was not a head-to-head against a dedicated injection scanner.
+
+---
+
+## Run 9: Rebuilding the Old App From Run 8, and a Door Lock No Test Tried
+
+Instead of patching the old app from Run 8 one warning at a time, we rebuilt it to be small, clean, and up to date. We wanted to see whether a fresh review would catch structural flaws in a new build that already passed all its automated tests.
+
+### By the Numbers
+
+| Measure                                                | Value                                                                                                                                                 |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| What we did                                            | Rebuilt the old app from Run 8: new framework, new tools, smaller and cleaner                                                                         |
+| Steps (planned, built, checked)                        | 3 build steps (a clean start; private servers; a new data reader), plus a security cleanup that took the warnings to zero, then a wrap-up             |
+| Tests passing                                          | 35 tests (unit + end-to-end), all green; about 95% of the code exercised by tests, and the security lock fully covered                                |
+| Open security warnings                                 | ~450 → 0 — most cleared by rebuilding (deleting dead code), the last two by real version bumps, not dismissed                                         |
+| Found by the fresh reviewer, missed by the green tests | A door lock with no test to prove it was really turned on                                                                                             |
+| Also found by review                                   | 2 spots where the new data reader could lose details; a wrong label on a rule, caught before it broke a check                                         |
+| A wide-open "run any command" door                     | An unauthenticated route that would run any command a caller typed — left in place by the Run 8 fixes; the rebuild found it still live and deleted it |
+
+### Core Observations
+
+- **Rebuilding clears debt, but the warning count is noise.** In Run 8 we closed 252 warnings — most of them by dropping a whole unused part of the app, not by fixing them one at a time. Even so, the _open_ count went _up_, from 437 to about 450: regenerating the old version-lock file surfaced more hidden problems it had been masking, so the totals moved in both directions at once. That is the paradox — we closed 252 and the open number still rose. The count is a noisy measure. Rebuilding the app from scratch is what dropped it to zero, again mostly by deleting old parts the app never needed.
+- **Green tests do not mean the security lock is working.** The new app has a lock on the route that runs installs. The app built fine and the tests passed, but the fresh reviewer caught a real gap: no test actually tried the real door to prove the lock was hooked up. Passing a test suite is not the same as verifying a security guarantee. To be fair, the gap was a missing proof, not a break-in — and we closed it by adding a test that drives the real route.
+- **Automated tools and deep review do different jobs.** The standard tools tracked the warning count dropping to zero, but they missed the lock problem. The deep review caught what the scanners could not — Baton working on top of the cheap tools, not in place of them.
+- **Rewrites expose what patches walk past.** The rebuild immediately exposed a raw, unauthenticated command route that the Run 8 patching pass had left live. Removing the dangerous door entirely proved much safer than trying to securely wrap it.
+- **The developer catches the tool's own mistakes.** Near the end, the tool reported "no warnings left." That was wrong: its query pulled only the first page of results (30 items) and missed the rest. Because the human stayed in the loop, the developer caught the miscount against the real dashboard, and the last two warnings were fixed for real. This is the other side of the gate: not Baton catching the code, but the developer catching Baton.
+
+### Known Limitations
+
+- This is the same app as Run 8, not a fresh codebase — one story across two phases, not an independent result. The warning-count drop reflects removing dead code rather than fixing hundreds of individual bugs. And we checked the server plan but never deployed it, so there is no live-system proof here as there was in Run 2.
 
 ---
 
@@ -260,4 +294,4 @@ The pattern shows that the checking helper works best by finding real flaws (lik
 
 - **Small tasks are still a tie:** Baton does not beat a standard AI model on small, low-risk tasks.
 - **Humans are still the drivers:** The most important choices (what to test, when to launch, and setting rules) were made by the human. Baton just made applying those rules consistent and trackable.
-- **Cost is unmeasured, and the baseline matters:** The real-world comparison is not Baton versus a human reviewer. Teams already run automated scanners (Snyk, SonarQube, CodeQL) cheaply on every commit, and that is the right first layer. Those scanners catch known patterns — vulnerable dependencies, injection, hardcoded secrets — but they are blind to defects tied to what a feature is *meant* to do, like the fail-open security toggle and the "forbidden looks identical to missing" rule the checking helper caught here. So the honest question is the *added* cost of Baton's review on top of tests and scanners, weighed against the defects of that kind it catches and they miss. The fault-injection test is the start of measuring it: running its planted bugs through the scanners too would turn "scanners miss these" into a number.
+- **Cost is unmeasured, and the baseline matters:** The real-world comparison is not Baton versus a human reviewer. Teams already run automated scanners (Snyk, SonarQube, CodeQL) cheaply on every commit, and that is the right first layer. Those scanners catch known patterns — vulnerable dependencies, injection, hardcoded secrets — but they are blind to defects tied to what a feature is _meant_ to do, like the fail-open security toggle and the "forbidden looks identical to missing" rule the checking helper caught here. So the honest question is the _added_ cost of Baton's review on top of tests and scanners, weighed against the defects of that kind it catches and they miss. The fault-injection test is the start of measuring it: running its planted bugs through the scanners too would turn "scanners miss these" into a number. Run 9 is the first run to show both layers in one case: the warning-count drop that cheap tools can see, and the lock-was-never-checked catch that they cannot.
