@@ -20,8 +20,11 @@ out <- file.path(if (length(here) == 1 && nzchar(here)) here else "docs", "evide
 
 # The only real anchors. No interpolation between them.
 bench <- data.frame(x = c(0.05, 0.11, 0.17, 0.23), y = -0.13)
-# Four field runs. X is stakes: the NestJS security remediation is the highest
-# (a critical RCE reachable from a deploy path), so it sits furthest right/up.
+# Four field runs (four distinct apps). X is stakes: the NestJS work is the
+# highest (a critical RCE reachable from a deploy path), so it sits furthest
+# right/up. That point is ONE app across two phases — Run 8's remediation and
+# Run 9's rebuild — so it stays a single dot, not two (Run 9 is not an
+# independent codebase). Hence the label "NestJS remediation + rebuild".
 # Its green height rests on the Baton-vs-plain-AI wins (the independent audit
 # caught the incomplete fix's twin; reachability right-sized the backlog), NOT
 # on the RCE alone — a dedicated SAST scanner might flag that too.
@@ -49,7 +52,7 @@ p <- ggplot() +
            hjust = 1, size = 3.2, colour = green) +
   annotate("text", x = 0.865, y = 0.86, label = "Strands / AgentCore agent",
            hjust = 1, size = 3.2, colour = green) +
-  annotate("text", x = 0.915, y = 0.965, label = "NestJS security remediation",
+  annotate("text", x = 0.915, y = 0.965, label = "NestJS remediation + rebuild",
            hjust = 1, size = 3.2, colour = green) +
   annotate("text", x = 0.94, y = 0.46,
            label = "a separate audit pass and real-world testing\ncaught bugs the unit tests and the dependency scan missed",
