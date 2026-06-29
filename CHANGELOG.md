@@ -4,6 +4,20 @@ Notable changes to Baton. From 1.0.0 the public contract is stable and changes f
 versioning; the surface frozen at 1.0 is the loop and routing gate, the lane map and four bundled
 agents, the `RunRecord` ledger shape, and MCP-via-`.mcp.json`.
 
+## 1.0.2 - control-wiring verification
+
+Additive guidance and tooling. The runtime code and the frozen contract (the loop and routing gate, the
+lane map and four bundled agents, the `RunRecord` ledger shape, MCP-via-`.mcp.json`) are unchanged.
+
+- **Verify guidance — a control is not proven wired by its own tests**: the `code-reviewer` and the
+  verify step now distinguish a control's internal logic (which a green unit test and full coverage prove)
+  from its reachability on the route it guards (which only an end-to-end test proves). Earned by field
+  notes Run 9, where a cold read flagged a correct, fully-covered auth guard that no test drove through
+  its route — absence of proof, not a bug.
+- **install.sh**: `--global` now also hash-checks the bundled lane prompts into `~/.claude/agents` (not
+  just the skill), so interactive sessions resolve the same lanes globally; both modes report per-file
+  `same`/`updated` plus a tally, and `--help` documents the modes.
+
 ## 1.0.1 - reachability guidance and field evidence
 
 Additive guidance and field evidence. The runtime code is unchanged from 1.0.0; this is a guidance/docs
