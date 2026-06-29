@@ -20,7 +20,7 @@ out <- file.path(if (length(here) == 1 && nzchar(here)) here else "docs", "evide
 
 # The only real anchors. No interpolation between them.
 bench <- data.frame(x = c(0.05, 0.11, 0.17, 0.23), y = -0.13)
-# Four field runs (four distinct apps). X is stakes: the NestJS work is the
+# Five field runs (five distinct apps). X is stakes: the NestJS work is the
 # highest (a critical RCE reachable from a deploy path), so it sits furthest
 # right/up. That point is ONE app across two phases — Run 8's remediation and
 # Run 9's rebuild — so it stays a single dot, not two (Run 9 is not an
@@ -28,7 +28,13 @@ bench <- data.frame(x = c(0.05, 0.11, 0.17, 0.23), y = -0.13)
 # Its green height rests on the Baton-vs-plain-AI wins (the independent audit
 # caught the incomplete fix's twin; reachability right-sized the backlog), NOT
 # on the RCE alone — a dedicated SAST scanner might flag that too.
-field <- data.frame(x = c(0.80, 0.85, 0.90, 0.95), y = c(0.66, 0.76, 0.86, 0.96))
+# The NHIS / OKF data bundle (Run 10) is the one open-source run and the first
+# non-code job: only executing the documented analysis caught a survey statistic
+# that was clean on the page but wrong (3.66% vs the correct 31.96%). Moderate
+# stakes — a wrong health number a chatbot would have served, but a lean,
+# parked slice — so it sits low in the cluster, not at the RCE's height.
+field <- data.frame(x = c(0.79, 0.83, 0.87, 0.91, 0.95),
+                    y = c(0.64, 0.72, 0.80, 0.88, 0.96))
 
 red <- "#b00020"; green <- "#1b7a3d"; ink <- "grey25"
 
@@ -45,17 +51,19 @@ p <- ggplot() +
   annotate("text", x = 0.02, y = -0.30,
            label = "4 small tests:\nno better than plain AI, and Baton costs more",
            hjust = 0, size = 3.5, colour = red, lineheight = 0.95) +
-  # name the four anchors (architecture + public tools, not client code)
-  annotate("text", x = 0.765, y = 0.66, label = "CQRS service",
+  # name the five anchors (architecture + public tools, not client code)
+  annotate("text", x = 0.755, y = 0.64, label = "CQRS service",
            hjust = 1, size = 3.2, colour = green) +
-  annotate("text", x = 0.815, y = 0.76, label = "OIDC login service",
+  annotate("text", x = 0.795, y = 0.72, label = "NHIS / OKF data bundle",
            hjust = 1, size = 3.2, colour = green) +
-  annotate("text", x = 0.865, y = 0.86, label = "Strands / AgentCore agent",
+  annotate("text", x = 0.835, y = 0.80, label = "OIDC login service",
+           hjust = 1, size = 3.2, colour = green) +
+  annotate("text", x = 0.875, y = 0.88, label = "Strands / AgentCore agent",
            hjust = 1, size = 3.2, colour = green) +
   annotate("text", x = 0.915, y = 0.965, label = "NestJS remediation + rebuild",
            hjust = 1, size = 3.2, colour = green) +
   annotate("text", x = 0.94, y = 0.46,
-           label = "a separate audit pass and real-world testing\ncaught bugs the unit tests and the dependency scan missed",
+           label = "a separate audit pass and real execution\ncaught what the unit tests and the scanners missed",
            hjust = 1, size = 3.5, colour = green, lineheight = 0.95) +
   # endpoint labels anchored INSIDE the panel so they never clip
   annotate("text", x = 0.0, y = -0.50, label = "basic tasks",
@@ -67,7 +75,7 @@ p <- ggplot() +
   scale_y_continuous(breaks = 0, labels = "no\ndifference", limits = c(-0.55, 1.08)) +
   labs(
     title = "When Baton helps, and when it doesn't",
-    subtitle = "What we actually saw, not a prediction. 4 small tests and 4 projects (private code).",
+    subtitle = "What we actually saw, not a prediction. 4 small tests and 5 projects (4 private, 1 open source).",
     x = NULL,
     y = "How much Baton helps (vs. plain AI)") +
   theme_minimal(base_size = 13) +
