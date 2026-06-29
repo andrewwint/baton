@@ -58,6 +58,7 @@ Baton earns its cost on consequential, multi-step work. The shapes that show up 
 - **Auth and login services.** Build or change an OIDC login flow (e.g. Okta), a known-hard and security-critical integration, with an independent, adversarial review of the paths that invite a forged login. On one such service, a cold review caught a forgeable-login defect that all 110 of its tests had passed. ([field notes](docs/field-notes.md))
 - **Cloud API services (CQRS, IaC).** Stand up a CQRS service and its AWS/CDK infrastructure spec-first, verified before anything is called done. ([field notes](docs/field-notes.md))
 - **End-to-end AI agents.** Deliver a Strands / Bedrock AgentCore agent from spec to deployable, with a compliance-ready data model (jurisdiction, consent, suppression) from day one, the regulated shape Baton is built for. ([field notes](docs/field-notes.md))
+- **Greenfield builds against a brand-new standard.** Build from a published spec — even one newer than the model's training — and verify the result against the standard itself, not a guess. [nhis-okf-compiler](https://github.com/andrewwint/nhis-okf-compiler) (open source) compiles CDC NHIS health-survey data into a bundle that conforms to the **Open Knowledge Format (OKF) v0.1** — the vendor-neutral standard Google Cloud published in mid-2026, _after_ the model's training cutoff. The execution-grounded check caught a statistic that was clean on the page but wrong when run: 3.66% vs the correct survey-weighted 31.96%. ([field notes](docs/field-notes.md))
 
 ## Built on LLM-as-Judge, hardened
 
