@@ -17,6 +17,7 @@ This is a record of using Baton on real projects. We kept these notes to see how
 | **7** | Resumed a 10-day-cold service; added a lower-trust ingest slice                          | All 135 tests green — and this time the code was genuinely correct: 100+ adversarial cases _confirmed_ the invariant, no defect (a clean pass, not a catch). Notable instead: resumed cold from durable specs, and checking corrected an over-optimistic self-report |
 | **8** | A dependency-backlog cleanup on an old service (437 alerts)                              | The scan and the tests flagged none of it: tracing reachability found a command-injection RCE (plus two more injection points and a path traversal), never in the alert count                                                                                        |
 | **9** | Rebuilt that same app — new framework, modern tools, smaller — because patching couldn't | A cold read caught a security control no test ever exercised: an install endpoint's auth lock, correctly wired but never _proven_ by a test                                                                                                                          |
+| **10** | A data-science tool: compiled public health-survey data into a verified knowledge bundle, with a grounded chatbot | The markdown was clean and every link resolved, yet _running_ the analysis caught a confidently-wrong stat — "3.66% of adults take insulin" (whole sample, unweighted) vs the correct 31.96% among diagnosed adults — and quarantined it before it could be served |
 
 _Runs 8 and 9 are one arc on the same app: Run 8's careful fix couldn't reach the deep problems (it even nudged the alert count up — the count is noise), so Run 9 rebuilt from scratch. The rebuild now passes 35 tests at about 95% coverage, including the security lock the cold read had flagged._
 
@@ -288,6 +289,35 @@ Instead of patching the old app from Run 8 one warning at a time, we rebuilt it 
 
 ---
 
+## Run 10: Compiling Health-Survey Data into a Verified Knowledge Bundle
+
+We pointed Baton at a different kind of job — not changing code, but turning a messy public dataset (the CDC's National Health Interview Survey) into a verified knowledge bundle a chatbot can answer from. The format is OKF (Open Knowledge Format), a brand-new public standard. The test: would the checking step catch a number that looks fine on the page but is wrong when you actually run it? Unlike the earlier runs, this one is open source, so the catch is reproducible by anyone.
+
+### By the Numbers
+
+| Measure                                   | Value                                                                                                                            |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| What we did                               | Compiled CDC NHIS 2023 diabetes data into an OKF knowledge bundle plus a grounded chatbot                                        |
+| The correct figure                        | 31.96% of U.S. adults with diagnosed diabetes take insulin — survey-weighted, counted against the right group                    |
+| The seeded wrong figure                   | 3.66% "of adults take insulin" — counted over everyone and unweighted; clean markdown, every link resolved                      |
+| Caught by                                 | _Running_ the documented analysis against the real data (not link-checking): off by ~28 points; quarantined, never served       |
+| Independent cross-check                   | A cold reviewer recomputed the numbers straight from the raw file and confirmed they were real, not hardcoded                    |
+| Chatbot                                   | Grounded-or-refuse: gave the verified number with its source; refused an off-topic question instead of guessing; ran on both a direct API and AWS |
+| Tests / standard                          | 25 tests passing; the bundle checks clean against the published OKF v0.1 standard                                                |
+
+### Core Observations
+
+- **The checking step did its real job on data, not just code.** The headline catch is a statistic that is well-formed and well-linked but wrong when computed: the documented "% taking insulin" was counted over the whole population and unweighted, so it read as 3.66% when the correct, survey-weighted figure among diagnosed adults is 31.96%. A link-checker passes that page; only _executing_ the analysis catches it. A passive chatbot over the raw files would have served 3.66% confidently.
+- **The honest miss: we should have read the standard first.** We built the bundle in an OKF-_shaped_ way from the project's own write-up, and only grounded it in the actual published OKF v0.1 spec _after_ we had the spec in hand — then aligned the format and it passed the standard's own checks. It worked out, but the better path was to research the standard during planning, not as a later correction. This was a planning gap on both sides, not a tool failure: the product and implementation planning should have surfaced "go read the OKF spec first." We were close; the fix is light — add a quick "find and read the relevant standard" step up front.
+- **Grounded-or-refuse held.** Asked about a topic the bundle does not cover (asthma), the chatbot declined and said it could not answer from verified data, rather than stitching together nearby diabetes facts into a guess. The same agent behaved identically on a direct API and on AWS, so the behavior is not tied to one provider.
+- **Same discipline, a new domain.** Cheap tools and a passive RAG can summarize the codebook; what they cannot do is run the analysis and catch a number that is wrong for a reason tied to how the survey works (skip-patterns, mandatory weights). That is the same "review on top of the cheap layer" pattern as the code runs, carried into data work.
+
+### Known Limitations
+
+- A lean slice: one topic (diabetes), one survey year (2023), a handful of variables — not the whole survey. The chatbot's live cloud deployment was built but parked, not launched, so there is no live-system proof here as there was in Run 2. And the standard-grounding came late (see above); that is the main lesson from this run, not a result.
+
+---
+
 ## Overall Summary of Findings
 
 The pattern shows that the checking helper works best by finding real flaws (like timing bugs or planted security bypasses) that regular tests miss, without causing false alarms. Genuinely hard problems cause natural bugs; on simple patterns, the tool provides assurance, catches blind spots in your tests, and keeps an audit log.
@@ -295,3 +325,4 @@ The pattern shows that the checking helper works best by finding real flaws (lik
 - **Small tasks are still a tie:** Baton does not beat a standard AI model on small, low-risk tasks.
 - **Humans are still the drivers:** The most important choices (what to test, when to launch, and setting rules) were made by the human. Baton just made applying those rules consistent and trackable.
 - **Cost is unmeasured, and the baseline matters:** The real-world comparison is not Baton versus a human reviewer. Teams already run automated scanners (Snyk, SonarQube, CodeQL) cheaply on every commit, and that is the right first layer. Those scanners catch known patterns — vulnerable dependencies, injection, hardcoded secrets — but they are blind to defects tied to what a feature is _meant_ to do, like the fail-open security toggle and the "forbidden looks identical to missing" rule the checking helper caught here. So the honest question is the _added_ cost of Baton's review on top of tests and scanners, weighed against the defects of that kind it catches and they miss. The fault-injection test is the start of measuring it: running its planted bugs through the scanners too would turn "scanners miss these" into a number. Run 9 is the first run to show both layers in one case: the warning-count drop that cheap tools can see, and the lock-was-never-checked catch that they cannot.
+- **The pattern carries beyond code:** Run 10 applied the same "execute the check, don't just lint it" discipline to a data-science job and caught a statistic that was clean on the page but wrong when run. It also surfaced a process lesson — research the relevant standard during planning, not after — which is light to fix and worth building into the routine.
