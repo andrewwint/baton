@@ -4,6 +4,9 @@
 set -euo pipefail
 
 SKILL_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.claude/skills/baton" && pwd)"
+# Skill version, read from the bundled runtime package.json (for the install banner).
+SKILL_VERSION="$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$SKILL_ROOT/runtime/package.json" | head -1)"
+SKILL_VERSION="${SKILL_VERSION:-unknown}"
 
 usage() {
   cat <<'EOF'
@@ -71,7 +74,7 @@ if [[ "${1:-}" == "--global" ]]; then
     --exclude '.env' \
     --exclude '.mcp.json' \
     "$SKILL_ROOT"/ "$DEST"/
-  echo "Synced skill -> $DEST"
+  echo "Synced baton skill v$SKILL_VERSION -> $DEST"
   echo "  preserved local: .env, runtime/.mcp.json   skipped: node_modules/, dist/"
 
   AGENTS_DEST="${HOME}/.claude/agents"
@@ -85,6 +88,6 @@ fi
 TARGET="${1:-$(pwd)}"
 DEST="$TARGET/.claude/agents"
 
-echo "Copying lane agents into $DEST/ (interactive Claude Code use; hash-checked)"
+echo "Installing baton skill v$SKILL_VERSION lane agents into $DEST/ (interactive Claude Code use; hash-checked)"
 sync_agents "$DEST"
 echo "The SDK runtime does not require this step."
