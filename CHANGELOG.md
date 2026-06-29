@@ -4,6 +4,24 @@ Notable changes to Baton. From 1.0.0 the public contract is stable and changes f
 versioning; the surface frozen at 1.0 is the loop and routing gate, the lane map and four bundled
 agents, the `RunRecord` ledger shape, and MCP-via-`.mcp.json`.
 
+## 1.0.3 - ground the plan in the authoritative standard
+
+Additive guidance. The runtime code and the frozen contract (the loop and routing gate, the
+lane map and four bundled agents, the `RunRecord` ledger shape, MCP-via-`.mcp.json`) are
+unchanged.
+
+- **Plan-step guidance — research the standard first**: when work targets an external
+  standard, spec, format, or protocol, the plan step now calls for a brief up-front research
+  pass to find and read the authoritative source and ground the design in it, rather than
+  building against an approximation and reconciling later.
+- **Field notes Run 10**: a data-science dogfood (compile CDC NHIS into a verified OKF
+  bundle + grounded chatbot). The execution-grounded check caught a clean-markdown,
+  resolving-links statistic that was wrong when run (3.66% vs the correct survey-weighted
+  31.96%) and quarantined it — the "execute the check, don't lint it" pattern carried into a
+  non-code domain. The run also surfaced the lesson this release encodes: the OKF format was
+  first built to an approximation and only grounded in the published v0.1 spec afterward; the
+  fix is the light up-front research step above.
+
 ## 1.0.2 - control-wiring verification
 
 Additive guidance and tooling. The runtime code and the frozen contract (the loop and routing gate, the
