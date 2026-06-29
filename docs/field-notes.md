@@ -297,13 +297,14 @@ We pointed Baton at a different kind of job — not changing code, but turning a
 
 | Measure                                   | Value                                                                                                                            |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| What we did                               | Compiled CDC NHIS 2023 diabetes data into an OKF knowledge bundle plus a grounded chatbot                                        |
+| What we did                               | Compiled CDC NHIS (2018 + 2023; diabetes and hypertension) into an OKF knowledge bundle with design-based confidence intervals, plus a grounded chatbot |
 | The correct figure                        | 31.96% of U.S. adults with diagnosed diabetes take insulin — survey-weighted, counted against the right group                    |
 | The seeded wrong figure                   | 3.66% "of adults take insulin" — counted over everyone and unweighted; clean markdown, every link resolved                      |
 | Caught by                                 | _Running_ the documented analysis against the real data (not link-checking): off by ~28 points; quarantined, never served       |
 | Independent cross-check                   | A cold reviewer recomputed the numbers straight from the raw file and confirmed they were real, not hardcoded                    |
 | Chatbot                                   | Grounded-or-refuse: gave the verified number with its source; refused an off-topic question instead of guessing; ran on both a direct API and AWS |
-| Tests / standard                          | 25 tests passing; the bundle checks clean against the published OKF v0.1 standard                                                |
+| Defect classes caught                     | Four, all by execution: a whole-sample/unweighted rate; a broken cross-year trend (a 2019 survey rename quietly dropped a year); a too-narrow confidence interval (ignored the survey's clustering); and the same error in a second condition (hypertension), with no new tooling |
+| Tests / standard                          | 41 tests passing; the bundle checks clean against the published OKF v0.1 standard                                                |
 
 ### Core Observations
 
@@ -311,10 +312,11 @@ We pointed Baton at a different kind of job — not changing code, but turning a
 - **The honest miss: we should have read the standard first.** We built the bundle in an OKF-_shaped_ way from the project's own write-up, and only grounded it in the actual published OKF v0.1 spec _after_ we had the spec in hand — then aligned the format and it passed the standard's own checks. It worked out, but the better path was to research the standard during planning, not as a later correction. This was a planning gap on both sides, not a tool failure: the product and implementation planning should have surfaced "go read the OKF spec first." We were close; the fix is light — add a quick "find and read the relevant standard" step up front.
 - **Grounded-or-refuse held.** Asked about a topic the bundle does not cover (asthma), the chatbot declined and said it could not answer from verified data, rather than stitching together nearby diabetes facts into a guess. The same agent behaved identically on a direct API and on AWS, so the behavior is not tied to one provider.
 - **Same discipline, a new domain.** Cheap tools and a passive RAG can summarize the codebook; what they cannot do is run the analysis and catch a number that is wrong for a reason tied to how the survey works (skip-patterns, mandatory weights). That is the same "review on top of the cheap layer" pattern as the code runs, carried into data work.
+- **The catch generalized — same engine, more shapes of wrong.** After the insulin catch, the same execute-don't-lint check caught three more without changing the engine: a cross-year trend silently broken by a 2019 survey-question rename (a flat-looking line that had quietly dropped a whole year); a confidence interval that read as too precise because it ignored the survey's clustering; and the identical skip-pattern/weighting error in a second condition (blood-pressure medication, off by about 49 points). One discipline, four distinct ways a clean page can hide a wrong number — and the second condition needed no new tooling, which is the sign the check generalizes rather than being hand-fit to one case.
 
 ### Known Limitations
 
-- A lean slice: one topic (diabetes), one survey year (2023), a handful of variables — not the whole survey. The chatbot's live cloud deployment was built but parked, not launched, so there is no live-system proof here as there was in Run 2. And the standard-grounding came late (see above); that is the main lesson from this run, not a result.
+- Still a slice: two years and two conditions (diabetes and hypertension), not the whole survey. The chatbot was later deployed and proven on a live cloud runtime (Amazon Bedrock AgentCore) — it returned the verified figures with their sources and refused off-topic questions, then was torn back down — so there is live-system proof here, as in Run 2. The honest caveat that remains is the standard-grounding that came late (see above); that planning lesson, not a defect count, is the takeaway from this run.
 
 ---
 
