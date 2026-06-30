@@ -296,8 +296,8 @@ cheap helper to size it up:
       it directly      a lane
 ```
 
-The helper is an advisor, not a runner. When it says "small," the work goes straight back to
-your main AI — Baton never holds it.
+The helper is an advisor, not a runner. A "small" verdict just confirms the work stays where it
+already was — on your main AI. Baton never handed it off.
 
 ## How this differs from an autonomous goal loop
 
