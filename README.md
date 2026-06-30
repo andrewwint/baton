@@ -281,9 +281,23 @@ Copy this into your `AGENTS.md` or `CLAUDE.md` and edit it:
 - Send deep research to /deep-research.
 ```
 
-One more thing: even inside Baton, a small task stays on the main path. Baton can ask a cheap
-helper "is this big or small?" — but the helper only gives advice, it never holds the work. If
-the answer is "small," Baton just does it.
+One more thing: even inside Baton, a small task stays on the main path — your main AI handles
+it, and nothing is handed to a separate worker. For a borderline task, your main AI can ask a
+cheap helper to size it up:
+
+```
+            borderline task
+                  |
+        cheap helper sizes it up
+             /            \
+         "small"         "big"
+            |               |
+      main AI does     Baton opens
+      it directly      a lane
+```
+
+The helper is an advisor, not a runner. When it says "small," the work goes straight back to
+your main AI — Baton never holds it.
 
 ## How this differs from an autonomous goal loop
 
