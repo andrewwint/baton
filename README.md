@@ -243,12 +243,47 @@ Baton orchestrates an AI agent, and is plain about what that means:
 
 ## The project's AGENTS.md is the contract
 
-Baton stays loosely coupled — it depends on no other skill, and composition is steered from your project, not baked into Baton. Your project's root `AGENTS.md` / `CLAUDE.md` carries two distinct contracts, and writing them well is what keeps Baton from being pulled into every request:
+Baton is not for every task. Before any work starts, your AI reads your project's `AGENTS.md`
+(or `CLAUDE.md`) and decides: is this big or risky? Only then does it call Baton. Small, safe
+jobs never reach it.
 
-- **When to reach for Baton at all — the entry gate.** Baton is not invoked per request. Your session model reads the project guidance and decides whether a task is substantial enough to orchestrate, or whether to just do it directly or hand it to another skill. Write this as a *trigger*, e.g. "for multi-step implementation or verification-heavy work, use Baton; for a one-line fix, just make it." Baton has no say here — it has not been invoked yet.
-- **When a lane routes to a specialist skill — composition.** Once orchestrating, Baton reads that same guidance and follows it. It prescribes nothing about other skills: to route a lane to a `code-review`, `security-review`, or `deep-research` skill you've installed, write a *routing rule*, e.g. "send the security lane to /security-review." Long-running skills run as background lanes. Composition is a property of your project — which is what keeps Baton portable.
+```
+                    a task arrives
+                         |
+            ( your AGENTS.md decides )
+                /                   \
+       small / low-risk       big / risky / many steps
+             |                         |
+         just do it               call Baton
+     (or another skill)    plan -> build -> check -> record
+```
 
-Triage follows the same spirit. For light work the manager triages inline and proceeds; it opens a dedicated triage lane only when the routing decision itself is hard. A triage lane returns a *recommendation* (a disposition), not the task — the manager owns the work throughout, and a `direct` verdict just means "no lane is worth it, do it on the main path."
+You write two short rules in that file:
+
+1. **When to call Baton** (a trigger) — e.g. "for a new feature or a security fix, use Baton;
+   for a one-line fix, just make it."
+2. **Which skill handles which work** (a routing rule), if you have other skills installed —
+   e.g. "send security reviews to /security-review." Baton reads this and follows it; long jobs
+   run in the background. This keeps Baton easy to drop into any project, since it learns the
+   plan from your file instead of hard-coding it.
+
+Copy this into your `AGENTS.md` or `CLAUDE.md` and edit it:
+
+```markdown
+## When to use Baton
+- Use Baton for work with many steps or real risk — a new feature, a security fix, an auth
+  change, anything touching data or money. It plans, builds, checks, and keeps a record.
+- Skip Baton for small, safe jobs — a typo, a one-line fix, a quick script. Just make the change.
+- Not sure? Ask: do I want a second set of eyes and a written trail? If yes, use Baton.
+
+## Route to other skills (only if you have them installed)
+- Send security reviews to /security-review.
+- Send deep research to /deep-research.
+```
+
+One more thing: even inside Baton, a small task stays on the main path. Baton can ask a cheap
+helper "is this big or small?" — but the helper only gives advice, it never holds the work. If
+the answer is "small," Baton just does it.
 
 ## How this differs from an autonomous goal loop
 
