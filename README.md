@@ -241,11 +241,14 @@ Baton orchestrates an AI agent, and is plain about what that means:
 - **MCP servers you configure launch local commands** (e.g. Serena) with your privileges, so put only servers you trust in the project's `.mcp.json`. Baton discovers and allowlists exactly what it declares; off when none are configured.
 - **No telemetry.** Baton makes model calls (and any MCP server you add) and writes a local run ledger; nothing else leaves your machine.
 
-## Composing with other Claude Code features
+## The project's AGENTS.md is the contract
 
-Baton stays loosely coupled: it depends on no other skill, and composition is steered from your project, not baked into Baton:
+Baton stays loosely coupled — it depends on no other skill, and composition is steered from your project, not baked into Baton. Your project's root `AGENTS.md` / `CLAUDE.md` carries two distinct contracts, and writing them well is what keeps Baton from being pulled into every request:
 
-- **Specialist skills.** Baton prescribes nothing about other skills. If you want the coordinator to route a lane to a skill you've installed (e.g. `code-review`, `security-review`, `deep-research`), say so in your project's root `AGENTS.md`; the manager reads it as repo guidance and follows it (long-running ones as background lanes).
+- **When to reach for Baton at all — the entry gate.** Baton is not invoked per request. Your session model reads the project guidance and decides whether a task is substantial enough to orchestrate, or whether to just do it directly or hand it to another skill. Write this as a *trigger*, e.g. "for multi-step implementation or verification-heavy work, use Baton; for a one-line fix, just make it." Baton has no say here — it has not been invoked yet.
+- **When a lane routes to a specialist skill — composition.** Once orchestrating, Baton reads that same guidance and follows it. It prescribes nothing about other skills: to route a lane to a `code-review`, `security-review`, or `deep-research` skill you've installed, write a *routing rule*, e.g. "send the security lane to /security-review." Long-running skills run as background lanes. Composition is a property of your project — which is what keeps Baton portable.
+
+Triage follows the same spirit. For light work the manager triages inline and proceeds; it opens a dedicated triage lane only when the routing decision itself is hard. A triage lane returns a *recommendation* (a disposition), not the task — the manager owns the work throughout, and a `direct` verdict just means "no lane is worth it, do it on the main path."
 
 ## How this differs from an autonomous goal loop
 
