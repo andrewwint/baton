@@ -4,6 +4,33 @@ Notable changes to Baton. From 1.0.0 the public contract is stable and changes f
 versioning; the surface frozen at 1.0 is the loop and routing gate, the lane map and four bundled
 agents, the `RunRecord` ledger shape, and MCP-via-`.mcp.json`.
 
+## 1.0.4 - shared seams cross a boundary; review follows them to their callers
+
+Additive guidance. The runtime code and the frozen contract (the loop and routing gate, the
+lane map and four bundled agents, the `RunRecord` ledger shape, MCP-via-`.mcp.json`) are
+unchanged. Motivated by a dogfood run where a cosmetic-looking edit to a shared CSV
+serializer was triaged direct and, even when reviewed, was checked only against its own diff —
+so a pre-existing tenant-scope leak on a *sibling* endpoint that shared the serializer was
+missed. Both gaps are addressed generally, not for that case.
+
+- **Routing gate + triage — serializer/export seams are a risk trigger**: a change to a
+  shared serializer/formatter or a data-export/response path now counts as a risk trigger, so
+  a small-looking output-formatting edit routes through the loop. Such a change crosses the
+  data-egress boundary of every endpoint it feeds, even when the edit itself looks cosmetic.
+- **Review lane — follow a touched shared seam to its other callers**: when a change edits a
+  helper with multiple callers (a serializer, formatter, query builder, or auth helper), its
+  *other* callers are in the blast radius, not "unrelated code." The reviewer checks each
+  caller of the touched seam against the boundary that seam crosses (e.g. a shared export
+  helper feeding several endpoints — verify each endpoint's authorization and tenant/data
+  scoping), and a flaw already present on a sibling caller is in scope the moment the change
+  touches their shared seam.
+- **Default under uncertainty (anti-list-creep)**: the trigger lists are examples, not
+  exhaustive — when you can't tell whether a change touches a risk trigger, it does not
+  qualify for `direct` and routes through the loop. One tie-breaker guards the unlisted tail
+  instead of an ever-growing trigger list. (Also aligned the three trigger enumerations — the
+  routing gate, the triage disposition, and the triage method step — so the data-egress
+  trigger appears in all three.)
+
 ## 1.0.3 - ground the plan in the authoritative standard
 
 Additive guidance. The runtime code and the frozen contract (the loop and routing gate, the

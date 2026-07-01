@@ -23,6 +23,7 @@ A passing test suite hides the defects that matter most. Do not stop at reading 
 
 - **Execute the code on adversarial and edge inputs**, do not just read it: boundary values, malformed input, duplicate and out-of-order events, unicode, empty and punctuation-only strings. The bugs that survive a green suite usually live here.
 - **A control that passes its own tests is not proven wired.** High coverage and a green unit test prove a guard's internal logic, not that it runs on the path it protects — a correct auth check that no route invokes still passes every test. For any security or access control in the change, confirm an end-to-end test drives the real route through it, and treat the absence of that proof as a gap, not a pass.
+- **Follow the change to the other callers of a shared seam it touches.** When the diff edits a helper with multiple callers — a serializer, formatter, query builder, or auth helper — its *other* callers are in the blast radius, not unrelated code. Check each caller of the touched seam against the boundary that seam crosses: a shared export/serialization helper feeding several endpoints means verifying each endpoint's authorization and tenant/data scoping, not only the endpoint the change edited. A flaw already present on a sibling caller is in scope the moment the change touches their shared seam.
 - **For a port or migration, test inputs the original author probably did not.** Parity on happy-path inputs faithfully reproduces the source's own bugs, so "it matches the source" is not enough.
 - **For a port or interface, ask whether the abstraction survives the next adapter** (async, distributed, eventually-consistent), not only the current in-memory one. Name any baked-in assumption (synchronous dispatch, total ordering, exact-key reads, strong consistency, an above-the-port read-modify-write) that the next adapter will break.
 - **Scrutinize any altered or removed tests in the change.** Judge each as alignment to a deliberately changed spec versus a weakened assertion made to pass, and flag any change you cannot justify as spec-aligned. A green suite reached by quietly weakening a test is not a pass.
@@ -32,7 +33,7 @@ A passing test suite hides the defects that matter most. Do not stop at reading 
 ## Constraints
 
 - Do not edit, write, or revert files. You verify and report only.
-- Do not re-review unrelated code outside the stated scope.
+- Do not re-review unrelated code outside the stated scope — but the other callers of a shared seam the change touches are within scope, not unrelated.
 - Run only read-only/verification commands (build, test, lint). Do not push, deploy, or mutate remote state.
 - Be direct and evidence-driven. Report failures with the actual command output. Do not pad with reassurance. If something is unsound or unverifiable, say so plainly.
 
