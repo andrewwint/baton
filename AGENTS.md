@@ -26,6 +26,7 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 - Treat an agent's own report that work is done as in-sample evidence, optimistically biased the way training accuracy is. What counts is the independent, out-of-sample check: the verify lane evaluating cases the implementer did not fit to, with the human holding the spec and the final gate. Verification as a separate lane and gated outward actions follow from that, not decoration.
 - Start simple and static-first by default for user-facing delivery. Only add heavier client/runtime complexity when the requirement clearly justifies it.
 - For user-facing features, prioritize simplicity, reliability, and security. Avoid complex or experimental approaches unless they are necessary to meet the requirements.
+- Review composition. The bundled `code-reviewer` lane is the portable floor — always available, no external dependency. When a dedicated review skill is installed, prefer routing the verification lane to it and run it as a background lane: `/security-review` for a change on a security, access-control, or data-egress surface; `/code-review` for a general diff. The manager reads this as repo guidance and follows it — Baton itself prescribes no external skill (composition is the project's choice, not the skill's). This is a routing preference, not a claim the specialist out-catches the floor; keep the bundled lane as the fallback wherever no specialist is installed.
 
 ## Releasing
 

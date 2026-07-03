@@ -1,8 +1,35 @@
 # Changelog
 
 Notable changes to Baton. From 1.0.0 the public contract is stable and changes follow semantic
-versioning; the surface frozen at 1.0 is the loop and routing gate, the lane map and four bundled
-agents, the `RunRecord` ledger shape, and MCP-via-`.mcp.json`.
+versioning; the surface frozen at 1.0 was the loop and routing gate, the lane map and four bundled
+agents (a fifth, `security-review`, added in 1.1.0), the `RunRecord` ledger shape, and MCP-via-`.mcp.json`.
+
+## 1.1.0 - a disposition record for sensitive-seam review, and plugin packaging
+
+Minor bump: the frozen 1.0 lane map gains a fifth bundled agent, so this is not a patch. The loop,
+the routing gate, the `RunRecord` ledger shape, and MCP-via-`.mcp.json` are unchanged. This entry
+describes what shipped, not what it achieves — the efficacy of the disposition mechanism is tracked
+separately and is not claimed here.
+
+- **A disposition record for sensitive-seam work**: when a change touches a sensitive seam class
+  (authorization / tenant-isolation, data egress, writes/mutations, auth gates, secrets), the verify
+  step writes `.agents/runs/<runId>/disposition.json` recording the seams triaged, each sensitive
+  seam's contract source, any exposures identified, and each exposure's disposition. A bundled Stop
+  hook (`.claude/skills/baton/hooks/disposition_gate.py`, wired via `.claude/settings.json`) derives
+  the review verdict from that record and stamps it, so the verdict follows from the recorded facts
+  rather than being declared free-hand.
+- **Fifth bundled lane — `security-review`**: an independent, read-only security-contract lane the
+  verify step consults (as its own `subagent_type` subagent) on an un-contracted sensitive seam. It
+  derives the seam's invariants from source and carries no ruleset of its own; it may invoke a
+  project `/security-review` skill for depth. This is the change to the frozen lane map that makes
+  this release a minor bump rather than a patch.
+- **Installable as a Claude Code plugin**: `.claude-plugin/plugin.json` and `marketplace.json` let
+  Baton install via `/plugin` alongside the existing loose-skill install, reusing the nested layout
+  through `skills`/`agents` path overrides without moving any file from its 1.0 location.
+
+Not in this release: the loop-by-default routing-gate change and the review-lane model reallocation
+(`update-routing-and-review`) are held for a later version pending their own validation — 1.1.0's
+routing gate is unchanged from 1.0.
 
 ## 1.0.4 - shared seams cross a boundary; review follows them to their callers
 
