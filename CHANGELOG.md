@@ -1,8 +1,37 @@
 # Changelog
 
 Notable changes to Baton. From 1.0.0 the public contract is stable and changes follow semantic
-versioning; the surface frozen at 1.0 is the loop and routing gate, the lane map and four bundled
-agents, the `RunRecord` ledger shape, and MCP-via-`.mcp.json`.
+versioning; the surface frozen at 1.0 was the loop and routing gate, the lane map and four bundled
+agents (a fifth, `security-review`, added in 1.1.0), the `RunRecord` ledger shape, and MCP-via-`.mcp.json`.
+
+## 1.1.0 - an independent security-review lane and a disposition discipline, plus plugin packaging
+
+Minor bump: the frozen 1.0 lane map gains a fifth bundled agent, so this is not a patch. The loop,
+the routing gate, the `RunRecord` ledger shape, and MCP-via-`.mcp.json` are unchanged. This entry
+describes what shipped, not what it achieves — no efficacy claim.
+
+- **Fifth bundled lane — `security-review`**: an independent, read-only security-contract lane the
+  verify step consults (as its own `subagent_type` subagent) on a sensitive seam that has no
+  independent contract. It derives the seam's invariants from source and carries no ruleset of its
+  own; it may invoke a project `/security-review` skill for depth. This is the change to the frozen
+  lane map that makes this release a minor bump rather than a patch.
+- **A disposition discipline for sensitive-seam review**: on a sensitive seam class (authorization /
+  tenant-isolation, data egress, writes/mutations, auth gates, secrets), the verify step separates
+  *identifying* an exposure from *disposing* of it — the lane that finds an exposure does not clear
+  it; an identified exposure escalates to a named independent party. The manager records the facts
+  in `.agents/runs/<runId>/disposition.json` (seams triaged, each seam's contract source, exposures,
+  dispositions) and derives the review verdict from that record rather than declaring it free-hand,
+  failing loud (`UNVERIFIED-SEAM`) on a seam nobody could independently verify. This ships as
+  **discipline** in `SKILL.md`; a bundled close-out hook that machine-enforces the derivation is
+  planned for a later release, not in 1.1.0.
+- **Installable as a Claude Code plugin**: `.claude-plugin/plugin.json` and `marketplace.json` let
+  Baton install via `/plugin` alongside the existing loose-skill install, reusing the nested layout
+  through `skills`/`agents` path overrides without moving any file from its 1.0 location.
+
+Not in this release: the loop-by-default routing-gate change and the review-lane model reallocation
+(`update-routing-and-review`) are held for a later version pending their own validation — 1.1.0's
+routing gate is unchanged from 1.0; and the machine-enforcement close-out hook for the disposition
+discipline (above).
 
 ## 1.0.4 - shared seams cross a boundary; review follows them to their callers
 

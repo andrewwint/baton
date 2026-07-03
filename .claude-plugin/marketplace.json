@@ -1,0 +1,17 @@
+{
+  "name": "baton",
+  "owner": { "name": "Andrew Wint" },
+  "description": "Baton: a manager-led development orchestrator for Claude Code.",
+  "plugins": [
+    {
+      "name": "baton",
+      "source": ".",
+      "description": "Manager-led development orchestration: bounded subagent lanes, approval gates, and an auditable run trail.",
+      "version": "1.1.0",
+      "skills": ".claude/skills/baton",
+      "agents": ".claude/skills/baton/agents",
+      "homepage": "https://github.com/andrewwint/baton",
+      "license": "MIT"
+    }
+  ]
+}

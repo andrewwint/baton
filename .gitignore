@@ -13,3 +13,9 @@ dist/
 
 # local review/working notes (kept on disk, not committed)
 docs/feedback.md
+
+# OS / tooling junk
+.DS_Store
+**/.DS_Store
+__pycache__/
+*.pyc
