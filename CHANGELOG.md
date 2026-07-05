@@ -4,6 +4,20 @@ Notable changes to Baton. From 1.0.0 the public contract is stable and changes f
 versioning; the surface frozen at 1.0 was the loop and routing gate, the lane map and four bundled
 agents (a fifth, `security-review`, added in 1.1.0), the `RunRecord` ledger shape, and MCP-via-`.mcp.json`.
 
+## 1.1.2 - documentation clarity: the close-out enforcement hook is framed as a later release
+
+Patch. Documentation-only — one `SKILL.md` sentence, tense only. No schema, hook, or behavior
+changes. This entry describes what shipped, not what it achieves — no efficacy claim.
+
+- **The emission-gate prose can no longer be read as a present machine-enforcement claim.** The
+  disposition section describes a bundled close-out hook that machine-derives and stamps the verdict
+  from the record; the sentence was future-framed but its tail ("so the enforcement no longer depends
+  on the model remembering") could be misread as a present claim. In a pre-enforcement release that
+  reads as an unbacked enforcement claim. The wording is tightened to unambiguous future ("a later
+  release **will add** … **so that** enforcement **will no longer depend** on the model remembering").
+  1.1.x remains the manager's discipline — model-based derivation from the record, no machine
+  enforcement; the close-out hook that machine-stamps the verdict is a later release.
+
 ## 1.1.1 - documentation quality: a data-residency guard that travels with the skill, and resolvable pointers
 
 Patch. Documentation-only — `SKILL.md` prose. The frozen 1.0 contract (the loop and routing gate,
