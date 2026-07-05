@@ -97,7 +97,7 @@ Treat the orchestrator loop as the core feature. **Two paths:** work the routing
 
 Route by one gate, risk first. Run a change **direct** only when it touches no risk trigger — shared code, a contract or seam, a shared serializer or data-export/response path, security, data, a migration, a dependency, or a port — **and** fits a single edit and a single verification step. The triggers above are examples, not exhaustive; when you can't tell whether a change touches one, it does not qualify for direct — route it through the loop. A change to a shared serializer/formatter or output path crosses the data-egress boundary of every endpoint it feeds, even when the edit itself looks cosmetic. Everything else uses the loop: any risk trigger, or more than a single edit and verification, routes through it. Within the loop, the Delegation Policy decides what goes to lanes, with a risk trigger a strong signal to delegate so discovery and review run. The gate is risk-led, not size-led: a small change to a risky surface is exactly what should not bypass the loop. Narrate the routing proportional to risk: when the gate sends a change **direct**, just do it and state the disposition in one line — do not expound the gate, since on trivial work the narration is the overhead, not the orchestration. Reserve the full routing rationale for delegated or risky work, where the auditable reasoning earns its cost.
 
-The ~2-attempt recovery bound is evidence-informed (automated repair plateaus after about two rounds; rationale in `docs/research-basis.md`), not a hard rule — keep a couple of focused tries, then escalate.
+The ~2-attempt recovery bound is grounded in CodeTransOcean's DSR@K (arXiv:2310.04951) — automated repair gains are highest in round 1 and plateau at 3+ rounds; fuller rationale at https://github.com/andrewwint/baton/blob/main/docs/research-basis.md. It's a guideline, not a hard rule — keep a couple of focused tries, then escalate.
 
 ## Subagent Model (Claude Code)
 
@@ -188,16 +188,20 @@ Use this for substantial work, not as the default for trivial tasks. Discovery a
 
 ## Repo Detection
 
-When work targets a repo, learn it from its files first. Detect only what routing and execution need:
+When work targets a repo, learn it from its files first — detect only what routing and execution need:
 
-- runtime manifests: `package.json`, `requirements.txt`, `pyproject.toml`, `pom.xml`, `build.gradle`, `Gemfile`, `composer.json`, `go.mod`, `Cargo.toml`
-- build/test/lint commands and entrypoints
-- `Dockerfile` / `docker-compose.yml` and any CI config
+- runtime manifests, build/test/lint commands, and entrypoints (whatever the repo actually uses)
+- containerization and CI config, if present
 - existing agent guidance: prefer root `AGENTS.md` / `CLAUDE.md`, fall back to `README*`
 
-Do not assume a standard folder layout. When structure is still unclear, ask before scaffolding or editing. If the request is not repo-bound or no repository can be detected, do not fabricate a repo-based plan; ask for the relevant files or context first.
+Do not assume a standard folder layout. When structure is unclear, ask before scaffolding or editing. If the request isn't repo-bound or no repository is detectable, don't fabricate a repo-based plan — ask for the relevant files or context.
 
-Navigation is lexical by default (Grep/Glob/Read). As part of looking around, baton uses whatever MCP servers the project already configures — the standard `.mcp.json`, inherited from Claude Code in interactive sessions and read by the runtime headlessly — for capabilities the lanes lack (semantic navigation, browser verification), where they help. Off when none are configured, manager-only, trust-gated, and each discovered server's tools are allowlisted by exact name. See `docs/MCP.md` for which servers fill real gaps and the local-vs-cloud caveats.
+### Tool & MCP discovery
+
+1. **Lexical by default.** Navigation and discovery use local file tools (Grep/Glob/Read).
+2. **Configured servers only.** When a lane needs a capability it lacks — semantic navigation, browser verification, database access — Baton uses MCP servers the project already configures via the standard `.mcp.json` (inherited from Claude Code interactively, read headlessly by the runtime). If none are configured, this layer is off. A configured server may be cloud-hosted — its calls send data off the machine, so gate egress on your data-residency posture, the way you would a deploy.
+3. **Trust-gated.** MCP use is manager-only; each discovered server's tools are allowlisted by exact name. Never invoke a tool not on the allowlist.
+4. **Name the gap, don't fail silently.** If a task genuinely needs a capability no configured server provides, tell the user which capability is missing and that an MCP server providing it would need to be added — rather than proceeding without it.
 
 ## Org extension via `references/`
 

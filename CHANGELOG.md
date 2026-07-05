@@ -4,6 +4,35 @@ Notable changes to Baton. From 1.0.0 the public contract is stable and changes f
 versioning; the surface frozen at 1.0 was the loop and routing gate, the lane map and four bundled
 agents (a fifth, `security-review`, added in 1.1.0), the `RunRecord` ledger shape, and MCP-via-`.mcp.json`.
 
+## 1.1.1 - documentation quality: a data-residency guard that travels with the skill, and resolvable pointers
+
+Patch. Documentation-only — `SKILL.md` prose. The frozen 1.0 contract (the loop and routing gate,
+the lane map and five bundled agents, the `RunRecord` ledger shape, and MCP-via-`.mcp.json`) is
+unchanged, and no runtime behavior changes. This entry describes what shipped, not what it achieves
+— no efficacy claim.
+
+- **The data-residency guard now travels with the shipped skill.** The MCP-discovery guidance states
+  inline that a configured MCP server may be cloud-hosted — its calls send data off the machine — so
+  egress should be gated on your data-residency posture, the way you would a deploy. This caveat
+  previously lived only in a separate `docs/` note that a global or plugin install did not carry; it
+  now sits in `SKILL.md` itself, so every install has it.
+- **Resolvable documentation pointers.** A `SKILL.md` reference to `docs/research-basis.md` used a
+  repo-relative path that resolved only inside the source checkout and dangled from a standalone
+  (global or plugin) install; it is now an absolute URL. The MCP section's dangling `docs/MCP.md`
+  pointer is removed and its behavioral rules inlined, so the skill carries what it needs to behave
+  correctly rather than pointing at a file that may not travel with it.
+- **Repo Detection reshaped into capability-triggered discovery.** The section is rewritten as a
+  short Tool & MCP discovery protocol — lexical by default; configured servers only; manager-only and
+  allowlisted by exact name; name a missing capability rather than proceeding silently — replacing a
+  hardcoded runtime-manifest list that could not stay current.
+- **The recovery bound cites its source.** The ~2-attempt recovery bound now names CodeTransOcean's
+  DSR@K (arXiv:2310.04951) — automated-repair gains are highest in the first round and plateau by the
+  third — in place of an unsourced "evidence-informed" note.
+
+Not in this release: the enforcement build (the close-out disposition gate, doctor, and session-start
+guard) and the security-review source-derivation work remain held for a later version. 1.1.1 is
+documentation-only and changes no runtime behavior.
+
 ## 1.1.0 - an independent security-review lane and a disposition discipline, plus plugin packaging
 
 Minor bump: the frozen 1.0 lane map gains a fifth bundled agent, so this is not a patch. The loop,
