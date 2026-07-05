@@ -97,7 +97,7 @@ Treat the orchestrator loop as the core feature. **Two paths:** work the routing
 
 Route by one gate, risk first. Run a change **direct** only when it touches no risk trigger — shared code, a contract or seam, a shared serializer or data-export/response path, security, data, a migration, a dependency, or a port — **and** fits a single edit and a single verification step. The triggers above are examples, not exhaustive; when you can't tell whether a change touches one, it does not qualify for direct — route it through the loop. A change to a shared serializer/formatter or output path crosses the data-egress boundary of every endpoint it feeds, even when the edit itself looks cosmetic. Everything else uses the loop: any risk trigger, or more than a single edit and verification, routes through it. Within the loop, the Delegation Policy decides what goes to lanes, with a risk trigger a strong signal to delegate so discovery and review run. The gate is risk-led, not size-led: a small change to a risky surface is exactly what should not bypass the loop. Narrate the routing proportional to risk: when the gate sends a change **direct**, just do it and state the disposition in one line — do not expound the gate, since on trivial work the narration is the overhead, not the orchestration. Reserve the full routing rationale for delegated or risky work, where the auditable reasoning earns its cost.
 
-The ~2-attempt recovery bound is evidence-informed (automated repair plateaus after about two rounds; rationale in `docs/research-basis.md`), not a hard rule — keep a couple of focused tries, then escalate.
+The ~2-attempt recovery bound is grounded in CodeTransOcean's DSR@K (arXiv:2310.04951) — automated repair gains are highest in round 1 and plateau at 3+ rounds; fuller rationale in the repo's `docs/research-basis.md` (github.com/andrewwint/baton). It's a guideline, not a hard rule — keep a couple of focused tries, then escalate.
 
 ## Subagent Model (Claude Code)
 
@@ -197,7 +197,7 @@ When work targets a repo, learn it from its files first. Detect only what routin
 
 Do not assume a standard folder layout. When structure is still unclear, ask before scaffolding or editing. If the request is not repo-bound or no repository can be detected, do not fabricate a repo-based plan; ask for the relevant files or context first.
 
-Navigation is lexical by default (Grep/Glob/Read). As part of looking around, baton uses whatever MCP servers the project already configures — the standard `.mcp.json`, inherited from Claude Code in interactive sessions and read by the runtime headlessly — for capabilities the lanes lack (semantic navigation, browser verification), where they help. Off when none are configured, manager-only, trust-gated, and each discovered server's tools are allowlisted by exact name. See `docs/MCP.md` for which servers fill real gaps and the local-vs-cloud caveats.
+Navigation is lexical by default (Grep/Glob/Read). As part of looking around, baton uses whatever MCP servers the project already configures — the standard `.mcp.json`, inherited from Claude Code in interactive sessions and read by the runtime headlessly — for capabilities the lanes lack (semantic navigation, browser verification), where they help. Off when none are configured, manager-only, trust-gated, and each discovered server's tools are allowlisted by exact name. See the repo's `docs/MCP.md` (github.com/andrewwint/baton) for which servers fill real gaps and the local-vs-cloud caveats.
 
 ## Org extension via `references/`
 
