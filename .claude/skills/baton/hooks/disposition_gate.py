@@ -319,17 +319,23 @@ def malformed_sentinel(raw=None):
     """Build the UNVERIFIED-SEAM sentinel for a malformed triage line (Condition 1). Well-formed under the
     vendored shape contract (run_id, seams_triaged list, exposures list, non-null verdict), authored/pre-
     stamped like the MISSING-RECORD sentinel. Fail-loud: the seam list is indeterminate, so no coverage or
-    class-less-sensitive record can clear it — human attention is required."""
+    class-less-sensitive record can clear it — human attention is required.
+
+    `seams_triaged` is deliberately EMPTY: there is no trustworthy per-seam class to name (the line did not
+    parse), and the spec documents a seam's `class` as a string — a placeholder `class: None` would violate
+    that shared shape for a strict reader. The `_completeness.triage_malformed` marker carries the meaning."""
     return {
         "run_id": COMPLETENESS_RUN_DIR,
-        "seams_triaged": [{"class": None, "sensitive": True, "_indeterminate": True}],
+        "seams_triaged": [],
         "exposures": [],
         "verdict": "UNVERIFIED-SEAM",
         "verdict_basis": (
             "triage output malformed, seams indeterminate — the TRIAGE-SEAMS line did not parse"
             + (f" (raw: {raw!r})" if raw else "")
-            + "; the sensitive-seam list cannot be trusted, so READY is not reachable and human attention "
-            "is required. Fix the triage return-format line (see agents/triage.md) and re-run."
+            + "; the sensitive-seam list cannot be trusted, so READY is not reachable and human attention is "
+            "required. The malformed marker persists in the append-only session ledger, so it dominates for "
+            "the rest of this session: fix the triage return-format line (see agents/triage.md) AND reset "
+            "`.agents/runs/triaged_seams.jsonl` (or start a fresh session) before re-running."
         ),
         "_completeness": {"triage_malformed": True, "raw": raw, "triage_sidecar": True},
         "_stamped": True,
