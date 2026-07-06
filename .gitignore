@@ -1,6 +1,8 @@
 node_modules/
 dist/
 *.log
+.DS_Store
+__pycache__/
 .env
 .env.*
 !.env.example
@@ -11,11 +13,8 @@ dist/
 # local run ledgers (working state, not product source)
 .agents/
 
+# baton doctor's local verification marker (machine-local install-health state, not product source)
+.baton/
+
 # local review/working notes (kept on disk, not committed)
 docs/feedback.md
-
-# OS / tooling junk
-.DS_Store
-**/.DS_Store
-__pycache__/
-*.pyc

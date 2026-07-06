@@ -3,6 +3,7 @@
 // document; each eval has id, prompt, expected_output, files[], assertions[].
 import fs from "node:fs";
 import path from "node:path";
+import { envAlias } from "./env.mjs";
 
 export function toPosix(value) {
   return String(value || "").split(path.sep).join("/");
@@ -12,11 +13,11 @@ export function loadEvalDocument(evalFilePath) {
   return JSON.parse(fs.readFileSync(evalFilePath, "utf8"));
 }
 
-// Resolve the optional user-owned eval document: BATON_EVALS (explicit path) or,
-// when unset, a repo-root `baton.evals.json`. Returns its path, or null when no
-// default exists. Throws when BATON_EVALS is set but missing (likely a mistake).
+// Resolve the optional user-owned eval document: BATON_EVALS (an explicit path) or, when unset,
+// a repo-root `baton.evals.json`. Returns its path, or null when no default exists. Throws when
+// BATON_EVALS is set but missing (likely a mistake).
 export function resolveUserEvalPath(repoRoot) {
-  const explicit = process.env.BATON_EVALS;
+  const explicit = envAlias("EVALS");
   if (explicit) {
     if (!fs.existsSync(explicit)) {
       throw new Error(`BATON_EVALS points at a missing file: ${explicit}`);

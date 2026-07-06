@@ -1,0 +1,29 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Task|Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .claude/skills/baton/hooks/record_lane_spawn.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 .claude/skills/baton/hooks/record_triaged_seams.py"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .claude/skills/baton/hooks/disposition_gate.py"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,6 +1,7 @@
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import type { AgentDefinition } from "@anthropic-ai/claude-agent-sdk";
+import { envAlias } from "./env.js";
 
 /**
  * Parse YAML-ish frontmatter from a markdown file.
@@ -22,6 +23,21 @@ export function parseFrontmatter(md: string): {
     if (key) fm[key] = line.slice(idx + 1).trim();
   }
   return { fm, body: (match[2] ?? "").trim() };
+}
+
+/**
+ * Per-lane model override, so a lane's model can be swapped for an ablation without
+ * editing frontmatter. `BATON_MODEL_<LANE>` (lane name upper-cased, non-alphanumerics
+ * → `_`), falling back to the legacy `BATON_MODEL_<LANE>`, overrides that lane's
+ * `model:`; e.g. `BATON_MODEL_CODE_REVIEWER=sonnet` runs the code-reviewer lane on
+ * sonnet while the frontmatter default stays `opus`. This is what lets the harness run
+ * the opus-vs-sonnet code-reviewer ablation (which the §2.2 attribution question needs)
+ * from config, not a hardcoded model. `inherit` → main model.
+ */
+function laneModelOverride(name: string): string | undefined {
+  const suffix = "MODEL_" + name.toUpperCase().replace(/[^A-Z0-9]+/g, "_");
+  const v = envAlias(suffix);
+  return v && v.trim() ? v.trim() : undefined;
 }
 
 /**
@@ -55,12 +71,16 @@ export async function loadLanes(
       ? fm.tools.split(",").map((t) => t.trim()).filter(Boolean)
       : undefined;
 
+    // `BATON_MODEL_<LANE>` env override wins; else `model:` in frontmatter pins the lane;
+    // omit or `inherit` (from either source) → main model.
+    const modelRaw = laneModelOverride(name) ?? fm.model;
+    const model = modelRaw && modelRaw !== "inherit" ? modelRaw : undefined;
+
     lanes[name] = {
       description: fm.description,
       prompt: body,
       ...(tools ? { tools } : {}),
-      // `model:` in lane frontmatter pins that lane; omit/`inherit` → main model.
-      ...(fm.model && fm.model !== "inherit" ? { model: fm.model } : {}),
+      ...(model ? { model } : {}),
     };
   }
 

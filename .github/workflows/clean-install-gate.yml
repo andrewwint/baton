@@ -1,0 +1,61 @@
+# Clean-Install Release Gate (merge-gate #2) — operationalizes the OpenSpec "Clean-Install Release Gate"
+# and "Enforcement-Claim Copy Gate" (the install-contract change). It proves "doctor-verified enforcement"
+# from a real user's FIRST-RUN path — a fresh clone's installer, into a clean project — NOT from residual
+# dev-tree state. This is the r1/hermeticity lesson at the release layer.
+#
+# MERGE-GATE #1 BINDING (set on the remote, not in this file): make the job `clean-install-doctor` a
+# REQUIRED status check in branch protection. Then any PR — including one that adds/edits the
+# enforcement-claim copy (README / pitch / doctor green string) — is unmergeable until this gate is green on
+# that same change. Claim + mechanism ship as one unit or neither ships.
+#
+# HERMETICITY — the green must NOT be attributable to either committed config layer:
+#   USER-level:    a fresh $HOME, so no pre-existing ~/.claude leaks in.
+#   PROJECT-level: doctor runs against a SEPARATE clean project dir, never with cwd inside the checkout —
+#                  the repo COMMITS its own .claude/settings.json, which would give a false green from
+#                  committed project config rather than from install.sh.
+name: clean-install-gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  clean-install-doctor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (source of install.sh + the skill — the installer under test)
+        uses: actions/checkout@v4
+
+      - name: Set up Python (the enforcement hooks are pure-stdlib python3)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Clean-install → baton doctor (from clean, both config layers isolated)
+        shell: bash
+        run: |
+          set -euo pipefail
+          # USER-level isolation: a fresh, empty HOME (no pre-existing ~/.claude).
+          export HOME="$(mktemp -d)"
+          # PROJECT-level isolation: a clean project dir with NO committed .claude/settings.json.
+          CLEAN_PROJ="$(mktemp -d)"
+
+          # (1) From-clean proof: a real user's first run — enforcement must NOT already be verified.
+          if python3 "$GITHUB_WORKSPACE/.claude/skills/baton/hooks/doctor.py" --target "$CLEAN_PROJ" >/dev/null 2>&1; then
+            echo "::error::doctor was GREEN before install — the target is not clean; a green here could come from residual state, not install.sh"
+            exit 1
+          fi
+          echo "clean start confirmed: doctor RED before install"
+
+          # (2) The install contract: this checkout's installer, into the clean project. install.sh --enforce
+          #     wires the three hooks and runs doctor, failing the install (non-zero) on a red doctor.
+          bash "$GITHUB_WORKSPACE/tools/install.sh" --enforce "$CLEAN_PROJ"
+
+          # (3) Re-assert doctor green against the clean, installer-wired target — explicit and independent.
+          python3 "$CLEAN_PROJ/.claude/skills/baton/hooks/doctor.py" --target "$CLEAN_PROJ"
+
+          # (4) Prove the green is the installer's doing: the clean target's settings.json was WRITTEN by
+          #     install.sh (the target started with no .claude), not read from committed config.
+          grep -q "skills/baton/hooks/disposition_gate.py" "$CLEAN_PROJ/.claude/settings.json"
+          echo "clean-install gate: doctor verified FROM-CLEAN ✓ (green attributable to install.sh, not committed config)"
