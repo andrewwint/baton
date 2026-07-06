@@ -44,19 +44,24 @@ Return:
 ### Sensitive-seam contract line (machine-read — do not omit)
 
 End your return with a single machine-readable final line naming every **sensitive** seam you found, so a
-disposition is provably owed for each. This line is captured by a forge-proof sidecar and is the artifact
-the close-out completeness gate reads: a sensitive seam named here that never reaches a recorded
-`disposition.json` is stamped `MISSING-RECORD` — the invisible-skip failure this line exists to prevent.
-Name a seam by its **class** (from the sensitive taxonomy), optionally `@<hint>` to locate it; separate
-multiple with ` | `. Emit `none` when nothing you found is sensitive.
+disposition is provably owed for each. Every sensitive class named here is **owed a disposition-record
+entry** — it is the seam-list the verify step seeds `seams_triaged` from, so each named seam reaches a
+recorded disposition. Name a seam by its **class** (from the sensitive taxonomy), optionally `@<hint>` to
+locate it; separate multiple with ` | `. Emit `none` when nothing you found is sensitive.
 
 ```
 TRIAGE-SEAMS: <class>@<hint> | <class>@<hint>
 TRIAGE-SEAMS: none
 ```
 
-Sensitive classes: `tenant-isolation` · `data-egress` · `authz` · `writes-mutations` · `auth-gate` ·
-`secrets` · `injection-sink`. Example — `TRIAGE-SEAMS: data-egress@userExport | authz@adminRoute`. A seam
-you flagged in `riskFocus` as touching a shared serializer/formatter, a data-export/response path, an auth
-gate, secrets, a migration, or a query/template sink belongs on this line; when unsure whether a seam is
-sensitive, include it (an over-named seam costs one recorded disposition, an omitted one is an invisible skip). **Emit the line in exactly this grammar** — `<class>` or `<class>@<hint>`, seams separated by ` | ` (a space-padded pipe). A malformed or unparseable line does **not** fail quietly: the close-out gate reads it as *seams indeterminate* and stamps `UNVERIFIED-SEAM`, forcing human attention — so a sloppy line costs more than a clean one, it never costs less.
+Sensitive classes (closed set): `tenant-isolation` · `data-egress` · `authz` · `writes-mutations` ·
+`auth-gate` · `secrets` · `injection-sink`. Example — `TRIAGE-SEAMS: data-egress@userExport | authz@adminRoute`.
+A seam you flagged in `riskFocus` as touching a shared serializer/formatter, a data-export/response path, an
+auth gate, secrets, a migration, or a query/template sink belongs on this line; when unsure whether a seam
+is sensitive, include it (an over-named seam costs one recorded disposition, an omitted one is an invisible
+skip). **Emit the line in exactly this grammar** — `<class>` or `<class>@<hint>`, seams separated by ` | `
+(a space-padded pipe); a bare `|` inside a hint does not split. A malformed or unparseable line is **not**
+silently dropped: it is treated as **seams indeterminate** and resolves to `UNVERIFIED-SEAM`, forcing human
+attention — so a sloppy line costs more than a clean one, it never costs less. (This line is the coupled
+`TRIAGE-SEAMS` shape; the forge-proof machine cross-check that reads it is runtime-bound — see
+`docs/coupled-shape-spec.md`. baton emits and observes the shape; it does not run that gate.)

@@ -4,6 +4,41 @@ Notable changes to Baton. From 1.0.0 the public contract is stable and changes f
 versioning; the surface frozen at 1.0 was the loop and routing gate, the lane map and four bundled
 agents (a fifth, `security-review`, added in 1.1.0), the `RunRecord` ledger shape, and MCP-via-`.mcp.json`.
 
+## 1.2.0 - close-out enforcement ships: the disposition hooks and the completeness gate
+
+Minor. Adds the bundled close-out enforcement the 1.1.x prose framed as "a later release" — the
+disposition record's verdict is now derived and stamped by a hook, and a skipped record is structurally
+detectable. Additive to the frozen 1.0 contract (loop and routing gate, lane map and five bundled agents,
+`RunRecord` shape, MCP-via-`.mcp.json`), which is unchanged. This entry describes what ships, not what it
+achieves — no efficacy claim.
+
+- **The verdict is derived, not declared.** A bundled Stop hook (`hooks/disposition_gate.py`, wired in
+  `settings.json`) re-derives the disposition verdict from the record's facts and stamps it; the model's
+  own token is kept as an advisory `verdict_emitted`. Removing the model's authorship of the verdict is the
+  design — a model that disagrees can no longer re-emit a non-derivable token.
+- **The record's existence is enforced, not asked for.** A PostToolUse sidecar
+  (`hooks/record_triaged_seams.py`) records the sensitive seams triage names (the `TRIAGE-SEAMS` return-format
+  contract) to a session-scoped ledger; the close-out completeness gate cross-checks it, so a sensitive seam
+  cleared **without** a `disposition.json` is stamped `MISSING-RECORD` instead of passing silently. A
+  malformed/unparseable `TRIAGE-SEAMS` line fails loud to `UNVERIFIED-SEAM` (seams indeterminate) rather than
+  silently shrinking what is owed a disposition.
+- **Fabrication is caught at run time, not only post-hoc.** A PostToolUse sidecar
+  (`hooks/record_lane_spawn.py`) records real `Task`/`Agent` specialist spawns; a claimed `specialist`
+  contract with no recorded spawn is downgraded to `UNVERIFIED-SEAM` — a signal the model cannot forge by
+  narrating. Its trust boundary is stated honestly in the hook: it proves a lane spawned, not that it did
+  good work.
+- **New verdicts** name two honest middles: `REVIEWED-CLEAN` (a real review lane cleared a sensitive seam
+  that recorded no independent specialist — reviewed, nothing found, not READY) and `MISSING-RECORD` (the
+  record was never written). Both are shape-only additions — the vendored disposition-contract predicate and
+  its `CONTRACT_SHA` are unchanged.
+- **Install health is checkable.** `hooks/doctor.py` proves the enforcement is wired and firing on the
+  machine (with the optional TypeScript runtime absent), and a SessionStart guard fails loud when it is not
+  verified. The Python hooks are the standalone floor — enforcement does not depend on the runtime.
+- **Coupled-shape documentation.** `docs/coupled-shape-spec.md` (the ratified `TRIAGE-SEAMS` + disposition
+  record shape) and `docs/triaged_seams.format.md` (the ledger read-surface) ship as synced reference copies
+  of the canonical originals; the forge-proof completeness cross-check is runtime-bound, so the shape is
+  shared while the gate stays in the runtime.
+
 ## 1.1.2 - documentation clarity: the close-out enforcement hook is framed as a later release
 
 Patch. Documentation-only — one `SKILL.md` sentence, tense only. No schema, hook, or behavior
