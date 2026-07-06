@@ -24,6 +24,7 @@ import { fileURLToPath } from "node:url";
 import { execFile, execFileSync } from "node:child_process";
 import { promisify } from "node:util";
 import { loadMergedEvalDocument, validateEvalDocument } from "./lib/skill-evals.mjs";
+import { envAlias } from "./lib/env.mjs";
 
 const execFileP = promisify(execFile);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -69,9 +70,9 @@ const forceLocal = argv.includes("--local");
 
 const API_KEY = process.env.ANTHROPIC_API_KEY;
 const useApi = Boolean(API_KEY) && !forceLocal;
-const MODEL = process.env.BATON_MODEL || "haiku";
-const EFFORT = process.env.BATON_EFFORT || "low";
-const MAX_TURNS = process.env.BATON_MAX_TURNS || "12";
+const MODEL = envAlias("MODEL", "haiku");
+const EFFORT = envAlias("EFFORT", "low");
+const MAX_TURNS = envAlias("MAX_TURNS", "12");
 const API_JUDGE_MODEL = process.env.EVAL_JUDGE_MODEL || "claude-haiku-4-5-20251001";
 const CLI_MODEL = process.env.EVAL_CLI_MODEL || "haiku";
 const CASE_TIMEOUT = Number(process.env.EVAL_CASE_TIMEOUT_MS) || 180_000; // per-case time box

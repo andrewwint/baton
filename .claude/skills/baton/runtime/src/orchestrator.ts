@@ -6,6 +6,7 @@ import { loadLanes, parseFrontmatter } from "./lanes.js";
 import { detectRepo, type RepoProfile } from "./offline.js";
 import { newRunId, writeLedger, resolveLedgerBase, type RunRecord } from "./ledger.js";
 import { discoverMcpServers } from "./mcp.js";
+import { envAlias } from "./env.js";
 
 /**
  * baton runtime.
@@ -112,7 +113,7 @@ async function runOffline(
 // completed run. BATON_LEDGER_DIR overrides the location; BATON_LEDGER_DIR=off
 // disables persistence. A ledger write failure never flips an otherwise-successful run.
 async function safeWriteLedger(record: RunRecord): Promise<void> {
-  const baseDir = resolveLedgerBase(process.env.BATON_LEDGER_DIR, record.repoPath);
+  const baseDir = resolveLedgerBase(envAlias("LEDGER_DIR"), record.repoPath);
   if (!baseDir) return;
   try {
     const dir = await writeLedger(baseDir, record);
@@ -199,7 +200,7 @@ async function main(): Promise<void> {
     "dontAsk",
     "auto",
   ];
-  const permEnv = process.env.BATON_PERMISSION;
+  const permEnv = envAlias("PERMISSION");
   const permissionMode = (
     PERMISSION_MODES.includes(permEnv ?? "") ? permEnv : "acceptEdits"
   ) as PermissionMode;
@@ -209,14 +210,14 @@ async function main(): Promise<void> {
   // read-only runs: BATON_MODEL=haiku BATON_EFFORT=low. Hardest work:
   // BATON_MODEL=opus BATON_EFFORT=xhigh. ('inherit' is a lane-only value,
   // not a valid top-level model, so it falls back to the default here.)
-  const modelEnv = process.env.BATON_MODEL;
+  const modelEnv = envAlias("MODEL");
   const model = modelEnv && modelEnv !== "inherit" ? modelEnv : "sonnet";
   const EFFORTS = ["low", "medium", "high", "xhigh", "max"] as const;
-  const effortEnv = process.env.BATON_EFFORT;
+  const effortEnv = envAlias("EFFORT");
   const effort = ((EFFORTS as readonly string[]).includes(effortEnv ?? "")
     ? effortEnv
     : "medium") as (typeof EFFORTS)[number];
-  const maxTurnsRaw = Math.floor(Number(process.env.BATON_MAX_TURNS));
+  const maxTurnsRaw = Math.floor(Number(envAlias("MAX_TURNS")));
   const maxTurns =
     Number.isInteger(maxTurnsRaw) && maxTurnsRaw > 0 ? maxTurnsRaw : 40;
 

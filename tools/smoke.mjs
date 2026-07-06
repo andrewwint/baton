@@ -12,8 +12,9 @@ const agentsDir = path.resolve(here, "..", ".claude", "skills", "baton", "agents
 const EXPECTED = {
   triage: "haiku",
   implementer: undefined,
-  "code-reviewer": "sonnet",
+  "code-reviewer": "opus", // 1.2.0: adversarial defect-finding runs on the strongest tier (swappable, below)
   researcher: "sonnet",
+  "security-review": "opus",     // 5th bundled lane
 };
 
 const lanes = await loadLanes(agentsDir);
@@ -39,6 +40,17 @@ for (const [name, model] of Object.entries(EXPECTED)) {
 
 const extra = Object.keys(lanes).filter((n) => !(n in EXPECTED));
 if (extra.length) console.log(`note: extra lanes loaded: ${extra.join(", ")}`);
+
+// Per-lane model override (BATON_MODEL_<LANE>) — powers the opus-vs-sonnet code-reviewer ablation.
+process.env.BATON_MODEL_CODE_REVIEWER = "sonnet";
+const overridden = await loadLanes(agentsDir);
+if (overridden["code-reviewer"].model !== "sonnet") {
+  console.error(`FAIL: BATON_MODEL_CODE_REVIEWER=sonnet did not override (got ${overridden["code-reviewer"].model})`);
+  failures++;
+} else {
+  console.log("ok  override: BATON_MODEL_CODE_REVIEWER=sonnet flips code-reviewer opus→sonnet");
+}
+delete process.env.BATON_MODEL_CODE_REVIEWER;
 
 if (failures) {
   console.error(`\nsmoke FAILED (${failures} problem${failures === 1 ? "" : "s"})`);

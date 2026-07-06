@@ -20,6 +20,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFile, execFileSync } from "node:child_process";
 import { promisify } from "node:util";
+import { envAlias } from "./lib/env.mjs";
 
 const execFileP = promisify(execFile);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -48,9 +49,9 @@ loadDotEnv(path.join(RUNTIME_ROOT, ".env"));
 
 const argv = process.argv.slice(2);
 const only = argv.includes("--only") ? argv[argv.indexOf("--only") + 1] : null;
-const MODEL = process.env.BATON_MODEL || "haiku";
-const EFFORT = process.env.BATON_EFFORT || "low";
-const MAX_TURNS = process.env.BATON_MAX_TURNS || "15";
+const MODEL = envAlias("MODEL", "haiku");
+const EFFORT = envAlias("EFFORT", "low");
+const MAX_TURNS = envAlias("MAX_TURNS", "15");
 const TIMEOUT = Number(process.env.BENCH_TIMEOUT_MS) || 240_000;
 
 const hasCreds = Boolean(
