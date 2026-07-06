@@ -43,7 +43,7 @@ print("A. fresh + preserve")
 with tempfile.TemporaryDirectory() as t:
     check("fresh target -> rc 0", ws.wire(t, "baton"), 0)
     c = settings(t)
-    check("all three wired", all(wired(c, e, s) for e, _, s in ws.HOOKS), True)
+    check("all four wired", all(wired(c, e, s) for e, _, s in ws.HOOKS), True)
 with tempfile.TemporaryDirectory() as t:
     seed(t, '{"model":"opus","hooks":{"Stop":[{"hooks":[{"type":"command","command":"echo mine"}]}]}}')
     check("existing config -> rc 0", ws.wire(t, "baton"), 0)

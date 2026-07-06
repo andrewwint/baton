@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Atomically wire baton's enforcement hooks into a target's .claude/settings.json (rebrand task §3).
 
-Merges the three enforcement hooks — Stop (disposition_gate.py), PostToolUse Task|Agent
-(record_lane_spawn.py), SessionStart (session_start_guard.py) — into <target>/.claude/settings.json,
-PRESERVING any existing hooks/config and adding each only if not already present (idempotent). Writes
-atomically (temp + replace). Exits 0 only when ALL THREE are registered after the merge; non-zero otherwise
-— so a partial wiring never reports success (the installer must not present an incomplete install as done).
+Merges the four enforcement hooks — Stop (disposition_gate.py), PostToolUse Task|Agent
+(record_lane_spawn.py and record_triaged_seams.py), SessionStart (session_start_guard.py) — into
+<target>/.claude/settings.json, PRESERVING any existing hooks/config and adding each only if not already
+present (idempotent). Writes atomically (temp + replace). Exits 0 only when ALL FOUR are registered after
+the merge; non-zero otherwise — so a partial wiring never reports success (the installer must not present an
+incomplete install as done).
 
 Usage: wire_settings.py <target-dir> [skill-name]   (skill-name defaults to `baton`)
 """
@@ -14,9 +15,13 @@ import os
 import sys
 
 # (event, matcher-or-None, script) — the enforcement contract. Order is stable for readable diffs.
+# record_triaged_seams.py (the completeness-gate triage-seam sidecar, 1.2.0) MUST be wired alongside
+# record_lane_spawn.py — doctor requires it (an unwired triage sidecar leaves the completeness gate silent),
+# so an installer that omits it produces a red doctor and a failed install.
 HOOKS = [
     ("Stop", None, "disposition_gate.py"),
     ("PostToolUse", "Task|Agent", "record_lane_spawn.py"),
+    ("PostToolUse", "Task|Agent", "record_triaged_seams.py"),
     ("SessionStart", None, "session_start_guard.py"),
 ]
 
