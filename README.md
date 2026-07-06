@@ -188,6 +188,22 @@ Baton orchestrates an AI agent, and is plain about what that means:
 
 Baton's verification *is* the **LLM-as-Judge** pattern, hardened: execution-grounded (the verify lane runs build/tests/lint and writes its own adversarial checks), independent by brief (on high-stakes surfaces at least one reviewer is briefed *cold* — only the spec and the diff, none of the author's hypotheses), adversarial rather than a score, and a **gate** rather than a dashboard (a finding routes to recovery or escalates; with enforcement wired, the verdict can't be stamped over a recorded finding). It is still LLM judgment: the cold read *reduces* shared blind spots, it doesn't remove them, and it can miss or invent a defect. This is why Baton **washes on small tasks** and earns its cost only where the work is consequential enough that an independent, executed check pays for itself. Whether that beats a careful engineer plus one sharp review is still untested. The fuller reasoning — shift-left economics, the hardened-judge design, and how this differs from an autonomous `/goal` loop — is in [`docs/design-notes.md`](docs/design-notes.md), and the recommended practice in [`docs/recommended-workflow.md`](docs/recommended-workflow.md).
 
+### Don't want to install Baton? Take the idea and run.
+
+The core insight isn't the skill — it's *plan, implement, then verify with an independent, cold-briefed review, and don't let a green suite be the last word.* Claude Code already ships `/code-review` and `/security-review` as built-in skills; **compose and steer them from your root `AGENTS.md` / `CLAUDE.md`, which is your routing and triage.** Something as small as:
+
+```md
+For consequential changes: plan first, then hand the diff to a fresh /code-review.
+On anything touching auth, tenant boundaries, data egress, secrets, or migrations,
+run /security-review before calling it done.
+```
+
+gets a capable agent to do the right thing — most of the time. Keep the review a *separate* pass, not a self-read: the trick is a reviewer that didn't write the change and doesn't get your theory of where the bug is.
+
+The honest catch — the reason Baton exists — is that `AGENTS.md` is a *prose* obligation, remembered, not enforced; in our evals an "as needed" line fired about **one time in three**, and the skips left no trace. If a missed review is cheap for you, the line is the right amount of process. If it isn't, that ~⅔ silence is the gap the wired hooks close.
+
+Either way: ship the plan, keep a cold reviewer honest, and don't trust the scoreboard. Be safe out there. 🫡
+
 ## Status
 
 **1.2.0: the enforcement gate ships; stable contract** (semver from 1.0 — the frozen surface is in [CHANGELOG.md](CHANGELOG.md) and [docs/ROADMAP.md](docs/ROADMAP.md#road-to-10)). Contributing and ideas in [CONTRIBUTING.md](CONTRIBUTING.md); real-world usage reports are especially welcome. See [SKILL.md](.claude/skills/baton/SKILL.md) for the full loop, delegation policy, and lane map.
