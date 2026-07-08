@@ -190,7 +190,7 @@ Baton's verification *is* the **LLM-as-Judge** pattern, hardened: execution-grou
 
 ### Don't want to install Baton? Take the idea and run.
 
-The core insight isn't the skill — it's *plan, implement, then verify with an independent, cold-briefed review, and don't let a green suite be the last word.* Claude Code already ships `/code-review` and `/security-review` as built-in skills; **compose and steer them from your root `AGENTS.md` / `CLAUDE.md`, which is your routing and triage.** Something as small as:
+The core insight isn't the skill — it's *plan, implement, then verify with an independent, cold-briefed review, and don't let a green suite be the last word.* Claude Code already ships `/code-review` and `/security-review` as built-in skills; **compose and steer them from your root `AGENTS.md` / `CLAUDE.md`, which is your routing and triage.** No such file yet? Run `/init` to have Claude explore the repo and scaffold one, then add a routing rule — something as small as:
 
 ```md
 For consequential changes: plan first, then hand the diff to a fresh /code-review.
