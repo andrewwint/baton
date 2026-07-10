@@ -39,6 +39,9 @@ sys.path.insert(0, HOOKS_DIR)
 import disposition_contract as contract  # noqa: E402  (vendored, byte-identical, no import edge to the harness)
 
 GATE = os.path.join(HOOKS_DIR, "disposition_gate.py")
+# The shipped self-installer doctor points users at — resolved from THIS file's location, so the pointer
+# is valid whether the skill was installed to ~/.claude/skills/baton or cloned as the repo (never dangling).
+WIRE_INTERACTIVE = os.path.join(HOOKS_DIR, "wire_interactive.py")
 
 # A single sensitive seam so the deriver GOVERNS the run and stamps a verdict. contract_source "none" +
 # no review lane is the simplest record that reaches a stamp; the verdict VALUE is irrelevant to doctor
@@ -134,6 +137,34 @@ def settings_wiring(settings_path, target):
             sha)
 
 
+def ledger_wired(settings_path, target):
+    """True iff the run-trail hook (ledger.py) is wired on BOTH PostToolUse and Stop with resolvable paths.
+    NON-GATING: the ledger is operability, not the security contract, so doctor only WARNS when it is
+    missing (a lost trail, never a lost gate). Reuses settings_wiring's resolve-the-path discipline via a
+    tiny local re-read so the 4-tuple contract other callers depend on stays unchanged."""
+    try:
+        cfg = json.loads(open(settings_path, "rb").read())
+    except (OSError, ValueError):
+        return False
+    hooks = cfg.get("hooks", {}) if isinstance(cfg, dict) else {}
+
+    def wired(event):
+        for grp in hooks.get(event, []) or []:
+            if not isinstance(grp, dict):
+                continue
+            for h in grp.get("hooks", []) or []:
+                if not isinstance(h, dict):
+                    continue
+                for tok in str(h.get("command", "")).split():
+                    if os.path.basename(tok) == "ledger.py":
+                        p = tok if os.path.isabs(tok) else os.path.join(target, tok)
+                        if os.path.isfile(p):
+                            return True
+        return False
+
+    return wired("PostToolUse") and wired("Stop")
+
+
 def write_marker(marker_path, settings_sha, runtime_absent):
     os.makedirs(os.path.dirname(marker_path), exist_ok=True)
     marker = {
@@ -157,6 +188,15 @@ def doctor(target):
     marker_path = os.path.join(target, ".baton", "doctor-verified.json")
     stop_wired, sidecar_wired, triage_wired, settings_sha = settings_wiring(settings_path, target)
     probe_ok, probe_detail, runtime_absent = run_probe()
+    ledger_ok = ledger_wired(settings_path, target)
+
+    def ledger_warn(lines):
+        # NON-GATING operability warning — the run-trail hook is not part of the security contract, so a
+        # missing ledger never flips doctor red; it only tells the user the trail won't be hook-maintained.
+        if not ledger_ok:
+            lines.append("  ⚠ operability: the run-trail hook (ledger.py) is not wired on both PostToolUse "
+                         "and Stop here — the .agents/runs/ledger.md trail will not be hook-maintained on the "
+                         f"interactive path (enforcement is unaffected). Wire it with: python3 {WIRE_INTERACTIVE}")
 
     lines = []
     if stop_wired and sidecar_wired and triage_wired and probe_ok:
@@ -175,6 +215,7 @@ def doctor(target):
         lines.append("   specialist review, when consulted, is recorded and the verdict is gated on it. NOT a")
         lines.append("   catch-rate/efficacy claim, and NOT a claim that any review was security-competent")
         lines.append("   (competence lives in routing, not the gate).)")
+        ledger_warn(lines)
         return True, lines
 
     lines.append("✗ baton doctor: enforcement is NOT verified on this machine")
@@ -187,7 +228,10 @@ def doctor(target):
                      "— the completeness gate is silent without it")
     if not probe_ok:
         lines.append(f"  ✗ probe did not fire cleanly: {probe_detail}")
-    lines.append("  Fix: run the installer (tools/install.sh) to wire enforcement, then re-run baton doctor.")
+    ledger_warn(lines)
+    lines.append(f"  Fix (installed skill — no checkout needed): python3 {WIRE_INTERACTIVE}")
+    lines.append("       (wires the user-global ~/.claude/settings.json with absolute paths, then re-runs "
+                 "this check). From a repo clone you can instead run: tools/install.sh --global")
     return False, lines
 
 

@@ -43,7 +43,9 @@ print("A. fresh + preserve")
 with tempfile.TemporaryDirectory() as t:
     check("fresh target -> rc 0", ws.wire(t, "baton"), 0)
     c = settings(t)
-    check("all four wired", all(wired(c, e, s) for e, _, s in ws.HOOKS), True)
+    check("every (event, script) wired", all(wired(c, e, s) for e, _, s in ws.HOOKS), True)
+    check("ledger.py wired on BOTH events (multi-event script)",
+          wired(c, "PostToolUse", "ledger.py") and wired(c, "Stop", "ledger.py"), True)
 with tempfile.TemporaryDirectory() as t:
     seed(t, '{"model":"opus","hooks":{"Stop":[{"hooks":[{"type":"command","command":"echo mine"}]}]}}')
     check("existing config -> rc 0", ws.wire(t, "baton"), 0)
@@ -80,6 +82,32 @@ print("D. refuse malformed event structures")
 with tempfile.TemporaryDirectory() as t:
     seed(t, '{"hooks":{"Stop":{"not":"a list"}}}')
     check("non-list event -> rc 1 (refuse to clobber)", ws.wire(t, "baton"), 1)
+
+print("E. global interactive path — absolute base + exclude session_start_guard")
+with tempfile.TemporaryDirectory() as t:
+    base = "/Users/x/.claude/skills/baton/hooks"
+    check("wire with base+exclude -> rc 0",
+          ws.wire(t, "baton", base=base, exclude={"session_start_guard.py"}), 0)
+    c = settings(t)
+    # commands use the ABSOLUTE base, not the relative .claude/... path
+    stop_cmds = [h["command"] for g in c["hooks"]["Stop"] for h in g["hooks"]]
+    check("Stop disposition_gate uses absolute base",
+          any(cmd == f"python3 {base}/disposition_gate.py" for cmd in stop_cmds), True)
+    check("ledger.py wired on BOTH events with absolute base",
+          wired(c, "PostToolUse", "ledger.py") and wired(c, "Stop", "ledger.py"), True)
+    # the excluded hook must NOT be wired, and its absence must not fail the rc-0 verification
+    check("session_start_guard.py EXCLUDED (not wired)",
+          any("session_start_guard.py" in cmd for cmd in stop_cmds)
+          or "SessionStart" in c["hooks"], False)
+with tempfile.TemporaryDirectory() as t:
+    # main() arg parsing: flags in any position resolve to target + base + exclude
+    rc = ws.main([t, "baton", "--exclude", "session_start_guard.py",
+                  "--hooks-base", "/abs/hooks"])
+    check("main() parses --hooks-base/--exclude -> rc 0", rc, 0)
+    c = settings(t)
+    check("main() applied absolute base",
+          any(h["command"] == "python3 /abs/hooks/disposition_gate.py"
+              for g in c["hooks"]["Stop"] for h in g["hooks"]), True)
 
 if failures:
     print(f"\nWIRE_SETTINGS SELFTEST FAILED ({failures})")

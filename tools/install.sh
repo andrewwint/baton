@@ -23,9 +23,12 @@ Usage:
                              the current directory. The SDK runtime does not need this.
 
   install.sh --global        Refresh the user-global skill at ~/.claude/skills/baton
-                             from this checkout AND hash-check the lane prompts into
-                             ~/.claude/agents. Preserves local .env / runtime/.mcp.json
-                             and skips node_modules/ and dist/.
+                             from this checkout, hash-check the lane prompts into
+                             ~/.claude/agents, AND wire the interactive-path hooks
+                             (ledger + enforcement, absolute paths) into
+                             ~/.claude/settings.json so `/baton` fires them in any repo.
+                             Preserves local .env / runtime/.mcp.json and existing
+                             settings; skips node_modules/ and dist/.
 
   install.sh --enforce [target] Install-contract mode: copy baton's enforcement hooks into
                              <target>/.claude/skills/<skill>/hooks, atomically wire the Stop +
@@ -55,8 +58,9 @@ install_enforcement() {
     case "$name" in *_test.py|*_selftest.py) continue ;; esac
     cp "$f" "$hooks_dest/$name"
   done
-  # atomic, idempotent merge of the three hooks into settings.json (preserves existing config)
-  python3 "$TOOLS_DIR/wire_settings.py" "$target" "$SKILL_NAME" || {
+  # atomic, idempotent merge of the enforcement hooks into settings.json (preserves existing config).
+  # wire_settings.py ships IN the skill (hooks/) so an installed copy can self-wire; call it from there.
+  python3 "$SKILL_ROOT/hooks/wire_settings.py" "$target" "$SKILL_NAME" || {
     echo "error: could not wire enforcement into settings.json — install incomplete." >&2
     exit 1
   }
@@ -120,7 +124,26 @@ if [[ "${1:-}" == "--global" ]]; then
   echo "Syncing lane agents -> $AGENTS_DEST (hash-checked)"
   sync_agents "$AGENTS_DEST"
 
-  echo "Restart Claude Code so the refreshed skill + lane prompts are picked up."
+  # Interactive-path wiring. baton's own runtime wires these hooks in-process, but an interactive
+  # `/baton` session (no runtime) only fires hooks a settings.json registers — without this, the
+  # run-ledger + enforcement hooks never fire outside the baton repo (they revert to prose). Wire them
+  # into the USER-GLOBAL settings with ABSOLUTE hook paths so they resolve from any project's cwd; the
+  # hooks' own write paths stay relative, so the trail lands in whatever project is active. Exclude
+  # session_start_guard.py: its per-project doctor-marker model would fail-loud in EVERY unrelated repo
+  # if wired globally (it belongs to the per-project --enforce path). Idempotent + preserves existing
+  # config (wire_settings never clobbers). Delegates to the SHIPPED self-installer (hooks/wire_interactive.py)
+  # so this dev-side sync and the doctor-pointed self-service use ONE code path — it derives the absolute
+  # base from the just-synced skill's own location and runs doctor to confirm.
+  # Expected/benign: inside the baton checkout ITSELF, the repo's own project .claude/settings.json wires
+  # these hooks with RELATIVE paths and this wires them again with ABSOLUTE paths — different command
+  # strings, so Claude Code does not dedup them and both fire in parallel. Harmless (disposition_gate is
+  # idempotent; over-recording never weakens the gate; ledger self-heals a duplicate closeout). No other
+  # repo has project-level baton settings, so elsewhere only this global wiring fires.
+  echo "Wiring interactive hooks into ${HOME}/.claude/settings.json (via the shipped self-installer) ..."
+  python3 "$DEST/hooks/wire_interactive.py" \
+    || echo "  note: interactive wiring/doctor reported an issue above; the skill sync still succeeded."
+
+  echo "Restart Claude Code so the refreshed skill + lane prompts + hooks are picked up."
   exit 0
 fi
 

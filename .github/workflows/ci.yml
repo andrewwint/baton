@@ -9,6 +9,7 @@ on:
     branches: [main]
     paths:
       - ".claude/skills/baton/runtime/**"
+      - ".claude/skills/baton/hooks/**"
       - ".claude/skills/baton/evals/**"
       - "tools/**"
       - ".github/workflows/ci.yml"

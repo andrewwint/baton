@@ -53,13 +53,27 @@ try {
   console.error(String(e.message));
 }
 
-// 1. Python unit self-test (the derive() + sidecar unit layer) must be green first.
-try {
-  execFileSync("python3", [path.join(HOOKS, "disposition_gate_selftest.py")], { stdio: "pipe" });
-  ck("python self-tests pass", true);
-} catch (e) {
-  ck("python self-tests pass", false);
-  console.error(String(e.stdout || e.message).split("\n").slice(-6).join("\n"));
+// 1. Python unit self-tests (the derive() + sidecar + wiring + ledger + installer layers) must be green
+// first. Every hook test is gated here so a regression in any of them fails CI — including the ledger
+// trail, the doctor ledger-warn, and the shipped self-installer's fresh-HOME→doctor-GREEN acceptance
+// (wire_interactive_test.py), which otherwise had no automated gate.
+const PY_TESTS = [
+  "disposition_gate_selftest.py",
+  "disposition_contract_test.py",
+  "doctor_test.py",
+  "session_start_guard_test.py",
+  "wire_settings_test.py",
+  "wire_interactive_test.py",
+  "ledger_test.py",
+];
+for (const t of PY_TESTS) {
+  try {
+    execFileSync("python3", [path.join(HOOKS, t)], { stdio: "pipe" });
+    ck(`python self-test passes: ${t}`, true);
+  } catch (e) {
+    ck(`python self-test passes: ${t}`, false);
+    console.error(String(e.stdout || e.message).split("\n").slice(-8).join("\n"));
+  }
 }
 
 // Helpers that run each hook with cwd = the temp workspace (the hooks use cwd-relative paths).
