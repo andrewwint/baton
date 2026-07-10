@@ -11,6 +11,10 @@
           {
             "type": "command",
             "command": "python3 .claude/skills/baton/hooks/record_triaged_seams.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 .claude/skills/baton/hooks/ledger.py"
           }
         ]
       }
@@ -21,6 +25,10 @@
           {
             "type": "command",
             "command": "python3 .claude/skills/baton/hooks/disposition_gate.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 .claude/skills/baton/hooks/ledger.py"
           }
         ]
       }

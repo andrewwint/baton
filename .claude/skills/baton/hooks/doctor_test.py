@@ -17,6 +17,7 @@ import doctor  # noqa: E402
 GATE = os.path.join(HOOKS_DIR, "disposition_gate.py")
 SIDECAR = os.path.join(HOOKS_DIR, "record_lane_spawn.py")
 TRIAGE = os.path.join(HOOKS_DIR, "record_triaged_seams.py")
+LEDGER = os.path.join(HOOKS_DIR, "ledger.py")
 failures = 0
 
 
@@ -29,19 +30,25 @@ def check(label, got, want):
         failures += 1
 
 
-def write_settings(target, stop_cmd, sidecar_cmd, triage_cmd="__default__"):
+def write_settings(target, stop_cmd, sidecar_cmd, triage_cmd="__default__", ledger=False):
     # triage_cmd defaults to the real triage sidecar so existing green cases stay green; pass None to omit it.
     if triage_cmd == "__default__":
         triage_cmd = f"python3 {TRIAGE}"
     os.makedirs(os.path.join(target, ".claude"), exist_ok=True)
     cfg = {"hooks": {}}
+    stop = []
     if stop_cmd is not None:
-        cfg["hooks"]["Stop"] = [{"hooks": [{"type": "command", "command": stop_cmd}]}]
+        stop.append({"type": "command", "command": stop_cmd})
     post = []
     if sidecar_cmd is not None:
         post.append({"type": "command", "command": sidecar_cmd})
     if triage_cmd is not None:
         post.append({"type": "command", "command": triage_cmd})
+    if ledger:  # wire ledger.py on BOTH events, as the installer does
+        post.append({"type": "command", "command": f"python3 {LEDGER}"})
+        stop.append({"type": "command", "command": f"python3 {LEDGER}"})
+    if stop:
+        cfg["hooks"]["Stop"] = [{"hooks": stop}]
     if post:
         cfg["hooks"]["PostToolUse"] = [{"matcher": "Task|Agent", "hooks": post}]
     with open(os.path.join(target, ".claude", "settings.json"), "w") as f:
@@ -100,6 +107,26 @@ with tempfile.TemporaryDirectory() as t:
     green, _ = doctor.doctor(t)  # empty target, no settings
     check("unwired -> RED", green, False)
     check("red writes NO marker", os.path.isfile(os.path.join(t, ".baton", "doctor-verified.json")), False)
+
+print("D. ledger warn is NON-GATING — green stays green, warn only when unwired")
+sp = lambda t: os.path.join(t, ".claude", "settings.json")  # noqa: E731
+with tempfile.TemporaryDirectory() as t:
+    write_settings(t, f"python3 {GATE}", f"python3 {SIDECAR}")  # no ledger
+    check("ledger not wired -> ledger_wired False", doctor.ledger_wired(sp(t), t), False)
+    green, lines = doctor.doctor(t)
+    check("missing ledger does NOT flip green red (non-gating)", green, True)
+    check("green output carries the ⚠ operability warn", any("ledger.py) is not wired" in l for l in lines), True)
+with tempfile.TemporaryDirectory() as t:
+    # ledger on Stop ONLY (not PostToolUse) must NOT count as wired — the trail needs both events
+    os.makedirs(os.path.join(t, ".claude"))
+    with open(os.path.join(t, ".claude", "settings.json"), "w") as f:
+        json.dump({"hooks": {"Stop": [{"hooks": [{"type": "command", "command": f"python3 {LEDGER}"}]}]}}, f)
+    check("ledger on one event only -> ledger_wired False", doctor.ledger_wired(sp(t), t), False)
+with tempfile.TemporaryDirectory() as t:
+    write_settings(t, f"python3 {GATE}", f"python3 {SIDECAR}", ledger=True)
+    check("ledger wired on both events -> ledger_wired True", doctor.ledger_wired(sp(t), t), True)
+    green, lines = doctor.doctor(t)
+    check("wired ledger -> GREEN, no warn", green and not any("ledger.py) is not wired" in l for l in lines), True)
 
 if failures:
     print(f"\nDOCTOR SELFTEST FAILED ({failures})")
