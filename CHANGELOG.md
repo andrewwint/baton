@@ -4,6 +4,17 @@ Notable changes to Baton. From 1.0.0 the public contract is stable and changes f
 versioning; the surface frozen at 1.0 was the loop and routing gate, the lane map and four bundled
 agents (a fifth, `security-review`, added in 1.1.0), the `RunRecord` ledger shape, and MCP-via-`.mcp.json`.
 
+## 1.3.1 - the run-trail close-out count can no longer contradict its own lines
+
+Patch. Fixes a consistency bug in the run trail surfaced by a real integration test: the `Stop`
+close-out could print `lanes recorded this session: 0` directly above the lane lines it had just
+written. The count read only the sibling machine ledger (`lane_spawns.jsonl`, written by
+`record_lane_spawn.py`); when that hook had not fired, the count read 0 despite `ledger.py` having
+recorded the spawns itself. The close-out count now derives from `ledger.py`'s own recorded lane
+lines, reconciled with the sibling ledger (the higher of the two), so it is never lower than the
+lines shown and a sibling-only observation is not lost. Trail-only; no change to any enforcement
+verdict, the disposition gate, or the frozen 1.0 contract.
+
 ## 1.3.0 - the run trail becomes hook-enforced, and enforcement wires on the interactive path
 
 Minor. Adds a bundled run-trail hook and makes baton's hooks fire on the interactive `/baton` path
