@@ -115,9 +115,15 @@ def lane_from_event(event):
     return {"subagent_type": subagent_type, "task_id": task_id}
 
 
+# The distinctive marker of a lane line — shared by lane_line() (writer) and lane_count() (reader) so the
+# close-out count is derived from the SAME lines it displays and cannot drift from them. No other line the
+# ledger writes (header, close-out, verdicts) contains this phrase.
+_LANE_MARK = "lane spawned:"
+
+
 def lane_line(lane, ts):
     tid = f" · task `{lane['task_id']}`" if lane.get("task_id") else ""
-    return f"- {ts} · lane spawned: `{lane['subagent_type']}`{tid}"
+    return f"- {ts} · {_LANE_MARK} `{lane['subagent_type']}`{tid}"
 
 
 # ---- Stop: idempotent closeout ------------------------------------------------------------------
@@ -144,8 +150,28 @@ def sensitive_triaged(path=TRIAGED_SEAMS_PATH):
     return classes
 
 
-def lane_count(path=LANE_SPAWNS_PATH):
-    """How many real lanes the machine sidecar recorded this session (authoritative spawn count)."""
+def _own_lane_lines(ledger_path=LEDGER):
+    """How many lane lines ledger.py has written to its OWN trail this session — the count that MUST match
+    the lines shown directly above the close-out (they are literally those lines)."""
+    try:
+        return sum(1 for line in open(ledger_path).read().splitlines() if _LANE_MARK in line)
+    except OSError:
+        return 0
+
+
+def lane_count(ledger_path=LEDGER, spawns_path=LANE_SPAWNS_PATH):
+    """Lanes recorded this session, for the close-out. Reconciles TWO observers so the number is never
+    LOWER than the lane LINES printed right above it (the reported bug direction):
+      - ledger.py's OWN recorded lane lines (what the reader sees), and
+      - the forge-proof sibling ledger `lane_spawns.jsonl` (record_lane_spawn.py), which may hold spawns
+        seen when ledger's PostToolUse handler did not fire.
+    Returns the MAX. This fixes the real-test bug where reading ONLY the sibling ledger printed
+    "lanes recorded: 0" while ledger.py had just written N lane lines (the sibling had not fired): the count
+    is now never lower than the lines present, and a sibling-only observation is still not lost."""
+    return max(_own_lane_lines(ledger_path), _sibling_spawns(spawns_path))
+
+
+def _sibling_spawns(path=LANE_SPAWNS_PATH):
     try:
         return sum(1 for line in open(path).read().splitlines() if line.strip())
     except OSError:

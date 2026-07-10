@@ -141,6 +141,35 @@ with tempfile.TemporaryDirectory() as t:
     check("read_event normalization is dict-or-empty (non-dict -> {})",
           all(isinstance(x, dict) for x in [{}]), True)
 
+print("G. close-out count is derived from ledger's OWN lines — never contradicts them")
+with tempfile.TemporaryDirectory() as t:
+    # Run ONLY ledger.py (record_lane_spawn.py NOT involved), so lane_spawns.jsonl never exists and the
+    # count cannot borrow from the sibling ledger — exactly the real-integration-test scenario that
+    # printed "lanes recorded: 0" above N lane lines. Don't pre-seed lane_spawns.jsonl: the coupling
+    # must not be able to hide.
+    lanes = ["triage", "implementer", "code-reviewer"]
+    for lane in lanes:
+        subprocess.run([sys.executable, LEDGER_PY],
+                       input=json.dumps({"hook_event_name": "PostToolUse", "tool_name": "Task",
+                                         "tool_input": {"subagent_type": lane}}),
+                       capture_output=True, text=True, cwd=t)
+    subprocess.run([sys.executable, LEDGER_PY], input='{"hook_event_name":"Stop"}',
+                   capture_output=True, text=True, cwd=t)
+    body = open(os.path.join(t, ".agents", "runs", "ledger.md")).read()
+    check("only ledger.py ran -> no sibling lane_spawns.jsonl",
+          os.path.exists(os.path.join(t, ".agents", "runs", "lane_spawns.jsonl")), False)
+    check("3 lane lines written", body.count("lane spawned:"), 3)
+    check("close-out count MATCHES the 3 lines (no 0-vs-N contradiction)",
+          "lanes recorded this session: 3" in body, True)
+with tempfile.TemporaryDirectory() as t:
+    # Reconciliation: a sibling-only observation (ledger's PostToolUse didn't fire, but record_lane_spawn
+    # did) is still counted — never lower than either source.
+    os.makedirs(os.path.join(t, ".agents", "runs"))
+    seed_jsonl(os.path.join(t, ".agents", "runs", "lane_spawns.jsonl"),
+               [{"subagent_type": "s1"}, {"subagent_type": "s2"}])
+    os.chdir(t)
+    check("sibling-only spawns still counted (max of both sources)", L.lane_count(), 2)
+
 if failures:
     print(f"\nLEDGER SELFTEST FAILED ({failures})")
     sys.exit(1)
