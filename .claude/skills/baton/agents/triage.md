@@ -67,6 +67,9 @@ routes data/prompts to a hosted model is `data-egress` (and, where it provisions
 not only the approval gate. "Nothing changed in the repo" is not "no seam." **Emit the line in exactly this grammar** — `<class>` or `<class>@<hint>`, seams separated by ` | `
 (a space-padded pipe); a bare `|` inside a hint does not split. A malformed or unparseable line is **not**
 silently dropped: it is treated as **seams indeterminate** and resolves to `UNVERIFIED-SEAM`, forcing human
-attention — so a sloppy line costs more than a clean one, it never costs less. (This line is the coupled
+attention — so a sloppy line costs more than a clean one, it never costs less. (This line is how a triage
+**lane** records seams. When the manager triages a seam **inline** without a lane, the same machine record
+is made via `hooks/record_seam.py <class>@<hint>` — see SKILL.md; a named seam must reach the machine ledger
+either way, or the completeness gate cannot see it.) (This line is the coupled
 `TRIAGE-SEAMS` shape; the forge-proof machine cross-check that reads it is runtime-bound — see
 `docs/coupled-shape-spec.md`. baton emits and observes the shape; it does not run that gate.)
