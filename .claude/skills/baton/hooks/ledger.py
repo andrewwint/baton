@@ -32,6 +32,7 @@ import glob
 import hashlib
 import json
 import os
+import re
 import sys
 from datetime import datetime
 
@@ -115,10 +116,14 @@ def lane_from_event(event):
     return {"subagent_type": subagent_type, "task_id": task_id}
 
 
-# The distinctive marker of a lane line — shared by lane_line() (writer) and lane_count() (reader) so the
-# close-out count is derived from the SAME lines it displays and cannot drift from them. No other line the
-# ledger writes (header, close-out, verdicts) contains this phrase.
+# The lane-line marker phrase (writer) and the ANCHORED reader pattern (counter) — kept in sync so the
+# close-out count is derived from the SAME lines it displays and cannot drift. The reader anchors on the
+# FULL shape `- <ts> · lane spawned: ` (leading "- ", the "·" separator, the phrase), NOT a bare
+# "lane spawned:" substring: otherwise an interpolated string that happens to contain the phrase (e.g. a
+# disposition verdict written into a close-out line) would be miscounted as a lane. No line the ledger
+# writes other than a real lane line matches this anchored shape.
 _LANE_MARK = "lane spawned:"
+_LANE_LINE_RE = re.compile(r"^- .+ · lane spawned: ")
 
 
 def lane_line(lane, ts):
@@ -150,30 +155,20 @@ def sensitive_triaged(path=TRIAGED_SEAMS_PATH):
     return classes
 
 
-def _own_lane_lines(ledger_path=LEDGER):
-    """How many lane lines ledger.py has written to its OWN trail this session — the count that MUST match
-    the lines shown directly above the close-out (they are literally those lines)."""
+def lane_count(ledger_path=LEDGER):
+    """Lanes recorded this session, for the close-out — counted from ledger.py's OWN lane lines and ONLY
+    those, so the number ALWAYS equals the lines shown directly above it (they are literally those lines).
+
+    This is the SINGLE-SOURCE fix, superseding 1.3.1's `max(own, sibling)` reconciliation. That earlier
+    version cured "count below lines" but a real session then exposed the inverse: it printed "recorded: 23"
+    over just 4 visible lane lines (ledger.py was wired mid-session and missed early spawns the sibling
+    `lane_spawns.jsonl` had caught). Reconciling two observers of one fact meant the number could disagree
+    with the trail in EITHER direction. The trail's count must describe the trail: count its own lines, and
+    the two can never contradict. The forge-proof sibling ledger keeps its own job (the disposition deriver);
+    it is not this human count's source. A fresh session wires ledger.py from the start, so its own lines
+    are the complete set anyway."""
     try:
-        return sum(1 for line in open(ledger_path).read().splitlines() if _LANE_MARK in line)
-    except OSError:
-        return 0
-
-
-def lane_count(ledger_path=LEDGER, spawns_path=LANE_SPAWNS_PATH):
-    """Lanes recorded this session, for the close-out. Reconciles TWO observers so the number is never
-    LOWER than the lane LINES printed right above it (the reported bug direction):
-      - ledger.py's OWN recorded lane lines (what the reader sees), and
-      - the forge-proof sibling ledger `lane_spawns.jsonl` (record_lane_spawn.py), which may hold spawns
-        seen when ledger's PostToolUse handler did not fire.
-    Returns the MAX. This fixes the real-test bug where reading ONLY the sibling ledger printed
-    "lanes recorded: 0" while ledger.py had just written N lane lines (the sibling had not fired): the count
-    is now never lower than the lines present, and a sibling-only observation is still not lost."""
-    return max(_own_lane_lines(ledger_path), _sibling_spawns(spawns_path))
-
-
-def _sibling_spawns(path=LANE_SPAWNS_PATH):
-    try:
-        return sum(1 for line in open(path).read().splitlines() if line.strip())
+        return sum(1 for line in open(ledger_path).read().splitlines() if _LANE_LINE_RE.match(line))
     except OSError:
         return 0
 
@@ -203,8 +198,21 @@ def collect_verdicts(runs_dir=RUNS_DIR):
 
 
 def closeout_body(ts, lanes, seams, verdicts):
-    """The human-readable closeout block, WITHOUT the signature marker (added by closeout_block)."""
-    lines = [f"## closeout — {ts}", f"- lanes recorded this session: {lanes}"]
+    """The human-readable closeout block, WITHOUT the signature marker (added by closeout_block).
+
+    NOTE — there is deliberately NO close-out "a seam was named inline but not recorded" WARN. A reliable
+    one is not achievable from here: the skill's own content (loaded into the session transcript) contains
+    the seam examples and the `TRIAGE-SEAMS:` token, and `TRIAGE-SEAMS: none` is the CLEAN-path signal — so
+    any transcript scan cries wolf on essentially every no-seam run, training the reader to ignore it.
+    Inline seam-naming is also indistinguishable from the manager merely discussing a seam. The inline-seam
+    blind spot is closed instead by (a) `hooks/record_seam.py` + the SKILL.md rule that a named seam MUST be
+    machine-recorded, and (b) the authoritative post-hoc scorer against the full stream — not by a
+    best-effort close-out signal that can't tell a real inline seam from the skill's own example text."""
+    # "so far", not "this session": Stop fires on every turn end, so a session accrues MULTIPLE close-outs,
+    # each a running snapshot (0 lanes at the first stop, 1 after a lane spawns, ...). "so far" tells a
+    # reader the number is cumulative-at-this-stop, not a final "the session had N lanes" — the ambiguity a
+    # 0-then-1 sequence otherwise creates.
+    lines = [f"## closeout — {ts}", f"- lanes recorded so far: {lanes}"]
     if seams:
         lines.append(f"- sensitive seams triaged: {', '.join(seams)}")
         covered = {run for run, _ in verdicts}

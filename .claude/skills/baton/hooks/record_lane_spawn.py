@@ -73,6 +73,13 @@ def spawn_from_event(event):
     if not subagent_type:
         return None
     resp = event.get("tool_response") or {}
+    # task_id is EXPECTED-NULL from PostToolUse: Claude Code does not surface a subagent/task id on this
+    # event in the builds observed (a task id lives on SubagentStart/Stop, not the Task/Agent PostToolUse) —
+    # empirically null on 100% of real spawns. We keep the multi-key extraction so a build that DOES provide
+    # it is captured, and record `null` honestly when absent. It is NOT load-bearing: the disposition deriver
+    # reconciles a claimed specialist to a recorded spawn by non-generic `subagent_type` (the primary path),
+    # with `task_id` only an ADDITIONAL substring match — so a null id never weakens the gate. Do not treat
+    # the null as a bug to route around; it is a payload limitation, gracefully handled.
     task_id = (resp.get("task_id") or resp.get("id")
                or event.get("task_id") or tool_input.get("task_id"))
     return {"subagent_type": subagent_type, "task_id": task_id}

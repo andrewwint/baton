@@ -78,17 +78,17 @@ with tempfile.TemporaryDirectory() as t:
     check("still one closeout block (dedup by content signature)",
           read_ledger().count("## closeout"), 1)
 
-print("D. closeout advances when state changes (new lane + a stamped verdict)")
+print("D. closeout advances when state changes (new lane line + a stamped verdict)")
 with tempfile.TemporaryDirectory() as t:
     os.chdir(t)
     L.handle_stop(ts="2026-07-06 10:05:00")
-    seed_jsonl(L.LANE_SPAWNS_PATH, [{"subagent_type": "implementer", "task_id": "x"}])
+    L.append_line(L.lane_line({"subagent_type": "implementer", "task_id": None}, "2026-07-06 10:07:00"))
     seed_disposition("2026-07-06-feature", "REVIEWED-CLEAN")
     L.handle_stop(ts="2026-07-06 10:10:00")
     body = read_ledger()
     check("second closeout appended (state advanced)", body.count("## closeout"), 2)
     check("verdict surfaced", "REVIEWED-CLEAN" in body, True)
-    check("lane count surfaced", "lanes recorded this session: 1" in body, True)
+    check("count matches the 1 OWN lane line", "lanes recorded so far: 1" in body, True)
 
 print("E. sensitive-seam closeout points at the disposition verdicts, not the no-seam stub")
 with tempfile.TemporaryDirectory() as t:
@@ -141,6 +141,19 @@ with tempfile.TemporaryDirectory() as t:
     check("read_event normalization is dict-or-empty (non-dict -> {})",
           all(isinstance(x, dict) for x in [{}]), True)
 
+print("H. lane_count is anchored to the lane-line SHAPE — an interpolated verdict can't inflate it")
+with tempfile.TemporaryDirectory() as t:
+    os.chdir(t)
+    L.append_line(L.lane_line({"subagent_type": "implementer", "task_id": None}, "2026-07-06 11:00:00"))
+    # a disposition whose verdict string literally contains the phrase "lane spawned:" (adversarial) must
+    # NOT be counted as a second lane — the count anchors on "- <ts> · lane spawned: ", which a verdict line
+    # ("- disposition verdicts: ...") never matches.
+    seed_disposition("run1", "READY lane spawned: not-a-lane")
+    L.handle_stop(ts="2026-07-06 11:01:00")
+    body = read_ledger()
+    check("exactly 1 real lane line", body.count("· lane spawned:"), 1)
+    check("count is 1, not inflated by the verdict phrase", "lanes recorded so far: 1" in body, True)
+
 print("G. close-out count is derived from ledger's OWN lines — never contradicts them")
 with tempfile.TemporaryDirectory() as t:
     # Run ONLY ledger.py (record_lane_spawn.py NOT involved), so lane_spawns.jsonl never exists and the
@@ -160,15 +173,18 @@ with tempfile.TemporaryDirectory() as t:
           os.path.exists(os.path.join(t, ".agents", "runs", "lane_spawns.jsonl")), False)
     check("3 lane lines written", body.count("lane spawned:"), 3)
     check("close-out count MATCHES the 3 lines (no 0-vs-N contradiction)",
-          "lanes recorded this session: 3" in body, True)
+          "lanes recorded so far: 3" in body, True)
 with tempfile.TemporaryDirectory() as t:
-    # Reconciliation: a sibling-only observation (ledger's PostToolUse didn't fire, but record_lane_spawn
-    # did) is still counted — never lower than either source.
+    # 1.3.2 design change (supersedes 1.3.1's max reconciliation): the count is ledger's OWN lines ONLY,
+    # so a sibling-only observation (record_lane_spawn fired, ledger's PostToolUse didn't) is NOT counted
+    # here. The count describes the trail it sits in, so it can never EXCEED the visible lines either — the
+    # inverse contradiction a real session hit ("recorded: 23" over 4 visible lines).
     os.makedirs(os.path.join(t, ".agents", "runs"))
     seed_jsonl(os.path.join(t, ".agents", "runs", "lane_spawns.jsonl"),
                [{"subagent_type": "s1"}, {"subagent_type": "s2"}])
     os.chdir(t)
-    check("sibling-only spawns still counted (max of both sources)", L.lane_count(), 2)
+    check("sibling-only spawns NOT counted (own-lines-only; count can't exceed visible lines)",
+          L.lane_count(), 0)
 
 if failures:
     print(f"\nLEDGER SELFTEST FAILED ({failures})")

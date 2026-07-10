@@ -166,21 +166,47 @@ def spawned_specialist_lanes(transcript_path):
     return (True, lanes)
 
 
-def sidecar_enforcement_active(settings_path=SETTINGS_PATH):
-    """True iff the `record_lane_spawn` PostToolUse sidecar is wired. This is an INSTALL-time signal
-    (settings.json, not model-authored per run), so it is trustworthy: when the sidecar is wired, an
-    absent/empty spawn ledger genuinely means no independent lane spawned — so a claimed specialist is
-    a fabrication — whereas when it is NOT wired the deriver must fall back to record-only (it cannot
-    tell a missing ledger from an uninstalled hook)."""
-    try:
-        cfg = json.loads(open(settings_path).read())
-    except (OSError, ValueError):
-        return False
-    for entry in cfg.get("hooks", {}).get("PostToolUse", []) or []:
-        for h in entry.get("hooks", []) or []:
-            if "record_lane_spawn" in (h.get("command") or ""):
-                return True
+def _candidate_settings(settings_path):
+    """The settings.json file(s) to consult for a wired-hook signal. An EXPLICIT path (tests) is checked
+    ALONE. The production default (None) checks the PROJECT settings, the project-LOCAL settings, AND the
+    USER-GLOBAL `~/.claude/settings.json` — because the INTERACTIVE `/baton` path wires the enforcement
+    hooks GLOBALLY (via `hooks/wire_interactive.py`), not in a per-project settings.json. Reading only the
+    project file made the deriver believe the sidecars were unwired on every interactive run in an ordinary
+    repo, so `sidecar_real_spawns` returned None (record-only) and the completeness gate went silent — the
+    hooks fired and recorded, but the deriver could not SEE that they were wired, so it did not trust them
+    (observed live: `_sidecar_diag.enforcement_active: false` with a real spawn in `lane_spawns.jsonl`)."""
+    if settings_path is not None:
+        return [settings_path]
+    return [
+        SETTINGS_PATH,                                             # project (cwd-relative)
+        os.path.join(".claude", "settings.local.json"),           # project-local
+        os.path.join(os.path.expanduser("~"), ".claude", "settings.json"),  # user-global (interactive path)
+    ]
+
+
+def _hook_wired(needle, settings_path):
+    """True iff a PostToolUse hook command containing `needle` is wired in ANY candidate settings.json."""
+    for p in _candidate_settings(settings_path):
+        try:
+            cfg = json.loads(open(p).read())
+        except (OSError, ValueError):
+            continue
+        if not isinstance(cfg, dict):
+            continue
+        for entry in cfg.get("hooks", {}).get("PostToolUse", []) or []:
+            for h in (entry.get("hooks", []) if isinstance(entry, dict) else []) or []:
+                if isinstance(h, dict) and needle in (h.get("command") or ""):
+                    return True
     return False
+
+
+def sidecar_enforcement_active(settings_path=None):
+    """True iff the `record_lane_spawn` PostToolUse sidecar is wired (project, local, OR user-global). This
+    is an INSTALL-time signal (settings.json, not model-authored per run), so it is trustworthy: when the
+    sidecar is wired, an absent/empty spawn ledger genuinely means no independent lane spawned — so a claimed
+    specialist is a fabrication — whereas when it is NOT wired the deriver must fall back to record-only (it
+    cannot tell a missing ledger from an uninstalled hook)."""
+    return _hook_wired("record_lane_spawn", settings_path)
 
 
 def recorded_spawns(path=LANE_SPAWNS_PATH):
@@ -237,7 +263,7 @@ def reconciled_nongeneric(ref_l, spawns):
     return False
 
 
-def sidecar_real_spawns(settings_path=SETTINGS_PATH, ledger_path=LANE_SPAWNS_PATH):
+def sidecar_real_spawns(settings_path=None, ledger_path=LANE_SPAWNS_PATH):
     """The recorded spawns to reconcile against, or None for record-only.
     None -> sidecar not wired; honor a claimed specialist on record facts + the text guard (fallback).
     list -> sidecar wired; honor a claimed specialist ONLY if its lane reference reconciles to a recorded
@@ -247,22 +273,15 @@ def sidecar_real_spawns(settings_path=SETTINGS_PATH, ledger_path=LANE_SPAWNS_PAT
     return recorded_spawns(ledger_path)
 
 
-def triage_sidecar_active(settings_path=SETTINGS_PATH):
-    """True iff the `record_triaged_seams` PostToolUse sidecar is wired. Like `sidecar_enforcement_active`,
-    this is an INSTALL-time signal (settings.json, not model-authored per run), so it is trustworthy: when
-    the triage sidecar is wired, an absent/empty triage ledger genuinely means no sensitive seam was
-    triaged — so the completeness gate can safely stay silent. When it is NOT wired the gate must NOT fire
-    (it cannot tell an empty ledger from an uninstalled hook, exactly the over-fire trap the spawn sidecar
-    guards against)."""
-    try:
-        cfg = json.loads(open(settings_path).read())
-    except (OSError, ValueError):
-        return False
-    for entry in cfg.get("hooks", {}).get("PostToolUse", []) or []:
-        for h in entry.get("hooks", []) or []:
-            if "record_triaged_seams" in (h.get("command") or ""):
-                return True
-    return False
+def triage_sidecar_active(settings_path=None):
+    """True iff the `record_triaged_seams` PostToolUse sidecar is wired (project, local, OR user-global).
+    Like `sidecar_enforcement_active`, this is an INSTALL-time signal (settings.json, not model-authored per
+    run), so it is trustworthy: when the triage sidecar is wired, an absent/empty triage ledger genuinely
+    means no sensitive seam was triaged — so the completeness gate can safely stay silent. When it is NOT
+    wired the gate must NOT fire (it cannot tell an empty ledger from an uninstalled hook, exactly the
+    over-fire trap the spawn sidecar guards against). Checking the user-global settings too is what keeps the
+    completeness gate live on the INTERACTIVE path, where the sidecar is wired globally, not per-project."""
+    return _hook_wired("record_triaged_seams", settings_path)
 
 
 def recorded_triaged_seams(path=TRIAGED_SEAMS_PATH):

@@ -465,6 +465,29 @@ def test_sidecar_hook():
         check("missing settings -> inactive",
               dg.sidecar_enforcement_active(os.path.join(d, "none.json")), False)
 
+    # INTERACTIVE-PATH FIX: the hooks are wired in the USER-GLOBAL settings, not a per-project file. With
+    # the production default (settings_path=None), a global-only wiring MUST activate enforcement — else the
+    # deriver record-only's on every interactive run (observed live as enforcement_active:false + a real
+    # spawn). We drive it by pointing the candidate list at a temp "global" file (no real ~/.claude needed).
+    with tempfile.TemporaryDirectory() as d:
+        glob_wired = os.path.join(d, "global.json")
+        with open(glob_wired, "w") as f:
+            json.dump({"hooks": {"PostToolUse": [{"matcher": "Task|Agent", "hooks": [
+                {"type": "command", "command": "python3 /abs/hooks/record_lane_spawn.py"},
+                {"type": "command", "command": "python3 /abs/hooks/record_triaged_seams.py"}]}]}}, f)
+        saved = dg._candidate_settings
+        dg._candidate_settings = lambda sp: [sp] if sp is not None else [glob_wired]
+        try:
+            check("global-only wiring (default None) -> spawn sidecar ACTIVE", dg.sidecar_enforcement_active(), True)
+            check("global-only wiring (default None) -> triage sidecar ACTIVE", dg.triage_sidecar_active(), True)
+            check("explicit path still checked ALONE (ignores the global candidate)",
+                  dg.sidecar_enforcement_active(os.path.join(d, "none.json")), False)
+        finally:
+            dg._candidate_settings = saved
+    check("default candidate list includes the user-global settings",
+          any(os.path.isabs(c) and c.endswith(os.path.join(".claude", "settings.json"))
+              for c in dg._candidate_settings(None)), True)
+
     # sidecar_real_spawns wiring: None when inactive, a list of pairs when active
     with tempfile.TemporaryDirectory() as d:
         bare = os.path.join(d, "bare.json")

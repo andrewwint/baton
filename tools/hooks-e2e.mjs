@@ -65,6 +65,7 @@ const PY_TESTS = [
   "wire_settings_test.py",
   "wire_interactive_test.py",
   "ledger_test.py",
+  "record_seam_test.py",
 ];
 for (const t of PY_TESTS) {
   try {
@@ -78,7 +79,14 @@ for (const t of PY_TESTS) {
 
 // Helpers that run each hook with cwd = the temp workspace (the hooks use cwd-relative paths).
 const ws = fs.mkdtempSync(path.join(os.tmpdir(), "baton-hooks-e2e-"));
-const run = (hook, input) => execFileSync("python3", [hook], { cwd: ws, input, stdio: "pipe" });
+// HERMETIC HOME: disposition_gate now also consults the USER-GLOBAL ~/.claude/settings.json for the
+// wired-sidecar signal (the interactive-path fix). Point HOME at a clean empty dir so that global candidate
+// is ABSENT during the test — otherwise a dev machine with baton globally installed would make the
+// "sidecar unwired" scenarios read the real (wired) global config and fail. Wiring is controlled solely by
+// the project settings.json this test writes under ws.
+const cleanHome = fs.mkdtempSync(path.join(os.tmpdir(), "baton-hooks-e2e-home-"));
+const run = (hook, input) =>
+  execFileSync("python3", [hook], { cwd: ws, input, stdio: "pipe", env: { ...process.env, HOME: cleanHome } });
 const writeDisposition = (obj) =>
   fs.writeFileSync(path.join(ws, ".agents", "runs", "run1", "disposition.json"), JSON.stringify(obj));
 const verdict = () =>

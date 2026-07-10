@@ -4,6 +4,28 @@ Notable changes to Baton. From 1.0.0 the public contract is stable and changes f
 versioning; the surface frozen at 1.0 was the loop and routing gate, the lane map and four bundled
 agents (a fifth, `security-review`, added in 1.1.0), the `RunRecord` ledger shape, and MCP-via-`.mcp.json`.
 
+## 1.3.2 - interactive-path enforcement engages; the run-trail count is single-source
+
+Patch. Fixes an enforcement blind spot found on a live interactive `/baton` run, plus run-trail
+consistency. No change to the frozen 1.0 contract.
+
+- **Interactive-path enforcement now engages (the significant fix).** The close-out deriver decided whether
+  the spawn/triage sidecars were wired by reading only the *project* `.claude/settings.json`. But the
+  interactive `/baton` path wires the enforcement hooks in the *user-global* `~/.claude/settings.json`, so
+  in an ordinary repo (no project settings) the deriver believed the sidecars were unwired and silently fell
+  back to record-only: the completeness gate went silent and the anti-forgery spawn-match no-op'd, even with
+  a real independent lane recorded. The wired-check now consults project, project-local, and user-global
+  settings, so both the completeness gate and the specialist spawn-match engage on the interactive path.
+- **Inline-triaged seams can reach the machine ledger.** A new manager-run recorder
+  (`hooks/record_seam.py`) writes a seam identified inline (no triage lane) to the same
+  `triaged_seams.jsonl` the completeness gate reads, arming it — add-only (it records an obligation, never
+  clears one). SKILL.md/triage.md: inline triage is for non-seam work; a named seam must be machine-recorded.
+- **The run-trail close-out count is single-source.** It is now derived only from ledger.py's own recorded
+  lane lines (superseding 1.3.1's reconciliation with the sibling ledger), anchored to the lane-line shape,
+  so the count can never contradict the lines shown — in either direction. Close-out label clarified to
+  "lanes recorded so far" (a per-stop snapshot). `task_id` is documented as expected-null from Claude Code's
+  PostToolUse payload; the specialist match binds by `subagent_type`, so it is not load-bearing.
+
 ## 1.3.1 - the run-trail close-out count can no longer contradict its own lines
 
 Patch. Fixes a consistency bug in the run trail surfaced by a real integration test: the `Stop`

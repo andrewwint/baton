@@ -199,6 +199,12 @@ def doctor(target):
                          f"interactive path (enforcement is unaffected). Wire it with: python3 {WIRE_INTERACTIVE}")
 
     lines = []
+    # INTENTIONAL DECOUPLING — do NOT add `ledger_ok` to this condition. The green condition is the SECURITY
+    # contract only: the disposition gate (Stop) + the two forge-proof PostToolUse sidecars + an observed
+    # firing. The run-trail hook (ledger.py) is OPERABILITY — its absence loses a convenience trail, never a
+    # gate — so it must stay a non-gating WARN. Folding it in here would dilute what "doctor-green" means
+    # (it would then also assert a trail feature, not just that enforcement fires) and would re-couple the
+    # installer to doctor for a non-security hook. Keep the ledger a warning; keep green about the gate.
     if stop_wired and sidecar_wired and triage_wired and probe_ok:
         try:
             write_marker(marker_path, settings_sha, runtime_absent)
