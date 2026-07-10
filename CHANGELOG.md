@@ -4,6 +4,38 @@ Notable changes to Baton. From 1.0.0 the public contract is stable and changes f
 versioning; the surface frozen at 1.0 was the loop and routing gate, the lane map and four bundled
 agents (a fifth, `security-review`, added in 1.1.0), the `RunRecord` ledger shape, and MCP-via-`.mcp.json`.
 
+## 1.3.0 - the run trail becomes hook-enforced, and enforcement wires on the interactive path
+
+Minor. Adds a bundled run-trail hook and makes baton's hooks fire on the interactive `/baton` path
+(previously only baton's TypeScript runtime wired them), so the enforcement and trail work without the
+runtime. Additive to the frozen 1.0 contract (loop and routing gate, lane map and five bundled agents,
+`RunRecord` shape, MCP-via-`.mcp.json`), which is unchanged. This entry describes what ships, not what it
+achieves — no efficacy claim.
+
+- **The run trail is hook-maintained, not memory-maintained.** A bundled dual-event hook
+  (`hooks/ledger.py`, wired on `PostToolUse` and `Stop`) keeps a session-scoped trail at
+  `.agents/runs/ledger.md` regardless of whether the model remembers to write one: a line per real lane
+  spawn, and an idempotent close-out per stop. It is operability, not part of the security-enforcement
+  contract — its absence loses a trail, never a gate — so `baton doctor` warns (non-gating) when it is not
+  wired. Claude Code runs `Stop` hooks in parallel, so the close-out tolerates a not-yet-stamped verdict
+  (`unstamped`) and self-corrects on the next stop; it never derives or overrides the gate's verdict.
+- **An absent disposition record is now explained, not silently missing.** On a run where triage names no
+  sensitive seam, the close-out records *why* no `disposition.json` exists (READY by the no-seam row), so a
+  correct no-seam run is distinguishable from a skipped gate.
+- **Enforcement wires on the interactive path.** A shipped self-installer (`hooks/wire_interactive.py`)
+  wires the enforcement + trail hooks into the user-global `~/.claude/settings.json` with absolute paths,
+  excluding the SessionStart guard (whose per-project verification-marker model would fail-loud in unrelated
+  repos). It is idempotent, preserves existing settings, and runs `baton doctor` to confirm. The settings
+  wirer (`wire_settings.py`) now ships inside the skill, so an installed-only machine can self-wire with no
+  repo checkout — and `baton doctor` points at that shipped path rather than a file that isn't present.
+- **Triage names a deployment seam.** An outward-facing cloud deploy that creates an IAM role, exposes a
+  public or no-auth endpoint, or routes data to a hosted model is a `data-egress`/`secrets`/`authz` seam
+  even when no source line changed; it travels the disposition path, not only the approval gate.
+- **Honest labels.** The plan step's `contract-read` checkpoint is labeled guardrail-strength, not
+  enforcement-strength — no hook can detect an unfamiliar external tool, so it stays a model-written prompt.
+- **CI.** The bundled hook self-tests (disposition, contract, doctor, session-start, wiring, self-installer,
+  ledger) run in the structural smoke gate, and CI triggers on `hooks/**`.
+
 ## 1.2.0 - close-out enforcement ships: the disposition hooks and the completeness gate
 
 Minor. Adds the bundled close-out enforcement the 1.1.x prose framed as "a later release" — the
