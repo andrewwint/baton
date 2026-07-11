@@ -6,7 +6,23 @@ Verified state (real routed session, 3 lanes): capture works (ledger Δ == sidec
 but `task_id` is null on every record and the ledger double-counts under multi-scope wiring. This design
 covers the two open problems and the acceptance harness. It does NOT touch the security-enforcement path.
 
-## Problem 1 — a stable spawn id
+## PROBE RESULT (2026-07-10) — the id is on PostToolUse; no new hook needed
+
+A live probe (throwaway `SubagentStart`/`SubagentStop`/`PostToolUse` dump hooks, one real spawn) overturned
+the proposal's assumption. The real `PostToolUse` payload for a Task/Agent spawn **does** carry the id:
+
+- `tool_response.agentId` = the spawned lane's id (e.g. `"ad649f55b990c6d22"` — the same value the Agent
+  tool returns and that a manager would cite in `contract_lane`).
+- top-level `tool_use_id` = `"toolu_…"` (the tool-call id) — a reliable fallback.
+- (`SubagentStart`/`SubagentStop` also carry `agent_id`, but are not needed.)
+
+So the null `task_id` was a **wrong-key extraction bug** (the code read `task_id`/`id`, not `agentId`), NOT
+a payload limitation. The fix is therefore just: (1) extract `tool_response.agentId` (fallback
+`tool_use_id`) in `record_lane_spawn.py` and `ledger.py`; (2) de-dup the ledger by that id. **No
+`SubagentStart`/`SubagentStop` sidecar is required** — the design below is retained for the record but was
+not needed.
+
+## Problem 1 (as originally proposed — superseded by the probe result above)
 
 `PostToolUse` (where `record_lane_spawn.py` / `ledger.py` fire) does not carry a subagent/task id in the
 observed builds — empirically null on 100% of real spawns. Claude Code exposes the id on the

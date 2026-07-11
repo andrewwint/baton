@@ -186,6 +186,29 @@ with tempfile.TemporaryDirectory() as t:
     check("sibling-only spawns NOT counted (own-lines-only; count can't exceed visible lines)",
           L.lane_count(), 0)
 
+print("I. stable spawn id + race-safe de-dup (multi-scope double-fire -> one line)")
+check("id from tool_response.agentId",
+      L.lane_from_event({"tool_name": "Agent", "tool_input": {"subagent_type": "r"},
+                         "tool_response": {"agentId": "AG-1"}, "tool_use_id": "toolu_X"})["task_id"], "AG-1")
+check("id falls back to tool_use_id when no agentId",
+      L.lane_from_event({"tool_name": "Task", "tool_input": {"subagent_type": "r"},
+                         "tool_use_id": "toolu_Y"})["task_id"], "toolu_Y")
+with tempfile.TemporaryDirectory() as t:
+    os.chdir(t)
+    check("first firing of a spawn id -> write", L._dedup_new("SPAWN-A"), True)
+    check("second firing of the SAME id -> skip (dedup)", L._dedup_new("SPAWN-A"), False)
+    check("a different id -> write", L._dedup_new("SPAWN-B"), True)
+    check("no id -> always write (can't dedup; never drop)", L._dedup_new(None), True)
+with tempfile.TemporaryDirectory() as t:
+    # the REAL hook, fired TWICE for one spawn (the double-wire double-fire) -> exactly ONE lane line
+    ev = json.dumps({"hook_event_name": "PostToolUse", "tool_name": "Agent",
+                     "tool_input": {"subagent_type": "researcher"}, "tool_response": {"agentId": "AG-Z"}})
+    for _ in range(2):
+        subprocess.run([sys.executable, LEDGER_PY], input=ev, capture_output=True, text=True, cwd=t)
+    body = open(os.path.join(t, ".agents", "runs", "ledger.md")).read()
+    check("double-fire of one spawn -> exactly 1 lane line", body.count("· lane spawned:"), 1)
+    check("the lane line carries the id", "AG-Z" in body, True)
+
 if failures:
     print(f"\nLEDGER SELFTEST FAILED ({failures})")
     sys.exit(1)

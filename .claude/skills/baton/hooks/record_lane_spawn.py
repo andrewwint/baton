@@ -72,15 +72,15 @@ def spawn_from_event(event):
     subagent_type = tool_input.get("subagent_type")
     if not subagent_type:
         return None
-    resp = event.get("tool_response") or {}
-    # task_id is EXPECTED-NULL from PostToolUse: Claude Code does not surface a subagent/task id on this
-    # event in the builds observed (a task id lives on SubagentStart/Stop, not the Task/Agent PostToolUse) —
-    # empirically null on 100% of real spawns. We keep the multi-key extraction so a build that DOES provide
-    # it is captured, and record `null` honestly when absent. It is NOT load-bearing: the disposition deriver
-    # reconciles a claimed specialist to a recorded spawn by non-generic `subagent_type` (the primary path),
-    # with `task_id` only an ADDITIONAL substring match — so a null id never weakens the gate. Do not treat
-    # the null as a bug to route around; it is a payload limitation, gracefully handled.
-    task_id = (resp.get("task_id") or resp.get("id")
+    resp = event.get("tool_response") if isinstance(event.get("tool_response"), dict) else {}
+    # The stable spawn id. Probed from real PostToolUse payloads (2026-07): the id IS on this event —
+    # `tool_response.agentId` (the spawned lane's id, e.g. "ad649f55b990c6d22", the same value the Agent tool
+    # returns and that a manager would cite in `contract_lane`), with top-level `tool_use_id` ("toolu_…") as a
+    # fallback. (Earlier code looked for `task_id`/`id` and found null — a WRONG-KEY bug, not a payload gap.)
+    # A populated id lets the ledger de-duplicate a double-fired spawn and lets the deriver's substring match
+    # bind a cited id; it stays a SECONDARY signal to non-generic `subagent_type`, never the sole certifier.
+    task_id = (resp.get("agentId") or event.get("tool_use_id")
+               or resp.get("task_id") or resp.get("id")
                or event.get("task_id") or tool_input.get("task_id"))
     return {"subagent_type": subagent_type, "task_id": task_id}
 
