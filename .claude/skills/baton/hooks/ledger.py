@@ -111,9 +111,34 @@ def lane_from_event(event):
         return None
     resp = event.get("tool_response")
     resp = resp if isinstance(resp, dict) else {}
-    task_id = (resp.get("task_id") or resp.get("id")
+    # Stable spawn id (probed from real payloads): `tool_response.agentId`, else top-level `tool_use_id`.
+    # Kept in lockstep with record_lane_spawn.spawn_from_event. Used for the trail suffix AND for the
+    # de-dup below (two double-fired firings of one spawn carry the SAME id).
+    task_id = (resp.get("agentId") or event.get("tool_use_id")
+               or resp.get("task_id") or resp.get("id")
                or event.get("task_id") or tool_input.get("task_id"))
     return {"subagent_type": subagent_type, "task_id": task_id}
+
+
+def _dedup_new(spawn_id, runs_dir=RUNS_DIR):
+    """Race-safe first-writer-wins de-dup. Returns True iff this spawn_id has not been recorded before, by
+    ATOMICALLY creating a per-id marker with O_CREAT|O_EXCL — so when the hook is wired in more than one
+    settings scope (project + user-global) and both processes fire for ONE real spawn, exactly one wins the
+    create and writes the lane line; the other gets FileExistsError and skips. No id -> always True (cannot
+    de-dup, so prefer an over-count to dropping a real lane). Best-effort: any other fs error -> True."""
+    if not spawn_id:
+        return True
+    seen = os.path.join(runs_dir, "_ledger_seen")
+    safe = re.sub(r"[^A-Za-z0-9_.-]", "_", str(spawn_id))[:200]
+    try:
+        os.makedirs(seen, exist_ok=True)
+        fd = os.open(os.path.join(seen, safe), os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+        os.close(fd)
+        return True
+    except FileExistsError:
+        return False
+    except OSError:
+        return True
 
 
 # The lane-line marker phrase (writer) and the ANCHORED reader pattern (counter) — kept in sync so the
@@ -296,7 +321,7 @@ def _run():
             print(f"baton: run trail at {path}", file=sys.stderr)
     else:  # PostToolUse (the wired matcher guarantees Task|Agent), or any non-Stop invocation
         lane = lane_from_event(event)
-        if lane is not None:
+        if lane is not None and _dedup_new(lane.get("task_id")):
             append_line(lane_line(lane, _now()))
 
 

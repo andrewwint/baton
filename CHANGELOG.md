@@ -4,6 +4,26 @@ Notable changes to Baton. From 1.0.0 the public contract is stable and changes f
 versioning; the surface frozen at 1.0 was the loop and routing gate, the lane map and four bundled
 agents (a fifth, `security-review`, added in 1.1.0), the `RunRecord` ledger shape, and MCP-via-`.mcp.json`.
 
+## 1.3.3 - the run-trail carries a stable spawn id and de-duplicates multi-scope firing
+
+Patch. Closes the run-ledger fidelity gaps an end-to-end verification surfaced (known-count on a real
+routed session, not a writer unit pass). No change to the frozen 1.0 contract or the enforcement gate.
+
+- **Every captured lane now carries a stable id.** A live probe of the real `PostToolUse` payload showed
+  the spawn id is present at `tool_response.agentId` (with top-level `tool_use_id` as a fallback) — the
+  earlier null `task_id` was a wrong-key extraction bug, not a payload limitation, so no new lifecycle hook
+  is needed. `record_lane_spawn.py` and `ledger.py` now record that id (the same value the Agent tool
+  returns and a manager would cite in `contract_lane`). It stays a *secondary* signal to non-generic
+  `subagent_type` in the disposition deriver — a model-visible id never becomes the sole certifier of a
+  specialist.
+- **The ledger de-duplicates a double-fired spawn.** When the hook is wired in more than one settings scope
+  (project *and* user-global), one real spawn fires it twice; the ledger now records exactly one lane line
+  per spawn via a race-safe first-writer-wins marker keyed on the id (verified under 40-process contention).
+  So N routed lanes produce exactly N lane lines even in a multi-wired install.
+- **Verified by an observed firing, not a unit pass.** On real dispatch (implementer + code-reviewer +
+  researcher), the ledger recorded exactly 3 lane lines, each with its real `agentId`. The de-dup, id
+  population, and known-count behavior are exercised by new self-tests gated in CI (nine hook self-tests).
+
 ## 1.3.2 - interactive-path enforcement engages; the run-trail count is single-source
 
 Patch. Fixes an enforcement blind spot found on a live interactive `/baton` run, plus run-trail

@@ -66,6 +66,7 @@ const PY_TESTS = [
   "wire_interactive_test.py",
   "ledger_test.py",
   "record_seam_test.py",
+  "record_lane_spawn_test.py",
 ];
 for (const t of PY_TESTS) {
   try {
