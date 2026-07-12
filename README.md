@@ -53,30 +53,39 @@ The `recover` bound (~2 focused attempts, then escalate) is evidence-informed; t
 
 ## Install
 
-Baton is a **skill** — a folder you copy into your project (not a plugin). Clone the repo, then copy the skill out:
+**Baton runs in Claude Code** (and, headless, on its Agent SDK runtime). Its lanes depend on Claude Code's subagent (`Agent`/`Task`) tool, background tasks, worktree isolation, and plan mode — features that **do not exist in claude.ai, Claude Desktop, or generic MCP clients**. It will *load* as a skill in those surfaces, but the lanes fall back to nothing, so it is Claude-Code-specific by design, not a portable skill.
+
+Clone the repo first — the skill lives *inside* it at `.claude/skills/baton/`, so you install the skill folder, not the repo:
 
 ```bash
 git clone https://github.com/andrewwint/baton && cd baton
 ```
 
-**Per project.** Copy the folder into the repo you're working in:
+**Global (recommended).** One command syncs the skill + lanes into your personal Claude config and wires the interactive hooks:
 
 ```bash
-cp -r .claude/skills/baton <repo>/.claude/skills/
+bash tools/install.sh --global
 ```
 
-The `/baton` command is then available in that repo.
+`/baton` is then available in every repo; `baton doctor` confirms the hooks fire.
 
-**Global (all projects).** Install once into your personal Claude config:
+**Per project.** Copy the **skill folder** — `.claude/skills/baton`, not the whole repo — into the repo you're working in (then `tools/install.sh <repo>` for the lanes):
 
 ```bash
-cp -r .claude/skills/baton ~/.claude/skills/     # skill: available everywhere
-bash tools/install.sh ~                          # lanes → ~/.claude/agents/ (interactive use only)
+cp -r .claude/skills/baton <your-repo>/.claude/skills/
 ```
 
-(Interactive use needs the lanes copied to `.claude/agents/`; subagents don't resolve from inside a skill folder. The headless runtime registers them in-process, so it doesn't need this.)
+> Copy the skill *folder*, never the cloned repo. Claude Code discovers a skill only at `.claude/skills/<name>/SKILL.md`; dropping the whole `baton` repo into `~/.claude/skills/` buries `SKILL.md` too deep to be found — the most common install mistake.
 
-**Enforcement (optional, 1.2.0).** The copies above install orchestration only — the enforcement hooks are a separate, explicit step. To wire the close-out gate into a repo, run the install-contract mode: it copies the pure-stdlib hooks, wires them into the target's `settings.json`, and **proves they fire** with `baton doctor` (a red doctor fails the install):
+**As a plugin.** Baton is also published on the plugin marketplace:
+
+```bash
+/plugin marketplace add andrewwint/baton
+```
+
+then install **baton** from the `/plugin` menu.
+
+**Enforcement.** `tools/install.sh --global` already wires and verifies the close-out enforcement hooks for your **interactive** sessions (that's the `baton doctor` line above). To instead bake the gate into a **specific repo's committed config** — for a team, or so CI inherits it — use the install-contract mode: it copies the pure-stdlib hooks, wires them into that repo's `settings.json`, and **proves they fire** with `baton doctor` (a red doctor fails the install):
 
 ```bash
 bash tools/install.sh --enforce <repo>
