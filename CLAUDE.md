@@ -49,5 +49,8 @@ their content here (a second copy just drifts). What governs baton's *runtime* b
 - **Prefer structure over prose for obligations.** A rule that must always fire belongs in a hook or a
   derived/checkable artifact, not a sentence the model must remember — prose obligations measured ~1/3
   enforcement across this project's own eval rounds.
+- **Surgical diffs.** Change only what the task needs. Don't reformat or "improve" adjacent code, refactor
+  what isn't broken, or delete pre-existing dead code (flag it instead); match the surrounding style. Every
+  changed line should trace to the request.
 - **Nothing outward-facing without explicit approval** — no push, PR, tag, or release until the developer
   says go; the developer stays the credited author.
