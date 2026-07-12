@@ -30,7 +30,7 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 ## Releasing
 
-The version appears in THREE files and all three must be bumped together every release, or the published listing drifts (marketplace.json sat at 1.1.0 through the 1.3.x line because only two were bumped): `.claude/skills/baton/runtime/package.json` (+ its lockfile), `.claude-plugin/plugin.json`, and `.claude-plugin/marketplace.json`. Every release is recorded in `CHANGELOG.md`. Keep release notes honest: state what changed, and when little did (a docs- or license-only release), say so plainly rather than dressing it up.
+The version lives in `.claude/skills/baton/runtime/package.json` (+ its lockfile) — baton is a pure skill (no plugin manifest), so that is the single source of truth. Every release is recorded in `CHANGELOG.md`. Keep release notes honest: state what changed, and when little did (a docs- or license-only release), say so plainly rather than dressing it up.
 
 **Branch flow.** `main` is protected (no deletion, no force-push; PRs run CI). Land substantial work and contributions via a short-lived feature branch → PR into `main` (CI gates the merge). Tags are cut off `main`. There is no standing `dev` branch — the `v*` tags already mark released state versus latest `main`.
 
