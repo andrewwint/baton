@@ -77,7 +77,7 @@ cp -r .claude/skills/baton <your-repo>/.claude/skills/
 
 > Copy the skill *folder*, never the cloned repo. Claude Code discovers a skill only at `.claude/skills/<name>/SKILL.md`; dropping the whole `baton` repo into `~/.claude/skills/` buries `SKILL.md` too deep to be found — the most common install mistake.
 
-**No clone (skill only).** Baton is listed as a skill on the marketplace — its **Install Skill** button copies the skill into `~/.claude/skills/baton` for you. That gives the orchestration loop; the subagent lanes fall back to `general-purpose` and the enforcement hooks aren't wired, so use `install.sh --global` above for the full setup.
+**No clone (skill only).** Install from the [MCP Market listing](https://mcpmarket.com/tools/skills/baton-development-orchestrator) — its **Install Skill** button copies the skill into `~/.claude/skills/baton` for you. That gives the orchestration loop; the subagent lanes fall back to `general-purpose` and the enforcement hooks aren't wired, so use `install.sh --global` above for the full setup.
 
 **Enforcement.** `tools/install.sh --global` already wires and verifies the close-out enforcement hooks for your **interactive** sessions (that's the `baton doctor` line above). To instead bake the gate into a **specific repo's committed config** — for a team, or so CI inherits it — use the install-contract mode: it copies the pure-stdlib hooks, wires them into that repo's `settings.json`, and **proves they fire** with `baton doctor` (a red doctor fails the install):
 
