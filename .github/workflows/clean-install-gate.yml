@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout (source of install.sh + the skill — the installer under test)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python (the enforcement hooks are pure-stdlib python3)
         uses: actions/setup-python@v5
