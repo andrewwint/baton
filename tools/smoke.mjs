@@ -13,7 +13,7 @@ const EXPECTED = {
   triage: "haiku",
   implementer: undefined,
   "code-reviewer": "opus", // 1.2.0: adversarial defect-finding runs on the strongest tier (swappable, below)
-  researcher: "sonnet",
+  researcher: "opus", // silent-failure lane: a wrong research answer becomes the contract both impl and test inherit (see researcher.md)
   "security-review": "opus",     // 5th bundled lane
 };
 
