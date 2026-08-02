@@ -18,6 +18,7 @@ This is a record of using Baton on real projects. We kept these notes to see how
 | **8** | A dependency-backlog cleanup on an old service (437 alerts)                              | The scan and the tests flagged none of it: tracing reachability found a command-injection RCE (plus two more injection points and a path traversal), never in the alert count                                                                                        |
 | **9** | Rebuilt that same app — new framework, modern tools, smaller — because patching couldn't | A cold read caught a security control no test ever exercised: an install endpoint's auth lock, correctly wired but never _proven_ by a test                                                                                                                          |
 | **10** | A data-science tool: compiled public health-survey data into a verified knowledge bundle, with a grounded chatbot | The markdown was clean and every link resolved, yet _running_ the analysis caught a confidently-wrong stat — "3.66% of adults take insulin" (whole sample, unweighted) vs the correct 31.96% among diagnosed adults — and quarantined it before it could be served |
+| **11** | A tool that corrects a false statistic instead of only refusing to repeat it, added to that same chatbot | Two independent reviews, two high-severity defects, both invisible to a green suite: the new tool would hand over any verified figure under any population, and it declared true claims false for one whole class of measure. Mutation testing then showed 4 of my 8 new tests could not fail |
 
 _Runs 8 and 9 are one arc on the same app: Run 8's careful fix couldn't reach the deep problems (it even nudged the alert count up — the count is noise), so Run 9 rebuilt from scratch. The rebuild now passes 35 tests at about 95% coverage, including the security lock the cold read had flagged._
 
@@ -321,11 +322,101 @@ We pointed Baton at a different kind of job — not changing code, but turning a
 
 ---
 
+## Run 11: A Fix That Rebuilt the Very Bug the Project Exists to Prevent
+
+The chatbot from Run 10 could refuse a false statistic but could not correct one. Fed a planted
+news headline claiming "62.4% of adults with diagnosed diabetes take insulin", the safest thing it
+could do was withhold the answer — while the correct verified figure, 31.96%, sat in its own
+bundle the whole time. This run added a tool to close that gap, and then had two independent lanes
+attack it.
+
+### By the Numbers
+
+- One new tool, about 90 lines, plus tests.
+- The test suite was green at every checkpoint: **107 passing** when the security review ran,
+  **111** when the code review ran, **118** after their findings were fixed, **126** after a third
+  defect was closed.
+- **Two independent review lanes, two high-severity defects.** Neither was visible to the passing
+  suite. Neither was found by me.
+- A third defect was found by probing the running system rather than the change.
+- Model comparison re-run afterwards: 3 models x 6 cases x 3 trials, about $0.89.
+
+### Core Observations
+
+- **The fix rebuilt the exact defect the project exists to catch.** The whole point of this
+  project is that a *correct* number under the *wrong* population is the dangerous failure — that
+  is the 3.66%-vs-31.96% catch from Run 10. The new tool let the model name which figure to check.
+  So the ordinary lookup would refuse "what is the diabetes rate in California?" (the verified
+  figure is national), while the new tool cheerfully handed over 9.8% for it — and the sentence
+  "In California, 9.8% of adults have diagnosed diabetes" then passed every check in the system.
+  A guard added to strengthen the system had quietly reopened its signature hole. The security
+  review found it; the tests did not, because the tests asked whether the tool worked, not whether
+  it could be used sideways.
+- **The reviewer refused the framing it was given, and that is where the value came from.** The
+  brief was ticket, diff and source only, with no conclusions attached — the discipline the skill
+  insists on. The lane came back saying, in effect, *I disregarded the brief's framing; I
+  re-derived the property it claimed and it does hold — and it is not where this breaks.* It then
+  found the break somewhere the brief never pointed. That rule reads like ceremony until you watch
+  a reviewer decline your account and find the real defect anyway.
+- **The second lane found a confident *false* correction, which is the same failure inverted.**
+  For any measure whose confidence interval was only written in prose rather than machine-readable
+  (the mean age at diagnosis), the tool silently fell back to demanding an exact match while still
+  announcing "it falls outside the verified interval". A claim of 47.5 was declared unsupported
+  when the true interval is 46.75-48.08. Every value except exactly 47.41 was refuted. Worse, the
+  falsehood was in the prose rather than in a digit, so the system's own number-checking gate
+  structurally could not see it.
+- **Mutation testing showed half my new tests could not fail.** The code-review lane mutated the
+  source and re-ran the suite: 4 of 8 mutants survived. One of them was echoing the false number
+  into the output — half of the safety property the change was built to guarantee. The tests
+  looked thorough and pinned the easy half. That check cost one lane and is the single most
+  useful thing either review did.
+- **A permission that was correct to grant was the widest hole.** Comparing two verified figures
+  is real analysis, so subtraction between grounded numbers was allowed. But one ordinary lookup
+  grounds the estimate, its interval, the standard error, the design effect — and 95, because
+  "95% CI" has to be quotable. Subtracting 95 from the others manufactured 61.16, 63.04, 64.92,
+  94.04: numbers nobody computed that look exactly like prevalence figures. "63% of diagnosed
+  adults take insulin" passed the gate. Found by probing the deployed behaviour, not by reading
+  the diff.
+- **Re-running the measurement changed a published conclusion.** The model comparison had been run
+  before the new tool existed, so its numbers were no longer reproducible from the code. Re-run,
+  the result moved: previously all three models repeated the fabricated figure and the gate
+  withheld every answer; now all three call the new tool every time, and seven of nine answers
+  correct the headline without ever printing the false number. The earlier write-up's claim that
+  the cheapest model scored highest no longer held. Nobody would have noticed if the benchmark had
+  not been re-run against the code as it actually stands.
+
+### Known Limitations
+
+- One case, one repo. The two review lanes were briefed by the same person who wrote the code,
+  which is the arrangement the no-conclusions brief rule exists to compensate for — it appears to
+  work, but this is one observation of it working, not a measurement.
+- The mutation testing was requested in the brief rather than volunteered. It is not yet clear
+  whether the lane does it by default.
+- The remaining honest gap is unchanged: the checking gate reads numbers, so a false sentence
+  built out of true numbers still passes it.
+
+---
+
 ## Overall Summary of Findings
 
 The pattern shows that the checking helper works best by finding real flaws (like timing bugs or planted security bypasses) that regular tests miss, without causing false alarms. Genuinely hard problems cause natural bugs; on simple patterns, the tool provides assurance, catches blind spots in your tests, and keeps an audit log.
 
 - **Small tasks are still a tie:** Baton does not beat a standard AI model on small, low-risk tasks.
+- **The boundary is prose, not just size.** The work that followed Run 10 — writing the build up as how-to articles and hardening its deployment — was done directly, without Baton's lanes, and that was the right call: for prose and single-file docs, the review loop adds latency without adding safety. "Small tasks are a tie" generalizes — Baton earns its cost on code and data _seams_, not on writing. How we _know_ a given piece ran direct is the point: Baton writes a run-ledger entry whenever it runs, so the _absence_ of one for the MWAA compile-pipeline demo is itself the audit trail — the ledger is evidence in both directions, presence and absence. The boundary held by judgment rather than by rule, though: the project had not added the routing rules Baton encourages in the root `CLAUDE.md`. That gap is now closed — a rule routes consequential work to `/baton` and names the project's one sensitive seam — so the boundary is enforced, not just intuited: a light, up-front fix, the same shape as Run 10's standard-grounding lesson.
 - **Humans are still the drivers:** The most important choices (what to test, when to launch, and setting rules) were made by the human. Baton just made applying those rules consistent and trackable.
 - **Cost is unmeasured, and the baseline matters:** The real-world comparison is not Baton versus a human reviewer. Teams already run automated scanners (Snyk, SonarQube, CodeQL) cheaply on every commit, and that is the right first layer. Those scanners catch known patterns — vulnerable dependencies, injection, hardcoded secrets — but they are blind to defects tied to what a feature is _meant_ to do, like the fail-open security toggle and the "forbidden looks identical to missing" rule the checking helper caught here. So the honest question is the _added_ cost of Baton's review on top of tests and scanners, weighed against the defects of that kind it catches and they miss. The fault-injection test is the start of measuring it: running its planted bugs through the scanners too would turn "scanners miss these" into a number. Run 9 is the first run to show both layers in one case: the warning-count drop that cheap tools can see, and the lock-was-never-checked catch that they cannot.
 - **The pattern carries beyond code:** Run 10 applied the same "execute the check, don't just lint it" discipline to a data-science job and caught a statistic that was clean on the page but wrong when run. It also surfaced a process lesson — research the relevant standard during planning, not after — which is light to fix and worth building into the routine.
+- **Ask the reviewer to attack the tests, not just the code.** Run 11's most useful single finding
+was not a bug in the feature: it was that half the new tests could not fail. The lane mutated the
+source and re-ran the suite, and 4 of 8 mutants survived — including one that defeated half the
+safety property the change existed to provide. Passing tests had been treated as evidence
+throughout these notes; this is the first run to check whether the tests could ever have failed,
+and the answer for half of them was no. Cheap to ask for, and it changes what a green suite means.
+- **The loop caught the loop's own work.** Every earlier run has the reviewer catching code written
+without it. Run 11 is the first where the reviewed, tested output of a careful process was itself
+found to have rebuilt the project's signature defect — a right number under the wrong population,
+carrying the verified label. Being the person who wrote the check is no protection against
+reintroducing the thing it checks for. That is an argument for the independent lane specifically,
+rather than for care.
+
+- **The discipline outlived the tool.** Fact-checking those same write-ups by hand, with no lane involved, still caught the two familiar failure shapes: an unmeasured performance claim (a "sub-millisecond" retrieval that was really about 7 ms until it was actually measured, then cached down to about 0.55 ms) and an overstated architecture claim (a draft crediting the code repository with infrastructure it did not contain). This is the same "verification correcting the optimism of the thing being checked" as Runs 7 and 9 — but carried by the habit, not the orchestrator. That is the honest reading of what Baton is: it makes the discipline consistent and trackable, it does not own it, and the practice transfers to work done without it.
