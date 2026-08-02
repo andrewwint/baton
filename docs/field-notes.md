@@ -397,6 +397,43 @@ attack it.
 
 ---
 
+## What These Runs Changed About Baton
+
+The notes above are observations. This section records what they actually changed, so the loop is
+visible from the outside.
+
+**Lane models are now assigned by failure mode, not by difficulty.** The question that settles it
+is: *if this lane is wrong, does anyone find out?*
+
+| model | lanes | why |
+| --- | --- | --- |
+| `opus` | code-reviewer, security-review, researcher | a miss ships silently |
+| `inherit` | implementer | its errors surface downstream, and cost should track the session |
+| `haiku` | triage | bounded classification with a structured output |
+
+The researcher lane was the last one moved, after Run 11. It had been on `sonnet`, treated as a
+lookup job. It is not: its answer becomes the contract everything downstream is built and *tested*
+against, so a wrong answer contaminates the implementation and the test together, and no later
+review catches it — every downstream artifact inherits the same premise. The recurring expensive
+failures across these runs were all this shape: a renamed cloud config key, a deprecated SDK, a
+model marked "Legacy". Each cost several build-then-discover rounds.
+
+**Routing rules live in the project, not in the operator's memory.** Run 10 finished with the
+boundary between "run this through the lanes" and "just do it" held entirely by judgment. It held
+correctly, but nothing enforced it. The projects now carry a rule in their root instructions naming
+what must go through review and naming their own sensitive seam. A boundary that depends on
+remembering is not a boundary.
+
+**Read the standard before building against it.** Run 10 built to a spec's *shape* from a
+second-hand description and reconciled with the real published spec afterwards. It worked, and it
+was luck. That became a named checkpoint: before the first lane that builds against an unfamiliar
+external CLI, protocol, format or cloud service, read the real contract and record what it says.
+The honest limit is stated in the skill itself — no hook can detect "someone is about to build
+against a guess", so this one is a strong prompt rather than an enforced gate.
+
+
+---
+
 ## Overall Summary of Findings
 
 The pattern shows that the checking helper works best by finding real flaws (like timing bugs or planted security bypasses) that regular tests miss, without causing false alarms. Genuinely hard problems cause natural bugs; on simple patterns, the tool provides assurance, catches blind spots in your tests, and keeps an audit log.
