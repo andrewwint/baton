@@ -4,6 +4,27 @@ Notable changes to Baton. From 1.0.0 the public contract is stable and changes f
 versioning; the surface frozen at 1.0 was the loop and routing gate, the lane map and four bundled
 agents (a fifth, `security-review`, added in 1.1.0), the `RunRecord` ledger shape, and MCP-via-`.mcp.json`.
 
+## 1.3.4 - sharper review and research lanes; baton is a pure skill
+
+Patch. Lane-quality refinements and a packaging cleanup. No change to the frozen 1.0 contract.
+
+- **The research lane runs on `opus` and pins the version it answers for.** Research is a silent-failure
+  lane: a wrong research answer becomes the contract the implementation *and* its test are built against,
+  so no later review catches it — every downstream artifact inherits the same premise. It is now on the
+  strongest tier (like the review lanes), and its Method adds an explicit step — confirm each external
+  source applies to the version actually in use in this repo (from the lockfile/manifest), and say so when
+  a doc pre- or post-dates it, since sources disagreeing because one is stale is the common case.
+- **The review lane attacks the tests by default.** A green suite is evidence only if its tests can fail.
+  The `code-reviewer` lane now mutates the source behind new/safety-critical tests and confirms a test
+  catches each mutation — reporting which safety properties are actually pinned versus merely green —
+  instead of that check depending on the operator remembering to ask for it.
+- **Baton is a pure skill.** Removed the plugin manifest, which never actually registered the skill (it
+  declared no discoverable `skills` path) and would have forced a `/baton:baton` command. Baton is
+  distributed as a skill — that is how the marketplace syncs it — so one identity, one `/baton`. Install
+  docs corrected, with an explicit note that baton is Claude-Code-specific: its lanes need the `Agent` tool,
+  background tasks, worktree isolation, and plan mode, which do not exist in claude.ai, Claude Desktop, or
+  generic MCP clients (it loads there but the lanes do nothing).
+
 ## 1.3.3 - the run-trail carries a stable spawn id and de-duplicates multi-scope firing
 
 Patch. Closes the run-ledger fidelity gaps an end-to-end verification surfaced (known-count on a real
