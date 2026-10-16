@@ -36,7 +36,7 @@ The version lives in `.claude/skills/baton/runtime/package.json` (+ its lockfile
 
 **Release flow.** Pushing a `vX.Y.Z` tag triggers `.github/workflows/release.yml`, which gates on the structural checks, extracts the matching `CHANGELOG.md` section as the notes, and **creates the GitHub release**. So the sequence is:
 
-1. Bump `version` in all three (`runtime/package.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`) and add a `## x.y.z - <theme>` entry to `CHANGELOG.md`. The heading must be exactly `## x.y.z - ...` (no brackets) — the workflow's extractor matches on it.
+1. Bump `version` in `.claude/skills/baton/runtime/package.json` (the single source of truth since 1.3.4 removed the plugin manifest) and add a `## x.y.z - <theme>` entry to `CHANGELOG.md`. The heading must be exactly `## x.y.z - ...` (no brackets) — the workflow's extractor matches on it.
 2. Commit, then re-sync the lockfile if the version changed (`npm install --package-lock-only --prefix .claude/skills/baton/runtime`).
 3. Tag and push the tag (outward-facing — gate on explicit user approval):
 

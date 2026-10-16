@@ -4,6 +4,44 @@ Notable changes to Baton. From 1.0.0 the public contract is stable and changes f
 versioning; the surface frozen at 1.0 was the loop and routing gate, the lane map and four bundled
 agents (a fifth, `security-review`, added in 1.1.0), the `RunRecord` ledger shape, and MCP-via-`.mcp.json`.
 
+## 1.3.5 - the review lane verifies a parity claim, and reads a report from what was sent
+
+Patch. Two review-lane refinements and a release-doc correction. No change to the frozen 1.0 contract —
+the lane's identity and the loop are unchanged, and the new return field is consumed by the manager inside
+the skill, not by any external caller.
+
+- **A parity claim is now checked differentially, against the old code, at every consumer.** A change that
+  claims behavior is unchanged — a refactor, port, registry or config consolidation, a "no functional
+  change" cleanup — cannot be verified by exercising the new code: tests written with the change encode the
+  new behavior and pass whether or not it matches the old. The `code-reviewer` lane now runs prior and new
+  code on identical inputs at every consumer of the changed seam and compares return value, exception type
+  and message, downstream call count and the arguments actually sent, over failure and degenerate inputs
+  rather than the happy path alone. Field evidence (field notes, Run 12): on a refactor of 10 model call
+  sites promising identical defaults, a well-argued decision to raise on an empty response instead of
+  returning an empty string would have changed the outcome at 4 of the 8 call sites sharing the helper —
+  three that had returned a fallback would now raise, and at the fourth a case would be judged against a
+  placeholder default the old code never produced. No test of the new code alone could have caught it.
+- **The parity comparison is a named, always-present return field.** `parity matrix` is now a field the
+  `code-reviewer` lane always fills in — with the comparison, or with an explicit `n/a` (no parity claim) or
+  `unverified` (prior code could not be run) value — so a skipped comparison is a value someone can read
+  rather than an omission indistinguishable from a rule nobody applied. The verify step of `SKILL.md` gains
+  the reading side: `n/a` or `unverified` on a change that does claim parity is a finding, not a pass. The
+  lane's Constraints also gained a carve-out permitting a read-only materialization of the prior revision
+  (throwaway worktree or temp export), since the read-only rule otherwise forbade the comparison the new rule
+  asks for. **Honest limit:** this is a prose obligation on both sides, not an enforced gate — no hook detects
+  a parity claim, nothing in `tools/` references the field, and no eval exercises it. An independent cold read
+  caught an earlier draft of this entry claiming the absence was "detectable by the manager at integration
+  rather than depending on the reviewer remembering the rule," which was false: nothing manager-side had
+  changed. The claim now matches what shipped.
+- **A run-describing artifact is verified against what was observed.** A report, row label, manifest or log
+  line is now checked against the observed request or response rather than the configuration meant to
+  produce it, since a default that silently overrides an intent makes the two diverge. In the same run, a
+  comparison row labeled with its intended sampling had actually sent the defaults (an override equal to the
+  default is a no-op), and the false label reached the report, the manifest and the PR text alike.
+- **Release-doc fix.** `AGENTS.md` step 1 still told you to bump the version in `.claude-plugin/plugin.json`
+  and `.claude-plugin/marketplace.json`, both removed in 1.3.4; `runtime/package.json` is the single source
+  of truth, as the same file already said two paragraphs earlier.
+
 ## 1.3.4 - sharper review and research lanes; baton is a pure skill
 
 Patch. Lane-quality refinements and a packaging cleanup. No change to the frozen 1.0 contract.
