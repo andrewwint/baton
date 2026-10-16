@@ -47,7 +47,9 @@ repeated it. An artifact describing a run is only as true as the observation it 
 - Also carried in this change, disclosed here rather than left to the diff: `AGENTS.md` release step 1 named
   two version files removed in 1.3.4 (`.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`),
   contradicting the same file's statement that `runtime/package.json` is the single source of truth —
-  corrected. Field notes gain the Run 12 entry this change's evidence comes from.
+  corrected. `docs/field-notes.md` gains the Run 12 entry this change's evidence comes from. Release
+  mechanics per `AGENTS.md`: `CHANGELOG.md` gains the `## 1.3.5` section, and `runtime/package.json` plus its
+  lockfile go 1.3.4 → 1.3.5.
 - Additive to the frozen 1.0 contract: the lane's identity and the loop are unchanged, and the new return
   field is consumed by the manager inside the skill, not by any external caller. Patch-level, consistent
   with 1.3.4's lane-quality refinements.
