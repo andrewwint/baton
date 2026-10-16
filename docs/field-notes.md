@@ -1,6 +1,6 @@
 # Field Notes
 
-This is a record of using Baton on real projects. We kept these notes to see how well the tool works based on real evidence. These are observations from a small number of tests on private codebases, so the details are described in a general way.
+This is a record of using Baton on real projects. We kept these notes to see how well the tool works based on real evidence. These are observations from a small number of tests, mostly on private codebases, so the details are described in a general way. Where a run is on a public codebase, we describe it the same way.
 
 ---
 
@@ -19,10 +19,11 @@ This is a record of using Baton on real projects. We kept these notes to see how
 | **9** | Rebuilt that same app — new framework, modern tools, smaller — because patching couldn't | A cold read caught a security control no test ever exercised: an install endpoint's auth lock, correctly wired but never _proven_ by a test                                                                                                                          |
 | **10** | A data-science tool: compiled public health-survey data into a verified knowledge bundle, with a grounded chatbot | The markdown was clean and every link resolved, yet _running_ the analysis caught a confidently-wrong stat — "3.66% of adults take insulin" (whole sample, unweighted) vs the correct 31.96% among diagnosed adults — and quarantined it before it could be served |
 | **11** | A tool that corrects a false statistic instead of only refusing to repeat it, added to that same chatbot | Two independent reviews, two high-severity defects, both invisible to a green suite: the new tool would hand over any verified figure under any population, and it declared true claims false for one whole class of measure. Mutation testing then showed 4 of my 8 new tests could not fail |
+| **12** | Contributions to an open-source healthcare sample: one model registry across 10 call sites, then a model comparison | A differential check overruled the product manager's own decision (it changed behavior at 4 of the 8 call sites sharing a helper); the cold read caught a logging regression the implementer introduced, and a comparison row whose label did not match what it actually sent |
 
 _Runs 8 and 9 are one arc on the same app: Run 8's careful fix couldn't reach the deep problems (it even nudged the alert count up — the count is noise), so Run 9 rebuilt from scratch. The rebuild now passes 35 tests at about 95% coverage, including the security lock the cold read had flagged._
 
-_Note: Each run is a single case on a private codebase. Treat these as observations, not permanent measurements._
+_Note: Each run is a single case on one codebase, usually a private one. Treat these as observations, not permanent measurements._
 
 ---
 
@@ -394,6 +395,87 @@ attack it.
   whether the lane does it by default.
 - The remaining honest gap is unchanged: the checking gate reads numbers, so a false sentence
   built out of true numbers still passes it.
+
+---
+
+## Run 12: A Refactor That Promised "Nothing Changes", and the Checks That Held It To That
+
+We used Baton to contribute to a public healthcare sample from a cloud vendor: a prior-authorization
+pipeline with 10 model call sites in 3 request formats. The work was a refactor onto one model
+registry and a newer model API, followed by an offline comparison of models on the sample's own
+synthetic documents. The refactor made one promise: with default settings, nothing changes. The question was
+whether that promise would survive contact with the checks.
+
+This run added a role. A separate AI session acted as product manager, setting sequence and scope and
+making the product calls. The developer approved every public act — the fork, each issue, each push —
+and every risk decision stayed with the developer rather than the product-manager session.
+
+### By the Numbers
+
+| Measure | Value |
+| --- | --- |
+| Call sites moved onto the registry | 10 |
+| Differential scenarios run against `main` | 144 — 9 call sites x 16 scenarios, all matching in exception type, return value, call count, model, max tokens and sampling. The 10th call site, a `retrieve_and_generate` model ARN, was pinned at request level instead |
+| Tests at hand-off | 91 (refactor), 155 (with the comparison) |
+| Commits | 22 — 13 refactor, 9 comparison, each passing on its own |
+| Injected bugs the tests missed, first pass | 6 of 10 |
+| Injected bugs caught, final | 22 of 23 (the survivor is behaviorally equivalent) |
+| Product-manager decisions reversed by evidence | 2 |
+| Regressions introduced by the implementer and caught before push | 2 — the logging reconfiguration, and a sampling bug in the already-committed registry |
+| Model comparison | 4 models x 3 PDF cases x 3 trials, plus 4 FHIR controls each — 52 runs, about $0.27 |
+| Deployments | 0. A planned dev deploy was cancelled; parity was proven offline |
+| Elapsed | One afternoon: first commit 12:11, last 16:06 |
+
+### Core Observations
+
+- **The product manager was wrong, and a table proved it.** To stop failures being swallowed
+  silently, the PM ruled that an empty model response should raise an error instead of returning an
+  empty string. The reasoning was sound. A reviewer ran `main` and the branch on the same empty
+  response at each call site sharing the helper, and the raise changed behavior at 4 of those 8:
+  three that had returned a fallback value would now raise instead (two of them after extra
+  retries), and at the fourth a case would be judged against a generic placeholder criterion where
+  `main` produced none. The decision was reversed, and the comparison is now a committed test rather
+  than a one-off check. The
+  lesson is the same as Run 6's, one level up: a confident instruction carries its author's blind
+  spots, wherever it comes from.
+- **The brief was built on the README, and the code disagreed.** The PM's first brief said the
+  documented default model "stays the default". The code ran a different model at 7 of the 10 call
+  sites. Keeping today's behavior and keeping the documented default were two different changes, and
+  only one of them was a refactor. The implementer flagged the conflict instead of guessing. The PR
+  kept runtime behavior and corrected the docs.
+- **The implementer's own regression was caught before push.** One step imported a module that
+  reconfigures logging for the whole process. In four Lambdas, info logs would likely have stopped
+  reaching CloudWatch — which undercut the PR's own advice to check the logs after changing a model.
+  The tests stayed green. The cold read found it by simulating the Lambda runtime. The fix came with
+  a test that runs each import in a fresh interpreter, so no earlier test can mask it.
+- **Real calls before code turned guesses into facts.** One minimal call per candidate model, on
+  synthetic text, cost fractions of a cent. It found that some models reject two sampling settings
+  sent together, that one returns a reasoning block before its answer (so reading the first block
+  returns nothing), and that newer models reject any non-default sampling. That last fact exposed a
+  bug in the already-committed registry before anything was pushed.
+- **Mutation testing changed what "green" meant, twice.** The first review injected 10 bugs, and 6
+  got past the suite. After new tests, 22 of 23 were caught, and the survivor makes no behavioral
+  difference. The comparison harness repeated the cycle: 8 surviving mutants, then 0.
+- **A report row said one thing and sent another.** In the model comparison, a candidate row labeled
+  "temperature 0.1" actually sent the same settings as the as-shipped row, because an override equal
+  to the default model keeps the default sampling. It was a duplicate row with a false label, and the
+  report, the manifest and the PR draft all repeated it. The cold read caught it before publication.
+  Rows now record the settings they actually send, read from the request rather than from config.
+- **Measuring the models found bugs in the thing being measured.** Every model extracted every code
+  correctly on the three PDFs. Payor accuracy was 0.667 for all of them, because the pipeline's own
+  normalizer drops one payor's name. A FHIR path keeps only the first procedure code. Both bugs
+  predate the work, and both were visible only because every row failed identically.
+
+### Known Limitations
+
+- One sample, one afternoon, one developer. The model comparison is N=3 synthetic PDFs. It supports
+  "equal code accuracy on these cases, different cost and latency", and nothing broader.
+- The parity proof is offline. No end-to-end before/after run was done on a deployment, and the PR
+  says so.
+- The PM and the implementer were both AI sessions, briefed by the same developer. Their
+  disagreements were real, but they were not independent of their shared source.
+- The mutation-testing counts were reported in the session and are not recorded in the repo. Unlike
+  every other number here, they cannot be re-derived from the branches.
 
 ---
 
