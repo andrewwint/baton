@@ -26,9 +26,10 @@ the skill, not by any external caller.
   `unverified` (prior code could not be run) value — so a skipped comparison is a value someone can read
   rather than an omission indistinguishable from a rule nobody applied. The verify step of `SKILL.md` gains
   the reading side: `n/a` or `unverified` on a change that does claim parity is a finding, not a pass. The
-  lane's Constraints also gained a carve-out permitting a read-only materialization of the prior revision
-  (throwaway worktree or temp export), since the read-only rule otherwise forbade the comparison the new rule
-  asks for. **Honest limit:** this is a prose obligation on both sides, not an enforced gate — no hook detects
+  lane's Constraints also gained a carve-out permitting the prior revision to be materialized *outside* the
+  repository (`git archive` into a temp directory, or a throwaway clone there), since the read-only rule
+  otherwise forbade the comparison the new rule asks for. It deliberately excludes `git worktree add`, which
+  would write `.git/worktrees` and contradict the lane's read-only guarantee. **Honest limit:** this is a prose obligation on both sides, not an enforced gate — no hook detects
   a parity claim, nothing in `tools/` references the field, and no eval exercises it. An independent cold read
   caught an earlier draft of this entry claiming the absence was "detectable by the manager at integration
   rather than depending on the reviewer remembering the rule," which was false: nothing manager-side had
